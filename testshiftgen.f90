@@ -39,18 +39,18 @@
     call color(15)
     call polymark(vinfarrayr,Wgarrayp(nge)*.98+1.e-6*Wgarrayp,nge,ichar('|'))
 !    call pltend
-    call minmax(forcegp,2*nge,pmin,pmax)
-    call minmax(forcegr,2*nge,rmin,rmax)
+    call minmax(Forcegp,2*nge,pmin,pmax)
+    call minmax(Forcegr,2*nge,rmin,rmax)
     call pltinit(vinfarrayr(nge),vinfarrayr(1),min(pmin,rmin),max(pmax,rmax))
     call axis
     call axlabels('v!d!A;!@!d','dF/dv!d!a;!@!d')
     call legendline(.3,.9,258,'Reflected')
     call color(1)
-    call polyline(vinfarrayr,real(forcegr),nge)
+    call polyline(vinfarrayr,real(Forcegr),nge)
     call legendline(.2,.16,0,' real')
     call color(2)
     call dashset(2)
-    call polyline(vinfarrayr,imag(forcegr),nge)
+    call polyline(vinfarrayr,imag(Forcegr),nge)
     call legendline(.2,.08,0,' imag')
     call dashset(0)
     call color(15)
@@ -71,10 +71,10 @@
     call axis2
     call axlabels('v!d!A;!@!d','')
     call color(1)
-    call polyline(vinfarrayp,real(forcegp),nge)
+    call polyline(vinfarrayp,real(Forcegp),nge)
     call color(2)
     call dashset(2)
-    call polyline(vinfarrayp,imag(forcegp),nge)
+    call polyline(vinfarrayp,imag(Forcegp),nge)
     call dashset(0)
     call pltend
     call multiframe(0,0,0)
@@ -86,6 +86,7 @@
     real, dimension(nge) :: vpsiarrayp
     complex :: Ftotalg
     character*40 annote,ffan
+    write(*,*)'testAttract'
     lioncorrect=.false.
     if(real(omegag).eq.0)omegag=(.1,0.001000)
     omegaonly=omegag
@@ -104,8 +105,8 @@
     write(*,*)'Ftotalg        ',Ftotalg
     write(*,*)'R(Ftotalg)/psi^2  ',real(Ftotalg)/psig**2,-.14776,-0.5*.14776
     call multiframe(1,2,0)
-    call minmax(forcegp,2*nge,pmin,pmax)
-    call minmax(forcegr,2*nge,rmin,rmax)
+    call minmax(Forcegp,2*nge,pmin,pmax)
+    call minmax(Forcegr,2*nge,rmin,rmax)
     fpfac=max(5.*int(min(abs(rmax/pmax),abs(rmin/pmin))/5.),1.)
     call fwrite(fpfac,iwidth,0,ffan)
     call pltinit(vinfarrayr(nge),vinfarrayr(1)*1.01,min(pmin,rmin),max(pmax,rmax))
@@ -115,11 +116,11 @@
     call legendline(0.3,.9,258,'Trapped')
     call winset(.true.)
     call color(1)
-    call polyline(vinfarrayr,real(forcegr),nge)
+    call polyline(vinfarrayr,real(Forcegr),nge)
     call legendline(.05,.1,0,' real')
     call color(2)
     call dashset(2)
-    call polyline(vinfarrayr,imag(forcegr),nge)
+    call polyline(vinfarrayr,imag(Forcegr),nge)
     call legendline(.05,.05,0,' imag')
     call color(15)
     call dashset(0)
@@ -129,11 +130,11 @@
     call legendline(0.3,.9,258,'Passing')
     call winset(.true.)
     call color(3)
-    call polyline(vpsiarrayp,fpfac*imag(forcegp),nge)
+    call polyline(vpsiarrayp,fpfac*imag(Forcegp),nge)
     call legendline(.4,.1,0,' realx'//ffan(1:iwidth))
     call color(4)
     call dashset(2)
-    call polyline(vpsiarrayp,fpfac*real(forcegp),nge)
+    call polyline(vpsiarrayp,fpfac*real(Forcegp),nge)
     call legendline(.4,.05,0,' imagx'//ffan(1:iwidth))
     call dashset(0)
     call pltend
@@ -329,7 +330,6 @@
   subroutine tsparse(ormax,oi,nvs,isw,vs,ps)
     use shiftgen
     character*30 argument
-    isw=0
     do i=1,iargc()
        call getarg(i,argument)
        if(argument(1:2).eq.'-p')read(argument(3:),*)ps
@@ -347,8 +347,12 @@
 201       call pfset(ipfset)
        endif
        if(argument(1:2).eq.'-s')then
-          read(argument(3:),*)j
-          isw=isw+j
+          if(lentrim(argument).eq.2)then
+             isw=0
+          else
+             read(argument(3:),*)j
+             isw=isw+j
+          endif
        endif
        if(argument(1:2).eq.'-h')goto 1
     enddo
@@ -365,7 +369,7 @@
     write(*,101) '-oc.. -kg..  set O_c, set k  [',Omegacg,kg
     write(*,102) '-n..         set number of vs[',nvs
     write(*,102) '-s..         set switches    [',isw
-    write(*,*)' s=1 Frepel, 2 Null, 4 Fr(omega), 8 PlotForce, 16&
+    write(*,*)' s=1 Frepel, 2 Fattr, 4 Fi(omega), 8 PlotForce, 16&
          & denem',', 64 SumHarm'
     write(*,*)' s=128 fvinfplot, 256 Frepelofimagomega.'
 !    write(*,'(a,f8.3,a,f8.3,a,f8.3,a,f8.3,a,i3,a,f8.3,a,f8.3)') 'psi&
@@ -422,14 +426,12 @@ subroutine testdenem
 end subroutine testdenem
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use shiftgen
-integer :: nvs=1,isw=0
+integer :: nvs=1,isw=3
 real :: ormax=0.,oi=0.
 call tsparse(ormax,oi,nvs,isw,vs,ps)
 omegag=complex(ormax,oi)
-! Some tests might interfere with others.
   if(isw-2*(isw/2).eq.1) call testFrepel
   isw=isw/2 ! 2
-!  if(isw-2*(isw/2).eq.1) write(*,*)'No routine for isw=',2 ! call testAttract
   if(isw-2*(isw/2).eq.1) call testAttract
   isw=isw/2 ! 4
   if(isw-2*(isw/2).eq.1) call Frepelofomega

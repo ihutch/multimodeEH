@@ -51,18 +51,26 @@ module shiftgen
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
-  complex, dimension(-ngz:ngz) :: Lg,CapPhig
+  complex, dimension(-ngz:ngz) :: CapPhig
+  integer, parameter :: nauxmax=2
+  integer :: naux=2
+  real, dimension(-ngz:ngz,nauxmax) :: auxmodes
+  complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
+  real :: kpar=0.099
 ! Parallel energy arrays
   complex :: omegabg(0:nge)
-  complex, dimension(nge) :: Forcegarray,Forcegp,Forcegr,Forcegt
+  complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
+  complex, dimension(nauxmax,nge) :: Fauxarray,Fauxp,Fauxr,Fauxt
   real :: Wgarray(nge),Wgarrayp(nge),Wgarrayr(nge),vinfarrayp(nge)&
        &,vinfarrayr(nge),tbr(nge),tbp(nge),Wgarrayu(nge)
-  complex :: Fnonresg(0:nge),Ftrapg(0:nge)
+  complex :: Fnonresg(0:nge),Ftrapg(0:nge),Fnonraux(nauxmax,0:nge)&
+       &,Fauxres(nauxmax,0:nge)
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg
+  complex, dimension(nauxmax) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
 ! Ratio of mass of ion to mass of electron
   real :: rmime=1836.
 ! Whether to apply a correction to the trapped species
@@ -107,11 +115,21 @@ contains
        phig(i)=phigofz(zg(i))
        vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
        phigprime(i)=phigprimeofz(zg(i))
+       do j=1,naux
+          auxmodes(i,j)=auxofz(zg(i),j,kpar)
+       enddo
        if(i.gt.0)then
           zg(-i)=ivs*zg(i)
           phig(-i)=phig(i)
           vg(-i)=-ivs*vg(i)
           phigprime(-i)=ivs*phigprime(i)
+          do j=1,naux
+             auxmodes(-i,j)=ivs*auxmodes(i,j)
+             if(.not.auxmodes(i,j).lt.1.e20)then
+                write(*,*)'auxmodes NAN',i,j,auxmodes(i,j)
+                stop
+             endif
+          enddo
        endif
        if(.not.phigprime(i).lt.1.e20)then
           write(*,*)'phigprime NAN',i,phigprime(i),zg(i),z1,z2,zi,zR,&
@@ -153,7 +171,7 @@ contains
     enddo
   end subroutine orbitendg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine Fdirect(Wgi,isigma,dForceg)
+  subroutine Fdirect(Wgi,isigma,dForceg,dFaux)
 ! Calculate the past integral of tau and force 
 ! vs z for orbit of energy W, starting at isigma side. Where
 ! for untrapped particles (W>=0), v_0=vinf=sqrt(2*W).
@@ -172,7 +190,7 @@ contains
 ! done as exp(-i omega(tau-t)) dtau = d[exp()]/(-i omega)
 ! The result needs to be multiplied by df/dWpar.
     complex :: dForceg,CPfactor,exptbb2
-
+    complex :: dFaux(nauxmax)
     Wg=Wgi
     call makezg(isigma) ! Sets various time array values.
     vpsig=vg(-ngz)            ! Untrapped default ...
@@ -181,6 +199,9 @@ contains
     iws=0                     ! dtau algorithm switch index (plotting only)
     taug(-ngz)=0.
     CapPhig(-ngz)=0.
+    do j=1,naux
+       CapPaux(-ngz,j)=something
+    enddo
     dForceg=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -205,6 +226,12 @@ contains
        dForceg=dForceg-sqm1g*&
             0.5*(CapPhig(i)*phigprime(i)+CapPhig(i-1)*phigprime(i-1))&
             *abs(vpsig*dtau)
+       do j=1,naux
+          CapPaux(i,j)=CPfactor*CapPaux(i-1,j)-phigp*(1.-CPfactor)*sqm1g/omegag
+          dFaux(j)=dFaux(j)-sqm1g*&
+            0.5*(CapPaux(i,j)*auxmodes(i,j)+CapPaux(i-1,j)*auxmodes(i-1,j))&
+            *abs(vpsig*dtau)
+       enddo
     enddo
     if(Wg.lt.0)then     ! Trapped orbit. Add resonant term. 
        exptbb2=exp(sqm1g*omegag*taug(ngz))
@@ -212,6 +239,8 @@ contains
 ! This form is to be divided by (1-exptb) full resonant denominator.
        dForceg=dForceg*(1.-exptbb2**2) &
             + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig
+       dFaux(1:naux)=dFaux(1:naux)*(1.-exptbb2**2) &
+            + sqm1g*CapPaux(ngz,1:naux)**2*(1.-exptbb2)*vpsig
 ! But it would probably be better to remove a (1.-exptbb2) factor and
 ! Divide only the resonant term by (1.+exptbb2) later Half Period:
 !       dForceg=dForceg*(1.+exptbb2) + sqm1g*CapPhig(ngz)**2*vpsig
@@ -233,6 +262,7 @@ contains
     call FgReflectedEint(Ftotalrg,isigma)
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! Both v-directions
     Ftotalg=Ftotalg*Tinf/Torepel   ! Correct for ion Temperature.
+    Ftauxh=(Ftauxp+Ftauxr)*2*Tinf/Torepel
   end subroutine FgRepelEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine FgPassingEint(Ftp,isigma,Emaxg)
@@ -240,7 +270,6 @@ contains
     complex Ftp
     integer :: isigma,i
     real :: Emaxg
-    logical :: lcompare=.false.
     integer, parameter :: ippow=3
     real :: dvinf,fvinf,dfe,dfeperp,dfepre,dfeperppre
     omegadiff=omegag-omegaonly
@@ -248,22 +277,25 @@ contains
        Wgarray(i)=max(psig,0.)+Emaxg*(i/float(nge))**ippow
        vinfarrayp(i)=-isigma*sqrt(2.*Wgarray(i))
 !       write(*,*)'Wgarray(i),Emaxg,psig,ippow',Wgarray(i),Emaxg,psig,ippow
-       call Fdirect(Wgarray(i),isigma,Forcegarray(i))
+       call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxarray(1,i))
        dfe=dfdWpar(vinfarrayp(i),fvinf) ! fparallel slope and value
 !       write(*,*)'vinfarrayp(i),dfe,fvinf',vinfarrayp(i),dfe,fvinf
        dfeperp=-fvinf/Tperpg
        if(i.eq.1)then  ! Start of integration approximated
           dvinf=abs(vinfarrayp(i))-sqrt(2.*max(psig,0.))
           Ftp=dvinf*Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
+          Ftauxp(1:naux)=dvinf*Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp)
        else
           dvinf=abs(vinfarrayp(i)-vinfarrayp(i-1))
           Ftp=Ftp+dvinf*0.5*&
                (Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp) &
                +Forcegarray(i-1)*(omegag*dfepre-omegadiff*dfeperppre))
+          Ftauxp(1:naux)=Ftauxp(1:naux)+dvinf*0.5*&
+               (Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp) &
+               +Fauxarray(1:naux,i-1)*(omegag*dfepre-omegadiff*dfeperppre))
        endif
        Forcegp(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
        tbp(i)=taug(ngz)
-       if(lcompare)call Fpasscompare(i)
        dfepre=dfe
        dfeperppre=dfeperp
     enddo
@@ -279,7 +311,7 @@ contains
     do i=1,nge  ! Reflected
        Wgarray(i)=psig*(1.-(i/float(nge))**2)
        vinfarrayr(i)=-isigma*sqrt(2.*Wgarray(i))
-       call Fdirect(Wgarray(i),isigma,Forcegarray(i))
+       call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxarray(1,i))
 ! This seems to have been an error found 16 Nov 2021.       
 !       dfe=dfdWpar(vinfarrayp(i),fvinf) ! fparallel slope and value
        dfe=dfdWpar(vinfarrayr(i),fvinf) ! fparallel slope and value
@@ -287,11 +319,15 @@ contains
        if(i.eq.1)then
           dvinf=abs(vinfarrayr(i))-sqrt(2.*psig)
           Ftr=dvinf*Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
+          Ftauxr(1:naux)=dvinf*Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp)
        else
           dvinf=abs(vinfarrayr(i)-vinfarrayr(i-1))
           Ftr=Ftr+dvinf*0.5* &
                (Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp) &
                +Forcegarray(i-1)*(omegag*dfepre-omegadiff*dfeperppre))
+          Ftauxr(1:naux)=Ftauxr(1:naux)+dvinf*0.5* &
+               (Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp) &
+               +Fauxarray(1:naux,i-1)*(omegag*dfepre-omegadiff*dfeperppre))
        endif
 !       Forcegr(i)=Forcegarray(i)*omegag*dfdWpar(vinfarrayr(i),fvinf)
        Forcegr(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
@@ -313,10 +349,10 @@ contains
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
 !    write(*,*)'Fs',Ftotalpg,Ftotalrg
+    Ftauxa(1:naux)=(Ftauxp(1:naux) + Ftauxt(1:naux))*2
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
-    logical :: lcompare=.false.  ! Make True Only if using shiftmode
     ! Integrate over fe (trapped). Wj=vpsi^2/2-psi. So vpsi=sqrt(2(psi+Wj))
     ! Wj range 0 to -psi.
     complex :: Ftotal,exptb,cdvpsi,dob,dFdvpsig,resdenom,resdprev
@@ -329,6 +365,8 @@ contains
     vpsiprev=sqrt(-2.*psig)
     omegabg(0)=0.
     Fnonresg(0)=0.                !Don't add zero energy point.
+    Fnonraux(1:naux,0)=0.
+    Ftauxt(1:naux)=0.
     resdprev=1.
     do i=1,nge-1       ! Trapped
        Wgarray(i)=psig*((float(i)/nge)**iwpowg)
@@ -340,7 +378,7 @@ contains
        vinfarrayr(i)=vpsi ! reflected==trapped for attracting hill.
        dvpsi=vpsiprev-vpsi
 ! Calculate the force dFdvpsi for this vpsi and dvy element for one transit:
-       call Fdirect(Wgarray(i),isigma,dFdvpsig)
+       call Fdirect(Wgarray(i),isigma,dFdvpsig,Fauxarray(1,i))
        Forcegarray(i)=dFdvpsig
        Forcegr(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
        omegabg(i)=2.*pig/(2.*taug(ngz))
@@ -355,9 +393,12 @@ contains
        cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
        ! Strictly to get dFdvpsi we need to multiply by the omega f' terms
        Fnonresg(i)=dFdvpsig*(omegag*dfe-omegadiff*dfeperp)
+       Fnonraux(1:naux,i)=Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp)
        ! and correct for the imaginary shift of omegabg:
        Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))  &
             /real(omegabg(i)-omegabg(i-1))*obi
+       Fnonraux(1:naux,i)=Fnonraux(1:naux,i)+sqm1g*real(Fnonraux(1:naux,i)&
+            &-Fnonraux(1:naux,i-1)) /real(omegabg(i)-omegabg(i-1))*obi
        if(taug(ngz)*imag(omegag).lt.-2.)then!Hack fix giant dFdvpsi problem
           write(*,*)'Drop giant taug*omegai',taug(ngz),imag(omegag),dFdvpsig
           Fnonresg(i)=0. 
@@ -366,6 +407,8 @@ contains
        Ftrapg(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)*cdvpsi
     ! Now Ftrapg(i) is a quantity when simply summed over all ne positions
     ! and multiplied by 2 gives the total force. 
+       Fauxres(1:naux,i)=0.5*(Fnonraux(1:naux,i)/resdenom &
+                     + Fnonraux(1:naux,i-1)/resdprev)*cdvpsi
        if(.not.(abs(Ftrapg(i)).ge.0))then
           write(*,*)'Ftrapg NAN?',i
           write(*,*)Fnonresg(i),Ftrapg(i)
@@ -376,23 +419,20 @@ contains
           write(*,*)fe,dfe,dfeperp
           stop
        endif
-! No longer Multiply by 2. to account for \pm v_\psi.
-!       Ftotal=Ftotal+2.*Ftrapg(i)       ! Add to Ftotal integral.
-       Ftotal=Ftotal+Ftrapg(i)       ! Add to Ftotal integral.
-       if(lcompare)call  Ftrapcompare(i,dfe,dfeperp,obi,resdenom&
-            &,resdprev,cdvpsi,Ftotal,dFdvpsig,vpsi)
+       Ftotal=Ftotal+Ftrapg(i)   ! Add to Ftotal integral (doubled later).
+       Ftauxt=Ftauxt+Fauxres(:,i)
        vpsiprev=vpsi
        resdprev=resdenom
     enddo
     ! Calculate end by extrapolation.
     Ftrapg(nge)=Ftrapg(nge-1)+0.5*(Ftrapg(nge-1)-Ftrapg(nge-2))
     Fnonresg(nge)=Fnonresg(nge-1)
-!    Ftotal=Ftotal+2.*Ftrapg(nge)
     Ftotal=Ftotal+Ftrapg(nge)
+    Fauxres(1:naux,nge)=Fauxres(1:naux,nge-1)+0.5*(Fauxres(1:naux,nge&
+         &-1)-Fauxres(1:naux,nge-2))
+    Ftauxt=Ftauxt+Fauxres(:,nge)
     Wgarray(nge)=psig
     Wgarrayr=Wgarray
-    if(lcompare)call  Ftrapcompare(i,dfe,dfeperp,obi,resdenom&
-         &,resdprev,cdvpsi,Ftotal,dFdvpsig,vpsi)
   end subroutine FgTrappedEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine FgEint(Ftotalg,isigma)
@@ -496,6 +536,21 @@ contains
   real function phigprimeofz(zval)
     phigprimeofz=-psig*sinh(zval/4.)/cosh(zval/4.)**5
   end function phigprimeofz
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  real function auxofz(zval,iaux,kpar)
+    real kpar
+! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
+    x=zval/4.
+    S=1./cosh(x)
+    T=tanh(x)
+    if(iaux.eq.1)then   ! Discrete
+       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/4 ! probably remove 4 for normalize.
+    else                ! Continuum
+     Pk= -15*(kpar**4 + (28*S**2 - 15)*kpar**2 + 63*S**4 - 56*S**2 + 8)
+     Qk= kpar**4 + (105*S**2 - 85)*kpar*2 + 945*S**4 - 1155*S**2 + 274
+     auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))
+  endif
+  end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWptrap(Wj,fe)
 ! Return the energy derivative and the parallel distribution function
