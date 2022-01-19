@@ -1,0 +1,37 @@
+The general idea is to take shiftgen and implement two additional
+potential perturbation modes: the continuum mode that corresponds
+to the streaks or wave modes that are seen in code simulations, and
+the second antisymmetric mode that might be the cause of the
+narrowing of the shift eigenmode also observed in threshold
+simulations of instability.
+
+In principle all this involves is a calculation of the \Phi(z) values
+for these different perturbations. And integrating it times the
+equilibrium potential gradient to get corresponding force. Since this
+is now done directly (without integration by parts) it ought to be
+straightforward and can be added to the existing code.
+
+However, the continuum mode for passing particles has the challenges
+that it is of effectively infinite extent, and requires the correct
+kparallel value (of the continuum) to be chosen. For high B, I think
+this can be calculated from the magnetized langmuir wave dispersion
+relation between kpar, kperp, and omega.
+
+I think the infinite extent can be finessed by supposing that an
+incoming particle moving from infinity to the edge of the hole region
+gains essentially negligible f-perturbation (because the wave
+amplitude rises slowly from zero at infinity). Therefore tilde f can
+be taken as equal to minus the diabatic f-perturbation at the incoming
+hole edge (e.g. x~=20) and simply integrated up over a finite
+x-extent. Consequently its treatment is not really different from the
+discrete mode except for the initial condition. It seems also from
+the near identity of low kpar continuum modes in the inner region that
+only really one continuum mode is required, and it won't matter much
+what kpar value is chosen. In any case the simulations show that the
+kpar is low, of order pi divided by the domain size.
+
+
+19 Jan 2022
+Fixed testshiftgen to remove all dependence on shiftgen as well as
+some other bugs. This can now be used for testing an upgradeded
+shiftgen that is able to use multiple modes.
