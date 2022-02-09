@@ -33,8 +33,9 @@ program continuous
      call color(j)
      call fwrite(k,iwidth,2,string)
 ! antisymmetric  
+     call iwrite(j,iwidth,string)
      call polyline(x,(T*Pk*cos(k*x)-k*Qk*sin(k*x))/fnorm,npts)
-     call legendline(.6,1.-.1*j,258,'Continuum k='//string(1:iwidth))
+     call legendline(.6,1.-.1*j,258,'Continuum p='//string(1:iwidth))
 ! symmetric
      call dashset(2)
      call polyline(x,(T*Pk*sin(k*x)+k*Qk*cos(k*x))/fnorm,npts)
@@ -57,14 +58,22 @@ program continuous
   dmodes(:,2)=T*S**2*(3*S**2-2)*sqrt(105.)/4
   dmodes(:,4)=-S**4*T*3*sqrt(70.)/8
 
-  call autoplot(x,dmodes(:,4),npts)
-  call polyline(x,dmodes(:,2),npts)
+  call autoinit(x,dmodes(:,4),npts)
+  call axis
+  call axlabels('x','')
+  call labeline(x,dmodes(:,4),npts,'4',1)
+  call labeline(x,dmodes(:,2),npts,'2',1)
   call legendline(.7,.2,258,'Discrete')
   call legendline(.05,.2,0,' antisymmetric')
   call dashset(2)
+  il=nint(nx*.25)
+  write(*,*)'il=',il,x(il)
   call polyline(x,dmodes(:,5),npts)
+  call jdrwstr(wx2nx(x(il)),wy2ny(dmodes(il,5)),'5',0.)
   call polyline(x,dmodes(:,3),npts)
+  call jdrwstr(wx2nx(x(il)),wy2ny(dmodes(il,3)),'3',0.)
   call polyline(x,dmodes(:,1),npts)
+  call jdrwstr(wx2nx(x(il)),wy2ny(dmodes(il,1)),'1',-.5)
   call legendline(.05,.1,0,' symmetric')
   call pltend
   

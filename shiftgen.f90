@@ -41,7 +41,7 @@
 module shiftgen
   complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
   complex :: omegadiff,omegaonly
-  real :: psig=.1,Wg,zm=10.,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
+  real :: psig=.1,Wg,zm=14.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
   real :: vshift=0.,vrshift=0.  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.
 ! Tinf is really the reference (attracted). Torepel the other/repelled species.
@@ -60,6 +60,7 @@ module shiftgen
 ! Parallel energy arrays
   complex :: omegabg(0:nge)
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
+!   Auxiliary Forces as a function of parallel energy/velocity.  
   complex, dimension(nauxmax,nge) :: Fauxarray,Fauxp,Fauxr,Fauxt
   real :: Wgarray(nge),Wgarrayp(nge),Wgarrayr(nge),vinfarrayp(nge)&
        &,vinfarrayr(nge),tbr(nge),tbp(nge),Wgarrayu(nge)
@@ -70,6 +71,7 @@ module shiftgen
 ! Total forces
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg
+!   Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nauxmax) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
 ! Ratio of mass of ion to mass of electron
   real :: rmime=1836.
@@ -329,7 +331,6 @@ contains
                (Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp) &
                +Fauxarray(1:naux,i-1)*(omegag*dfepre-omegadiff*dfeperppre))
        endif
-!       Forcegr(i)=Forcegarray(i)*omegag*dfdWpar(vinfarrayr(i),fvinf)
        Forcegr(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
        tbr(i)=taug(ngz)
        dfepre=dfe
@@ -379,8 +380,6 @@ contains
        dvpsi=vpsiprev-vpsi
 ! Calculate the force dFdvpsi for this vpsi and dvy element for one transit:
        call Fdirect(Wgarray(i),isigma,dFdvpsig,Fauxarray(1,i))
-       Forcegarray(i)=dFdvpsig
-       Forcegr(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
        omegabg(i)=2.*pig/(2.*taug(ngz))
        call pathshiftg(i,obi)
        omegabg(i)=omegabg(i)+sqm1g*obi
@@ -405,6 +404,7 @@ contains
        endif
 ! Then divide by the resonance denominator multiply by complex dvpsi and sum.
        Ftrapg(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)*cdvpsi
+       Forcegr(i)=Ftrapg(i)/cdvpsi
     ! Now Ftrapg(i) is a quantity when simply summed over all ne positions
     ! and multiplied by 2 gives the total force. 
        Fauxres(1:naux,i)=0.5*(Fnonraux(1:naux,i)/resdenom &
@@ -538,18 +538,20 @@ contains
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function auxofz(zval,iaux,kpar)
-    real kpar
+    real kpar,k2
 ! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
     x=zval/4.
     S=1./cosh(x)
     T=tanh(x)
     if(iaux.eq.1)then   ! Discrete
-       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/4 ! probably remove 4 for normalize.
-    else                ! Continuum
-     Pk= -15*(kpar**4 + (28*S**2 - 15)*kpar**2 + 63*S**4 - 56*S**2 + 8)
-     Qk= kpar**4 + (105*S**2 - 85)*kpar*2 + 945*S**4 - 1155*S**2 + 274
-     auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))
-  endif
+       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8  ! Normalized on z
+    else                ! Continuum          
+       k2=kpar**2
+       fnorm=sqrt((1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
+       Pk= -15*(kpar**4 + (28*S**2 - 15)*kpar**2 + 63*S**4 - 56*S**2 + 8)
+       Qk= kpar**4 + (105*S**2 - 85)*kpar*2 + 945*S**4 - 1155*S**2 + 274
+       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm/2
+    endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWptrap(Wj,fe)

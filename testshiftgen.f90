@@ -86,6 +86,11 @@
     real, dimension(nge) :: vpsiarrayp
     complex :: Ftotalg
     character*40 annote,ffan
+! Give access to pf switch pfsw    
+    integer pfsw
+    integer pfilno,pfnextsw,pfPS,psini
+    common/pltfil/pfsw,pfilno,pfnextsw,pfPS,psini
+
     write(*,*)'testAttract'
     lioncorrect=.false.
     if(real(omegag).eq.0)omegag=(.1,0.001000)
@@ -96,7 +101,11 @@
 !    write(*,*)'Entered testattract'
     write(annote,'(''!Ay!@='',f5.3,'' !Aw!@=('',f5.3'','',f5.3,'')'')')&
          psig,real(omegag),imag(omegag)
-    call dcharsize(.025,.025)
+    if(pfnextsw.ge.0)then
+       call dcharsize(.02,.02)
+    else
+       call dcharsize(.025,.025)
+    endif
     call FgEint(Ftotalg,isigma)  ! Generic call is the same.
     vpsiarrayp=sqrt(2.*(Wgarrayp(1:nge)-psig))
 !    call fvinfplot
@@ -107,7 +116,8 @@
     call multiframe(1,2,0)
     call minmax(Forcegp,2*nge,pmin,pmax)
     call minmax(Forcegr,2*nge,rmin,rmax)
-    fpfac=max(5.*int(min(abs(rmax/pmax),abs(rmin/pmin))/5.),1.)
+!    fpfac=max(5.*int(min(abs(rmax/pmax),abs(rmin/pmin))/5.),1.)
+    fpfac=max(10.*int(min(abs(rmax/pmax),abs(rmin/pmin))/10.),1.)
     call fwrite(fpfac,iwidth,0,ffan)
     call pltinit(vinfarrayr(nge),vinfarrayr(1)*1.01,min(pmin,rmin),max(pmax,rmax))
     call axis; call axis2
@@ -115,6 +125,8 @@
     call legendline(0.5,1.03,258,annote(1:lentrim(annote)))
     call legendline(0.3,.9,258,'Trapped')
     call winset(.true.)
+!    call polymark(vinfarrayr,(max(pmax,rmax)*.97+vinfarrayr*1.e-7),nge&
+!         &,ichar('|'))
     call color(1)
     call polyline(vinfarrayr,real(Forcegr),nge)
     call legendline(.05,.1,0,' real')
@@ -129,6 +141,8 @@
     call axlabels('v!d!Ay!@!d','')
     call legendline(0.3,.9,258,'Passing')
     call winset(.true.)
+!    call polymark(vpsiarrayp,(max(pmax,rmax)*.97+vpsiarrayp*1.e-7),nge&
+!         &,ichar('|'))
     call color(3)
     call polyline(vpsiarrayp,fpfac*imag(Forcegp),nge)
     call legendline(.4,.1,0,' realx'//ffan(1:iwidth))
@@ -140,6 +154,20 @@
     call pltend
     
     call multiframe(0,0,0)
+    call charsize(.018,.018)
+    call pltinit(0.,sqrt(-psig),min(pmin,rmin),max(pmax,rmax))
+    call axis
+    call axlabels('(-W)!u1/2!u','dF/dv!d!Ay!@!d')
+    call polymark(sqrt(-psig-vinfarrayr**2/2),(max(pmax,rmax)*.97&
+         &+vpsiarrayp*1.e-7),nge ,ichar('|'))
+    call polyline(sqrt(-psig-vinfarrayr**2/2),real(Forcegr),nge)
+    call legendline(.7,.1,0,' real')
+    call dashset(2)
+    call polyline(sqrt(-psig-vinfarrayr**2/2),imag(Forcegr),nge)
+    call legendline(.7,.2,0,' imag')
+    call dashset(0)
+    call pltend
+    
     lioncorrect=.true.
   end subroutine testAttract
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -370,7 +398,7 @@
     write(*,102) '-n..         set number of vs[',nvs
     write(*,102) '-s..         set switches    [',isw
     write(*,*)' s=1 Frepel, 2 Fattr, 4 Fi(omega), 8 PlotForce, 16&
-         & denem',', 64 SumHarm'
+         & denem,',' 32 Modes, 64 SumHarm'
     write(*,*)' s=128 fvinfplot, 256 Frepelofimagomega.'
 !    write(*,'(a,f8.3,a,f8.3,a,f8.3,a,f8.3,a,i3,a,f8.3,a,f8.3)') 'psi&
 !         &=',psig,' zm=',zm,' omax=',ormax,' v=',vshift,' nv=',nvs ,'&
@@ -425,6 +453,51 @@ subroutine testdenem
   call pltend
 end subroutine testdenem
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine plotmodes
+  use shiftgen
+  kpar=0.01
+  naux=2
+  zm=20.
+  psig=-.1
+  isigma=-1
+  Wg=.1*abs(psig)
+  call makezg(isigma)
+  dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
+  do i=-ngz+1,ngz
+     dot0=dot0+(phigprime(i-1)**2+phigprime(i)**2)*(zg(i)-zg(i-1))/2
+     dot1=dot1+(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
+     dot2=dot2+(auxmodes(i-1,2)**2+auxmodes(i,2)**2)*(zg(i)-zg(i-1))/2
+     dot12=dot12+(auxmodes(i-1,1)*auxmodes(i-1,2)&
+          +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
+     dot01=dot01+(auxmodes(i-1,1)*phigprime(i-1)&
+          +auxmodes(i,1)*phigprime(i))*(zg(i)-zg(i-1))/2
+     dot02=dot02+(phigprime(i-1)*auxmodes(i-1,2)&
+          +phigprime(i)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
+  enddo
+
+  ! auxmodes should be normalized (but continuum is more problematic).
+  ! Normalization of phigprime.
+  ppnorm=3*sqrt(70.)/16
+  dot0=dot0/(psig/ppnorm)**2
+  dot01=dot01/(psig/ppnorm)
+  dot02=dot02/(psig/ppnorm)
+  write(*,*)'Integral of mode^2: should = 1,    1,   Large'
+  write(*,*)'dot0 =',dot0,'  dot1 =',dot1,'  dot2 =',dot2
+  write(*,*)'Overlap integrals: for kpar=0, zm=big,  should be zero'
+  write(*,*)'dot12=',dot12,'  dot01=',dot01,'  dot02=',dot02
+  write(*,*)'zm=',zm,' kpar=',kpar
+  if(naux.gt.0)call multiframe(naux+1,1,1)
+! call autoplot(zg,phigprime*ppnorm/psig,2*ngz+1) ! Normalized
+  call autoplot(zg,phigprime,2*ngz+1)
+  call axlabels('','d!Af!@/dz')
+  do j=1,naux
+     call autoplot(zg,auxmodes(:,j),2*ngz+1)
+  enddo
+  call axlabels('z','')
+  call pltend
+
+end subroutine plotmodes
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use shiftgen
 integer :: nvs=1,isw=3
 real :: ormax=0.,oi=0.
@@ -440,7 +513,7 @@ omegag=complex(ormax,oi)
   isw=isw/2 ! 16
   if(isw-2*(isw/2).eq.1) call testdenem
   isw=isw/2 ! 32
-  if(isw-2*(isw/2).eq.1) write(*,*)'No routine for isw=',32 ! call testLofW
+  if(isw-2*(isw/2).eq.1)  call plotmodes
   isw=isw/2 ! 64
   if(isw-2*(isw/2).eq.1) call testSumHarm
   isw=isw/2 ! 128
