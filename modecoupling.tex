@@ -313,7 +313,7 @@ The applicable normal mode for the present electrostatic approximation
 when $\omega<\Omega,\omega_{pe}$ (and $\omega/k\gg v_{te}$) is the high
 frequency end of the whistler branch of the cold plasma dispersion
 relation at high refractive index $N=kc/\omega$. This is the obliquely
-propating ``magnetized langmuir wave'', for which
+propagating ``magnetized langmuir wave'', for which
 $\omega\approx\omega_{pe}\cos\theta$ (where
 $k_\perp/k_\parallel=\tan\theta$) or equivalently
 \begin{equation}
@@ -346,7 +346,7 @@ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
   \label{eq:16}
   \Phi_m(z) = \int_{\infty}^zA{\rm e}^{i[pz'/4+\omega_m
     (z-z')/v]}dz'/v
-  ={A{\rm e}^{ipx} \over i(pv/4-\omega_m)}={A{\rm e}^{ipx} \over
+  ={A{\rm e}^{ipx} \over i(pv/4-\omega_m)}={A{\rm e}^{ik_\parallel z} \over
     i(k_\parallel v-\omega_m)},
 \end{equation}
 where dropping the infinity limit is justified by positive imaginary
@@ -367,14 +367,14 @@ $(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
   z/v}\etothe{-v^2/2}dv$.  It has its first $z$-zero near
 $\omega_m z=1$. Thus, the density influence of the localized hole
 perturbation extends approximately a normalized distance
-$z_l=1/\omega_m$ (dimensionally
+$z_l\simeq 1/\omega_m$ (dimensionally
 $z_l= \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
 attenuated further away. At $z>z_l$, moreover, the outward going
 contribution to $\tilde n$ is increasingly contributed by the spatial
 range $[z-z_l,z]$, and merges into being given by the same integral as
-\ref{eq:16}.  Thus, even though the $\tilde f$ perturbations remain
-very different for inward and outward going velocities, the density
-perturbations are not very different for $z>z_l$.
+\ref{eq:16}.  Thus $\tilde n$ perturbations for inward and outward
+going velocities are given approximately by integrating $dv$ the
+same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite sign.
 
 The importance of the non-adiabatic response in the wave region can be
 understood intuitively by recognizing that the criterion for ignoring
@@ -579,10 +579,12 @@ Although the spatial integral in $\bra{4}|\tilde{V}\ket{q}$ is limited
 to the hole extent by $\bra{4}|$, the non-adiabatic incoming
 distribution perturbation $\tilde f$ at the hole edge is required, so
 as to initialize the $\Phi_m$ integration into the hole for passing
-orbits. This is provided by equation (\ref{eq:16}). The determination
-of $\tilde{V}\ket{q}$ through the rest of the hole is accomplished
-with by the internal integration over orbits, providing
-$\bra{4}|\tilde{V}\ket{q}$ without any external integration.
+orbits. This is provided by equation (\ref{eq:16}), and we are
+assuming cyclotron harmonic singularities at $\omega_m=k_\parallel v$
+are avoided. The determination of $\tilde{V}\ket{q}$ through the rest
+of the hole is accomplished with by the internal integration over
+orbits, providing $\bra{4}|\tilde{V}\ket{q}$ without any external
+integration.
 
 By contrast, the density perturbation arising from $\tilde{V}\ket{4}$ extends a
 distance of approximately $z_l$ into the external region because of

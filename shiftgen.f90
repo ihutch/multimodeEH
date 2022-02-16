@@ -49,7 +49,7 @@ module shiftgen
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100,nzext=100
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
@@ -63,10 +63,13 @@ module shiftgen
   real, dimension(-ngz:ngz,nauxmax) :: auxmodes
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   real :: kpar=0.099
+  real :: zextfac=5.
+  real, dimension(0:nzext) :: zext,auxext
+  complex, dimension(0:nzext) :: dentext
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
-  complex, dimension(nge) :: CapPhiEdge
+  complex, dimension(nge) :: CapPhiEdge,dFext
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
   complex, dimension(0:nge):: Fnonresg,Ftrapg
@@ -210,9 +213,8 @@ contains
     iws=0                     ! dtau algorithm switch index (plotting only)
     taug(-ngz)=0.
     CapPhig(-ngz)=0.
-    do j=1,naux
-       CapPaux(-ngz,j)=something
-    enddo
+    CapPaux(-ngz,1)=0.
+    CapPaux(-ngz,2)=something
     dForceg=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -310,15 +312,18 @@ contains
        else  ! Approximated start.
           dvinf=abs(vinfarrayp(i)-sqrt(2.*max(psig,0.)))+0.5*dvnext
        endif
+       Ftp=Ftp+dvinf*Forcegarray(i)*dfweight
+       do k=1,naux
+          Ftauxp(k,:)=Ftauxp(k,:)+dvinf*Fauxarray(k,:,i)*dfweight
+       enddo
+       CapPhiEdge(i)=CapPhig(ngz)
+! Now we must do the external continuum integration and add to aux(2,1)
+       call Fextern(Wgarray(i),isigma,dFext(i),dvinf,dfweight)
+       Ftauxp(2,1)=Ftauxp(2,1)+dvinf*dFext(i)*dfweight
        if(zdent(nzd).ne.0)then
           write(*,'(a,f7.4,'' ''$)')'Wg',Wgarray(i)
           call dentadd(dfweight,dvinf)
        endif
-       Ftp=Ftp+dvinf*Forcegarray(i)*dfweight
-       do k=1,naux
-          Ftauxp(k,:)=Ftauxp(k,:)+dvinf*0.5*Fauxarray(k,:,i)*dfweight
-       enddo
-       CapPhiEdge(i)=CapPhig(ngz)
     ! End of reworked version; old version removed.
        Forcegp(i)=Forcegarray(i)*dfweight
        tbp(i)=taug(ngz)
@@ -471,6 +476,27 @@ contains
     endif
   end subroutine FgEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine Fextern(Wgi,isigma,Fexti,dvinf,dfweight)
+! Calculate the addition to the force <q|~V|4> arising from z-positions
+! outside the hole region. ndir=1, q-> naux=2 
+    real :: Wgi
+    complex :: Fexti,CP,CPprior,CPfactor,dfweight
+    call makezext
+    vi=sqrt(2.*Wgi)
+    dze=zext(2)-zext(1)
+    dtau=dze/vi
+    CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
+    Fexti=0.
+    CPprior=CapPhig(ngz)
+    dentext(0)=dentext(0)+dvinf*CPprior*dfweight
+    do i=1,nzext        ! As we go, accumulate density dentext
+       CP=CPprior*CPfactor
+       Fexti=Fexti-sqm1g*0.5*(auxext(i-1)*CPprior+auxext(i)*CP)*abs(dze)
+       dentext(i)=dentext(i)+dvinf*CP*dfweight
+       CPprior=CP
+    enddo
+  end subroutine Fextern
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine SumHarmonicsg(isigma)
     implicit none
@@ -565,6 +591,7 @@ contains
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function auxofz(zval,iaux,kpar)
+! This is just the real part of the mode. I think I want complex 
     real kpar,k2
 ! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
     x=zval/4.
@@ -574,10 +601,10 @@ contains
        auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8  ! Normalized on z
     else                ! Continuum          
        k2=kpar**2
-       fnorm=sqrt((1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
+       fnorm=sqrt(2.*3.1415926*(1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
        Pk= -15*(kpar**4 + (28*S**2 - 15)*kpar**2 + 63*S**4 - 56*S**2 + 8)
        Qk= kpar**4 + (105*S**2 - 85)*kpar*2 + 945*S**4 - 1155*S**2 + 274
-       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm/2
+       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm
     endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -679,14 +706,30 @@ end function dfdWptrap
     call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
     if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
+    call multiframe(3,1,3)
     call autoplot(zdent,real(dentpass),2*nzd+1)
+    call axis2
+    call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
+    call winset(.true.)
     call color(4)
     call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
     call dashset(2)
     call color(3)
-    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
+!    call polyline(-zdent,-real(dentpass),2*nzd+1)
+    call polyline(zdent,real(dentpass-dentpass([(i,i=nzd,-nzd,-1)])),2*nzd+1)
+!    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
     call dashset(0)
+    call color(15)
+    call autoplot(zext,real(dentext),nzext)
+    call axis2
+    call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
+    call winset(.true.)
+    call polyline(zdent(0:nzd),real(dentpass(0:nzd)),nzd+1)
+    call autoplot(zext,auxext,nzext)
+    call polyline(zg(0),auxmodes(0,2),ngz+1)
+    call axlabels('z','|q>')
     call pltend
+    call multiframe(0,0,0)
     endif
   end subroutine dentadd
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -820,4 +863,14 @@ subroutine makezdent
   CapPhidprev=0.
 end subroutine makezdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!! Routines not dependent on shifgen.
+subroutine makezext
+! Initialize the uniform zext for external integration.
+  use shiftgen
+  zemax=zextfac/real(omegag)
+  do i=0,nzext
+     zext(i)=zm+i*(zemax-zm)/nzext
+     auxext(i)=auxofz(zext(i),2,kpar)
+  enddo
+end subroutine makezext
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!! Routines not dependent on shiftgen.

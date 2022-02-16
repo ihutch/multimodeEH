@@ -502,10 +502,11 @@ subroutine plotdent
   use shiftgen
   complex :: Ftotalg
   if(psig.ge.0)psig=-.1
-  omegag=complex(.1,.01)
+  omegag=complex(.03,.005)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
+  kpar=0.05
 
   write(*,*)psig,isigma
   call makezdent
