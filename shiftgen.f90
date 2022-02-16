@@ -46,12 +46,15 @@ module shiftgen
   real :: Tinf=1.,Tperpg=1.,Torepel=1.
 ! Tinf is really the reference (attracted). Torepel the other/repelled species.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60
-  integer :: iwpowg=2,nharmonicsg
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100
+  integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
   complex, dimension(-ngz:ngz) :: CapPhig
+  real, dimension(-nzd:nzd) :: zdent=0.
+  complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
+  complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2
   integer :: naux=2
   real, dimension(-ngz:ngz,nauxmax) :: auxmodes
@@ -101,7 +104,8 @@ contains
        if(Wg.lt.psig)ivs=1  ! Reflected orbit, all z are same sign.
     elseif(psig.lt.0)then !Attracted
        gK=-1.-10.*sqrt(max(0.,-Wg/psig))
-       if(zR.eq.0.)then
+!       gk=-100.  ! Uniform hack.
+       if(zR.eq.0.)then  ! Passing
           z2=isigma*zm
        else
           z2=zR*(1.+1.e-4/ngz) ! Force trapped end vg to zero.
@@ -250,6 +254,7 @@ contains
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
     endif
+! Each call to Fdirect leaves the CapPhi z-arrays for this energy,
   end subroutine Fdirect
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -270,36 +275,67 @@ contains
   subroutine FgPassingEint(Ftp,isigma,Emaxg)
     implicit none
     complex Ftp
-    integer :: isigma,i
+    integer :: isigma,i,k
     real :: Emaxg
-    integer, parameter :: ippow=3
-    real :: dvinf,fvinf,dfe,dfeperp,dfepre,dfeperppre
+    real :: dvinf,fvinf,dfe,dfeperp
+    real :: Wnext,dvnext
+    complex :: dfweight,dfwtpre
     omegadiff=omegag-omegaonly
+    dfwtpre=0.  ! silence warnings
+    Ftp=0.
+    Fauxp=0.
+    dentpass=0.
     do i=1,nge  ! Passing, corrected for psig sign.
        Wgarray(i)=max(psig,0.)+Emaxg*(i/float(nge))**ippow
        vinfarrayp(i)=-isigma*sqrt(2.*Wgarray(i))
-!       write(*,*)'Wgarray(i),Emaxg,psig,ippow',Wgarray(i),Emaxg,psig,ippow
        call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxarray(1,i))
        dfe=dfdWpar(vinfarrayp(i),fvinf) ! fparallel slope and value
-!       write(*,*)'vinfarrayp(i),dfe,fvinf',vinfarrayp(i),dfe,fvinf
        dfeperp=-fvinf/Tperpg
+       dfweight=(omegag*dfe-omegadiff*dfeperp)
+       if(.false.)then ! Old version
        if(i.eq.1)then  ! Start of integration approximated
           dvinf=abs(vinfarrayp(i))-sqrt(2.*max(psig,0.))
-          Ftp=dvinf*Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
-          Ftauxp(1:naux)=dvinf*Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp)
+          Ftp=dvinf*Forcegarray(i)*dfweight
+          if(zdent(nzd).ne.0)then
+             call dentadd(dfweight,dvinf)
+          endif
+          do k=1,naux
+             Ftauxp(k)=dvinf*Fauxarray(k,i)*dfweight
+          enddo
        else
           dvinf=abs(vinfarrayp(i)-vinfarrayp(i-1))
           Ftp=Ftp+dvinf*0.5*&
-               (Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp) &
-               +Forcegarray(i-1)*(omegag*dfepre-omegadiff*dfeperppre))
-          Ftauxp(1:naux)=Ftauxp(1:naux)+dvinf*0.5*&
-               (Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp) &
-               +Fauxarray(1:naux,i-1)*(omegag*dfepre-omegadiff*dfeperppre))
+               (Forcegarray(i)*dfweight+Forcegarray(i-1)*dfwtpre)
+          if(zdent(nzd).ne.0)then
+             write(*,'(a,f7.4,'' ''$)')'Wg',Wgarray(i)
+             call dentadd(dfweight,dvinf)
+          endif
+          do k=1,naux
+             Ftauxp(k)=Ftauxp(k)+dvinf*0.5*&
+                  (Fauxarray(k,i)*dfweight+Fauxarray(k,i-1)*dfwtpre)
+          enddo
        endif
-       Forcegp(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
+       else ! Reworked version
+       Wnext=max(psig,0.)+Emaxg*(min(i+1,nge)/float(nge))**ippow
+       dvnext=abs(-isigma*sqrt(2.*Wnext)-vinfarrayp(i))
+       if(i.gt.1)then
+          dvinf=0.5*(abs(vinfarrayp(i)-vinfarrayp(i-1))+dvnext)
+       else  ! Approximated start.
+          dvinf=abs(vinfarrayp(i)-sqrt(2.*max(psig,0.)))+0.5*dvnext
+       endif
+       if(zdent(nzd).ne.0)then
+          write(*,'(a,f7.4,'' ''$)')'Wg',Wgarray(i)
+          call dentadd(dfweight,dvinf)
+       endif
+       Ftp=Ftp+dvinf*Forcegarray(i)*dfweight
+       do k=1,naux
+          Ftauxp(k)=Ftauxp(k)+dvinf*0.5*Fauxarray(k,i)*dfweight
+       enddo
+
+       endif
+       Forcegp(i)=Forcegarray(i)*dfweight
        tbp(i)=taug(ngz)
-       dfepre=dfe
-       dfeperppre=dfeperp
+       dfwtpre=dfweight
     enddo
     Wgarrayp=Wgarray
   end subroutine FgPassingEint
@@ -357,6 +393,7 @@ contains
     ! Integrate over fe (trapped). Wj=vpsi^2/2-psi. So vpsi=sqrt(2(psi+Wj))
     ! Wj range 0 to -psi.
     complex :: Ftotal,exptb,cdvpsi,dob,dFdvpsig,resdenom,resdprev
+    complex :: dfweight
     real :: dfperpdWperp,fperp,obi
     integer :: isigma
 
@@ -372,9 +409,9 @@ contains
     do i=1,nge-1       ! Trapped
        Wgarray(i)=psig*((float(i)/nge)**iwpowg)
        Wj=Wgarray(i)
-! Functionalized version.
        dfe=dfdWptrap(Wj,fe)*fperp
        dfeperp=fe*dfperpdWperp      ! df/dW_perp
+       dfweight=(omegag*dfe-omegadiff*dfeperp)
        vpsi=sqrt(2.*(-psig+Wj))
        vinfarrayr(i)=vpsi ! reflected==trapped for attracting hill.
        dvpsi=vpsiprev-vpsi
@@ -391,8 +428,8 @@ contains
        dob=omegabg(i)-omegabg(i-1)
        cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
        ! Strictly to get dFdvpsi we need to multiply by the omega f' terms
-       Fnonresg(i)=dFdvpsig*(omegag*dfe-omegadiff*dfeperp)
-       Fnonraux(1:naux,i)=Fauxarray(1:naux,i)*(omegag*dfe-omegadiff*dfeperp)
+       Fnonresg(i)=dFdvpsig*dfweight
+       Fnonraux(1:naux,i)=Fauxarray(1:naux,i)*dfweight
        ! and correct for the imaginary shift of omegabg:
        Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))  &
             /real(omegabg(i)-omegabg(i-1))*obi
@@ -645,6 +682,73 @@ end function dfdWptrap
     dfeval=dfeval*(1-denem1)
   end subroutine dfefac
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine dentadd(dfweight,dvinf)
+! Make dentpass equal to the weighted average of CapPhig over the zg
+! points that reside in each of its (equally spaced) intervals.
+    complex :: dfweight
+    call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
+    dentpass=dentpass+dvinf*dfweight*CapPhid
+    if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
+    call autoplot(zdent,real(dentpass),2*nzd+1)
+    call color(4)
+    call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+    call dashset(2)
+    call color(3)
+    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
+    call dashset(0)
+    call pltend
+    endif
+  end subroutine dentadd
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine dentaddtrap(dfweight,dvinf)
+! Make dentpass equal to the weighted average of CapPhig over the zg
+! points that reside in each of its (equally spaced) intervals.
+    complex :: dfweight,dvinf
+    call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
+! We need CapPhig to have been corrected for resonant denominator.
+    dentpass=dentpass+dvinf*0.5*(dfweight*CapPhid+dfwtprev*CapPhidprev)
+    CapPhidprev=CapPhid
+    dfwtprev=dfweight
+    if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
+    call autoplot(zdent,real(dentpass),2*nzd+1)
+    call color(4)
+    call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+    call dashset(2)
+    call color(3)
+    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
+    call dashset(0)
+    call pltend
+    endif
+  end subroutine dentaddtrap
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine remesh(x1,y1,n1,x2,y2,n2)
+! Interpolate arrays x1,y1, of length n1, where x1 is monotonic
+! increasing, onto another monotonic increasing array x2 of length n2.
+    integer n1,n2
+    real :: x1(n1)
+    complex :: y1(n1)
+    real :: x2(n2)
+    complex :: y2(n2)
+! Assume both monotonic increasing for simplicity.    
+    nx1=1
+    do j=1,n2
+       if(x2(j).lt.x1(nx1).or.x2(j).gt.x1(n1))then
+          y2(j)=0. ! Make values outside the x1 range zero.
+!          write(*,'(2i4,7f9.4)')nx1,j,x1(nx1),x2(j),ff,y1(nx1),y2(j)
+       else
+          do i=nx1,n1
+             if(x1(i).ge.x2(j))then
+                ff=(x2(j)-x1(i-1))/(x1(i)-x1(i-1))
+                y2(j)=y1(i-1)+ff*(y1(i)-y1(i-1))
+                nx1=max(i-1,1)
+!                write(*,'(2i4,7f9.4)')i,j,x1(i),x2(j),ff,y1(i),y2(j)
+                exit
+             endif
+          enddo          
+       endif
+    enddo
+  end subroutine remesh
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end module shiftgen
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Routines that use shiftgen and are thus the interface.
@@ -714,3 +818,15 @@ integer function inharm()
   use shiftgen
   inharm=nharmonicsg
 end function inharm
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine makezdent
+! Initialize the uniform zdent, triggering dent saving during FtEint.
+! Make sure that it is never seen as being outside zm.
+  use shiftgen
+  do i=-nzd,nzd
+     zdent(i)=.999999*zm*i/float(nzd)
+  enddo
+  CapPhidprev=0.
+end subroutine makezdent
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!! Routines not dependent on shifgen.

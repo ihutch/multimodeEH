@@ -399,10 +399,10 @@
     write(*,102) '-s..         set switches    [',isw
     write(*,*)' s=1 Frepel, 2 Fattr, 4 Fi(omega), 8 PlotForce, 16&
          & denem,',' 32 Modes, 64 SumHarm'
-    write(*,*)' s=128 fvinfplot, 256 Frepelofimagomega.'
+    write(*,*)' s=128 fvinfplot, 256 Frepelofimagomega, 512 plotdent'
 !    write(*,'(a,f8.3,a,f8.3,a,f8.3,a,f8.3,a,i3,a,f8.3,a,f8.3)') 'psi&
 !         &=',psig,' zm=',zm,' omax=',ormax,' v=',vshift,' nv=',nvs ,'&
-!         & oc=',Omegacg,' kg=',kg
+!         & oc=',Omegacg,' kg=',
     101 format(a,6f8.4)
     102 format(a,i5)
   end subroutine tsparse
@@ -498,6 +498,25 @@ subroutine plotmodes
 
 end subroutine plotmodes
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine plotdent
+  use shiftgen
+  complex :: Ftotalg
+  if(psig.ge.0)psig=-.1
+  omegag=complex(.1,.01)
+  omegaonly=omegag
+  isigma=-1
+  dentpass=0.
+
+  write(*,*)psig,isigma
+  call makezdent
+  call FgEint(Ftotalg,isigma)
+  call autoplot(zdent,real(dentpass),2*ngz+1)
+  call axis2
+  call dashset(1)
+  call polyline(zdent,imag(dentpass),2*ngz+1)
+  call pltend
+end subroutine plotdent
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use shiftgen
 integer :: nvs=1,isw=3
 real :: ormax=0.,oi=0.
@@ -520,4 +539,6 @@ omegag=complex(ormax,oi)
   if(isw-2*(isw/2).eq.1) call fvinfplot
   isw=isw/2 ! 256
   if(isw-2*(isw/2).eq.1) call Frepelofimagomega(1836.)
+  isw=isw/2 ! 512
+  if(isw-2*(isw/2).eq.1) call plotdent
 end program

@@ -14,9 +14,9 @@
 
 \begin{document}
 \section{Eigenmode Expansion}
-Let us adopt a minimalist bra-ket notation in which the eigenmodes in
-which we expand our solutions are
-denoted $\ket{u}$ where the range of $u$ being either real, $p,q,r,\dots$, or
+Let us adopt a minimalist bra-ket notation with the modes in
+which we expand our solutions
+denoted $\ket{u}$, where the range of $u$ being either real, $p,q,r,\dots$, or
 integer, $j,l,m,\dots$, denotes respectively continuum or discrete modes. The
 inner product denotes an overlap integral over (parallel) spatial
 coordinate $\bra{u}\ket{s}\equiv \int u^*(x)s(x)dx$. Insofar as the
@@ -98,8 +98,10 @@ be shown that continuum modes are ``normalized'' by dividing eq.\
   [2\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}, 
   \label{eq:4}
 \end{equation}
-in the sense that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$. The
-eigenmodes are plotted in Fig.\ \ref{modeplots}.
+in the sense that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$. Far
+from the hole ($x\gg1$) the normalized oscillatory continuum modes are
+sinusoidal with amplitude $1/\sqrt{2\pi}=0.3989$. The eigenmodes are
+plotted in Fig.\ \ref{modeplots}.
 \begin{figure}\center
   \includegraphics[width=0.6\hsize]{continmode}
 \caption{Eigenmodes of the adiabatic response operator.\label{modeplots}}
@@ -236,9 +238,9 @@ equality in this equation.
 Equations (\ref{eq:11}) and (\ref{eq:12}) apply fully for coupled
 discrete modes $\ket{j}$, giving the first order mode amplitude and
 second order eigenvalue correction from them.  However, in our case,
-for the continuum modes, $\tilde{V}$ is not systematically small, and an
-altered approach appropriate to the actual form of $\tilde{V}$ must be
-adopted.
+for the continuum modes, $\tilde{V}$ is not systematically small
+everywhere, and an altered approach appropriate to the actual form of
+$\tilde{V}$ must be adopted.
 
 
 \section{Calculating the Eigenmode coefficients}
@@ -289,6 +291,10 @@ where $\tilde f_{um}$ denotes $\tilde f_m$ with
 $\ket{\hat\phi}=\ket{u}$ substituted in eq. (\ref{eq:ftmagnetic}), and
 similarly $\tilde n_{um}=\int \tilde f_{um}dv$.
 
+We shall later require  the order of magnitude of $\tilde V\ket{4}$
+outside the hole.  In Hutchinson 2018,
+section 4.1 it is shown to be $\sim 16\omega_m^2$.
+
 
 \subsection{The continuum contribution}
 
@@ -314,12 +320,21 @@ $k_\perp/k_\parallel=\tan\theta$) or equivalently
   \label{eq:15}
   k_\parallel^2/k_\perp^2=\omega^2/(\omega_{pe}^2-\omega^2).
 \end{equation}
-(In our normalized units $\omega_{pe}=1$.)
-Assuming that $\omega$ and $k_\perp$ are prescribed, there is
-therefore only one $k_\parallel$ that satisfies this dispersion
-relation; and the continuum eigenmode of $V_a$ that corresponds to it
-has $p=4k_\parallel$ (using $x=z/4$). We shall write it with a compact complex
-amplitude conveniently as $A{\rm e}^{ip|x|}$.
+(In our normalized units $\omega_{pe}=1$.)  Assuming that $\omega$ and
+$k_\perp$ are prescribed, there is therefore only one $k_\parallel$
+that satisfies this dispersion relation; and corresponding to it, the
+continuum eigenmode of $V_a$ has $p=4k_\parallel$ (using $x=z/4$). We
+shall write the mode far from the hole with a compact complex
+amplitude conveniently as $A{\rm e}^{ip|x|}$. A normalized
+eigenmode $\ket{p}$ has $A=|A|\etothe{i\theta}$ with $|A|=1/\sqrt{2\pi}$
+and
+\begin{equation}
+  \label{eq:19}
+  \theta=-\sin^{-1} \left(\frac{ p\left( p^{4}-85\,p^{2}+274 \right) }
+      { \sqrt{ \left( p^{2}+1 \right)  \left( p^{2}+4 \right)
+          \left( p^{2}+9 \right)  \left( p^{2}+16 \right)  \left(
+            p^{2}+25 \right)} }\right).
+\end{equation}
 
 Intuitively, then, one might suppose that the continuum contribution is
 limited more or less to the single mode
@@ -337,8 +352,8 @@ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
 where dropping the infinity limit is justified by positive imaginary
 part of $\omega$.  This $\Phi_m$ applies for all $z$ down to where the
 eigenmode begins to deviate significantly, because of non-zero hole
-potential, from the external wave; obviously that $z$ is of order
-4 (i.e.\ $x\sim 1$). The non-adiabatic perturbation to \emph{outward}
+potential, from the external wave; obviously that $z$ is of order 4
+(i.e.\ $x\sim 1$). The non-adiabatic perturbation to \emph{outward}
 (positive) orbit velocity, by contrast, is strongly affected by the
 rapid variation of potential across the hole at $z\sim 0$. However,
 that local hole perturbation develops a phase shift further into the
@@ -357,9 +372,9 @@ $z_l= \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
 attenuated further away. At $z>z_l$, moreover, the outward going
 contribution to $\tilde n$ is increasingly contributed by the spatial
 range $[z-z_l,z]$, and merges into being given by the same integral as
-\ref{eq:16}.  Thus, even though the $\tilde f$ perturbations remain very
-different for inward and outward going velocities, the densities are
-not very different for $z>z_l$.
+\ref{eq:16}.  Thus, even though the $\tilde f$ perturbations remain
+very different for inward and outward going velocities, the density
+perturbations are not very different for $z>z_l$.
 
 The importance of the non-adiabatic response in the wave region can be
 understood intuitively by recognizing that the criterion for ignoring
@@ -401,9 +416,10 @@ outside the hole, and cannot be ordered as ignorable there.
 Instead though, the non-adiabatic density in the external region
 becomes the potential there ($\ket{p}$) multiplied by a function of
 ($\omega_m$ and) $p$ that is \emph{independent of position}. Let us call
-that factor $\tilde{V}_{ext}/16=-q_e[1+(k_\parallel v/\omega_m)^2]$. Then
+that factor $\tilde{V}_{ext}/16=-q_e{dn_0\over d\phi_0}[1+(k_\parallel v_t/\omega_m)^2]=[1+(k_\parallel/\omega_m)^2]$. Then
 $\tilde{V}-\tilde{V}_{ext}$ is a localized operator tending to zero in
-the external region.
+the region beyond $z_l$. Now we demonstrate mathematically the concepts
+just introduced intuitively.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
@@ -426,21 +442,21 @@ As can be seen in Fig. \ref{modeplots}, the form of the continuum
 modes in the inner region is almost independent of $p$. Actually for
 small $p$, which is our interest here, the differences are even
 smaller than that figure shows. Therefore, replacing $\ket{p}$ with
-$\ket{q}$ in the local integral term, it has order of magnitude
-$\bra{q}|\tilde{V}-\tilde{V}_{ext}\ket{q}\int w_pdp$. If, therefore,
-$\int w_pdp$ is small compared with $w_4$, this integral can be
-ignored compared with $\bra{q}|\tilde{V}\ket{4}w_4$, because
+$\ket{q}$ in the final term ($\int\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{p}w_pdp $), it has order of
+magnitude $\bra{q}|\tilde{V}-\tilde{V}_{ext}\ket{q}\int w_pdp$. If,
+therefore, $\int w_pdp$ is small compared with $w_4$, this integral
+can be ignored compared with $\bra{q}|\tilde{V}\ket{4}w_4$, because
 $\bra{q}|\tilde{V}-\tilde{V}_{ext}\ket{q}$ and
 $\bra{q}|\tilde{V}\ket{4}$ are of the same order of
 magnitude. Dropping this presumed small integral term we set the sum
-of (\ref{eq:contadiab}), $\bra{q}|\tilde{V}\ket{4}w_4$, and (\ref{eq:18})
-to zero and find
+of (\ref{eq:contadiab}), $\bra{q}|\tilde{V}\ket{4}w_4$, and
+(\ref{eq:18}) to zero and find
 \begin{equation}
   \label{eq:resonance}
   w_q = {\bra{q}|\tilde{V}\ket{4}w_4\over (\lambda_\perp-\lambda_q-\tilde{V}_{ext})}
   ={\bra{q}|\tilde{V}\ket{4}w_4\over
     16(k_\perp^2+k_\parallel^2-k_\parallel^2/\omega^2) }
-  ={\bra{q}|\tilde{V}\ket{4}w_4\over 16k_\perp^2-q^2(1/\omega^2-1) }
+  ={\bra{q}|\tilde{V}\ket{4}w_4\over 16k_\perp^2-q^2(1/\omega^2-1) },
 \end{equation}
 using (eq.\ \ref{eq:3}) $\lambda_q=-q^2-4^2$ , $\lambda_\perp=16k_\perp^2$, and
 $\tilde{V}_{ext}=16[1+(k_\parallel/\omega)^2]=16+q^2/\omega^2$. Notice that the
@@ -485,8 +501,18 @@ positive.}
   }w_4
   =\sum_{q=\pm q_0}{-i\pi\bra{q}|\tilde{V}\ket{4}
     \over
-    2q_0(1/\omega_r^2-1)}
+    2q_0(1/\omega_r^2-1)}w_4.
 \end{equation}
+This is small compared with $w_4$ because, recognizing the spatial
+extent $z_l\sim 1/\omega$ and magnitude $\sim 16\omega^2$ of
+$\tilde V\ket{4}$, $\bra{q}|\tilde V \ket{4}\sim 16\omega$. Also
+$q_0(1/\omega_r^2-1)\sim 4 k_\perp/\omega_r$; so
+$\int w _q dq\sim 4\pi\omega\omega_r/k_\perp$ [and generally
+$k_\perp\sim \omega_r$, or $\omega_r^{4/3}$ depending on the
+magnetization regime]. Thus, for small mode frequency, the
+continuum contribution to the eigenmode is a small perturbation, as
+presumed.
+
 Also the continuum contribution to the eigenvalue in eq.\ (\ref{eq:12})
 becomes (approximately)
 \begin{equation}
@@ -504,7 +530,7 @@ becomes (approximately)
     \over
     q_0(1/\omega_r^2-1)\bra{4}\ket{4}},
 \end{equation}
-by symmetry and the total eigenvalue equation, dropping symmetric discrete modes, becomes
+using symmetry; and the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \begin{equation}
   \label{eigtotal}
   \lambda_\perp=\lambda_4+{\bra{4}|\tilde{V}\ket{4}\over
@@ -516,6 +542,7 @@ by symmetry and the total eigenvalue equation, dropping symmetric discrete modes
     \over
     q_0(1/\omega_r^2-1)\bra{4}\ket{4}}.
 \end{equation}
+When $\ket{4}$ is normalized, then $\bra{4}\ket{4}=1$, of course. 
 
 \subsection{Sum over cyclotron harmonics}
 
@@ -537,11 +564,11 @@ predominates in eq.\ (\ref{eq:ftmagnetic}), and many harmonics up to
 $\sim 3\xi_t$ approximate a continuous integral over the perpendicular
 Maxwellian. In either case, the relevant range of $\omega_m$ is
 approximately $\omega\pm 3k_\perp v_{t\perp}$. Therefore, when
-$T_\perp \sim 1$ (near isotropy of the external distribution) giving
-$ v_{t\perp}$, and $k_\perp\ll 1$ (long perpendicular wavelength
+$T_\perp \sim 1$ (near isotropy of the external distribution giving
+$ v_{t\perp}\sim 1$), and $k_\perp\ll 1$ (long perpendicular wavelength
 compared to hole length) the main effect is to broaden the
-$q$-resonance by a relative width
-$\delta \omega/\omega \sim3k_\perp v_{t\perp}\ll 1 $. We will assume
+$q$-resonance by a width
+$\delta \omega\sim3k_\perp v_{t\perp}\ll 1 $. We will assume
 that this effect, which is represented in our calculation, is
 sufficient and that cyclotron resonances are unimportant.
 
@@ -551,11 +578,11 @@ sufficient and that cyclotron resonances are unimportant.
 Although the spatial integral in $\bra{4}|\tilde{V}\ket{q}$ is limited
 to the hole extent by $\bra{4}|$, the non-adiabatic incoming
 distribution perturbation $\tilde f$ at the hole edge is required, so
-as to initialize the $\Phi_m$ integration into the hole. This is
-provided by equation (\ref{eq:16}). The determination of
-$\tilde{V}\ket{q}$ through the rest of the hole is accomplished with
-by the internal integration over passing orbits, providing
-$\bra{4}|\tilde{V}\ket{q}$ without any external integration. 
+as to initialize the $\Phi_m$ integration into the hole for passing
+orbits. This is provided by equation (\ref{eq:16}). The determination
+of $\tilde{V}\ket{q}$ through the rest of the hole is accomplished
+with by the internal integration over orbits, providing
+$\bra{4}|\tilde{V}\ket{q}$ without any external integration.
 
 By contrast, the density perturbation arising from $\tilde{V}\ket{4}$ extends a
 distance of approximately $z_l$ into the external region because of
@@ -567,7 +594,8 @@ region, $\bra{q}|$ is non-negligible, and approximately independent of $q$ and
 of $z$; the region's contribution to the overlap integral is considerable.
 
 Actually, outside the hole the orbit velocity is constant. Therefore
-all that happens at a particular velocity is that its $\tilde f$ phase
+all that happens at a particular velocity is that its $\Phi_m$ and hence
+$\tilde f$ phase
 changes $\propto \etothe{i\omega z/v}$. Thus if we have at the hole
 edge $\tilde f(z\simeq4)$ we can extrapolate it to $f(z\sim z_l)$ by an
 analytic phase change, without any discrete approximation to the phase
@@ -592,8 +620,9 @@ start at the positive hole edge, taking the $\Phi_m$ there as initial
 condition, and then continuing the spatial integral for greater $z$ up
 to $\sim z_l$ by appropriately changing the phase.  Then by symmetry
 we can simply double this contribution to account for the outgoing
-orbits of opposite $z$ and $v$ sign, and add the internal hole
-integral, to give the total $\bra{q}|\tilde V \ket{4}$.
+orbits of opposite $z$ (and $v$) sign, and add the internal (trapped
+and passing) hole integral, to give the total
+$\bra{q}|\tilde V \ket{4}$.
 
 If we can rely on $\tilde V$ being self-adjoint so that
 $\bra{4}|\tilde{V}\ket{q}^*=\bra{q}|\tilde{V}\ket{4}$, then we can
