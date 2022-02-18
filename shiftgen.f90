@@ -60,12 +60,12 @@ module shiftgen
   complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2,ndir=2
   integer :: naux=2
-  real, dimension(-ngz:ngz,nauxmax) :: auxmodes
+  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   real :: kpar=0.099
   real :: zextfac=5.
-  real, dimension(0:nzext) :: zext,auxext
-  complex, dimension(0:nzext) :: dentext
+  real, dimension(0:nzext) :: zext
+  complex, dimension(0:nzext) :: dentext,auxext
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
@@ -139,7 +139,7 @@ contains
           phigprime(-i)=ivs*phigprime(i)
           do j=1,naux
              auxmodes(-i,j)=ivs*auxmodes(i,j)
-             if(.not.auxmodes(i,j).lt.1.e20)then
+             if(.not.abs(auxmodes(i,j)).lt.1.e20)then
                 write(*,*)'auxmodes NAN',i,j,auxmodes(i,j)
                 stop
              endif
@@ -590,7 +590,7 @@ contains
     phigprimeofz=-psig*sinh(zval/4.)/cosh(zval/4.)**5
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  real function auxofz(zval,iaux,kpar)
+  complex function auxofz(zval,iaux,kpar)
 ! This is just the real part of the mode. I think I want complex 
     real kpar,k2
 ! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
@@ -602,9 +602,13 @@ contains
     else                ! Continuum          
        k2=kpar**2
        fnorm=sqrt(2.*3.1415926*(1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
-       Pk= -15*(kpar**4 + (28*S**2 - 15)*kpar**2 + 63*S**4 - 56*S**2 + 8)
-       Qk= kpar**4 + (105*S**2 - 85)*kpar*2 + 945*S**4 - 1155*S**2 + 274
-       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm
+       Pk= -15*(k2**2 + (28*S**2 - 15)*k2 + 63*S**4 - 56*S**2 + 8)
+       Qk= k2**2 + (105*S**2 - 85)*k2 + 945*S**4 - 1155*S**2 + 274
+! real version
+!       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm
+! complex version, antisymmetric
+       auxofz=(T*Pk-sign(1.,x)*complex(0.,kpar)*Qk*sin(kpar*x))&
+            *exp(complex(0.,kpar*abs(x)))/fnorm
     endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -725,9 +729,9 @@ end function dfdWptrap
     call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
     call winset(.true.)
     call polyline(zdent(0:nzd),real(dentpass(0:nzd)),nzd+1)
-    call autoplot(zext,auxext,nzext)
-    call polyline(zg(0),auxmodes(0,2),ngz+1)
-    call axlabels('z','|q>')
+    call autoplot(zext,real(auxext),nzext)
+    call polyline(zg(0),real(auxmodes(0:ngz,2)),ngz+1)
+    call axlabels('z','Re(|q>)')
     call pltend
     call multiframe(0,0,0)
     endif

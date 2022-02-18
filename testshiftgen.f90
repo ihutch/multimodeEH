@@ -465,13 +465,13 @@ subroutine plotmodes
   dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
   do i=-ngz+1,ngz
      dot0=dot0+(phigprime(i-1)**2+phigprime(i)**2)*(zg(i)-zg(i-1))/2
-     dot1=dot1+(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
-     dot2=dot2+(auxmodes(i-1,2)**2+auxmodes(i,2)**2)*(zg(i)-zg(i-1))/2
-     dot12=dot12+(auxmodes(i-1,1)*auxmodes(i-1,2)&
+     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
+     dot2=dot2+real(auxmodes(i-1,2)**2+auxmodes(i,2)**2)*(zg(i)-zg(i-1))/2
+     dot12=dot12+real(auxmodes(i-1,1)*auxmodes(i-1,2)&
           +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
-     dot01=dot01+(auxmodes(i-1,1)*phigprime(i-1)&
+     dot01=dot01+real(auxmodes(i-1,1)*phigprime(i-1)&
           +auxmodes(i,1)*phigprime(i))*(zg(i)-zg(i-1))/2
-     dot02=dot02+(phigprime(i-1)*auxmodes(i-1,2)&
+     dot02=dot02+real(phigprime(i-1)*auxmodes(i-1,2)&
           +phigprime(i)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
   enddo
 
@@ -491,7 +491,7 @@ subroutine plotmodes
   call autoplot(zg,phigprime,2*ngz+1)
   call axlabels('','d!Af!@/dz')
   do j=1,naux
-     call autoplot(zg,auxmodes(:,j),2*ngz+1)
+!     call autoplot(zg,real(auxmodes(:,j)),2*ngz+1)
   enddo
   call axlabels('z','')
   call pltend
