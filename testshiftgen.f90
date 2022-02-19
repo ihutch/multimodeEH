@@ -491,7 +491,7 @@ subroutine plotmodes
   call autoplot(zg,phigprime,2*ngz+1)
   call axlabels('','d!Af!@/dz')
   do j=1,naux
-!     call autoplot(zg,real(auxmodes(:,j)),2*ngz+1)
+     call autoplot(zg,real(auxmodes(:,j)),2*ngz+1)
   enddo
   call axlabels('z','')
   call pltend
@@ -502,15 +502,23 @@ subroutine plotdent
   use shiftgen
   complex :: Ftotalg
   if(psig.ge.0)psig=-.1
-  omegag=complex(.03,.005)
+  omegag=complex(.2,.02)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
-  kpar=0.05
-
+  kg=.5
+  ldentaddp=.true.   ! dentadd movie
+  
+  write(*,*)'kg=',kg
   write(*,*)psig,isigma
   call makezdent
   call FgEint(Ftotalg,isigma)
+! Replot the last dentadd frame and show.  
+  Wg=.1; psig=-.1
+  call makezg(isigma)
+  call dentadd(complex(0.,0.),0.)
+  call pltend
+  
   call autoplot(zdent,real(dentpass),2*ngz+1)
   call axis2
   call dashset(1)

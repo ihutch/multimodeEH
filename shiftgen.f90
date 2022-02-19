@@ -62,8 +62,8 @@ module shiftgen
   integer :: naux=2
   complex, dimension(-ngz:ngz,nauxmax) :: auxmodes
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
-  real :: kpar=0.099
-  real :: zextfac=5.
+  real :: kpar
+  real :: zextfac=3.5
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext
 ! Parallel energy arrays
@@ -87,7 +87,7 @@ module shiftgen
 ! Ratio of mass of ion to mass of electron
   real :: rmime=1836.
 ! Whether to apply a correction to the trapped species
-  logical :: lioncorrect=.true.,lbess=.false.
+  logical :: lioncorrect=.true.,lbess=.false.,ldentaddp=.false.
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)
@@ -122,6 +122,15 @@ contains
     else  
        write(*,*)'ERROR makezg. psig is zero or worse',psig
        stop
+    endif
+    omegar=real(omegag)
+    if(naux.ge.2)then   ! Set the kpar of the continuum auxmode.
+       if(omegar.ne.1.)then
+          kpar=kg*omegar/sqrt(1.-omegar)
+       else
+          write(*,*)'ERROR omegar >=1 is not allowed',omegar
+          stop
+       endif
     endif
     do i=0,ngz
        zi=float(i)/ngz
@@ -214,7 +223,10 @@ contains
     taug(-ngz)=0.
     CapPhig(-ngz)=0.
     CapPaux(-ngz,1)=0.
-    CapPaux(-ngz,2)=something
+    CapPaux(-ngz,2)=something ! This can be removed now, given the following.
+    p=4.*kpar
+    theta=-atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
+!    CapPaux(-ngz,2)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)
     dForceg=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -591,15 +603,15 @@ contains
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   complex function auxofz(zval,iaux,kpar)
-! This is just the real part of the mode. I think I want complex 
     real kpar,k2
 ! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
+! z or x normalization?          
     x=zval/4.
     S=1./cosh(x)
     T=tanh(x)
     if(iaux.eq.1)then   ! Discrete
        auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8  ! Normalized on z
-    else                ! Continuum          
+    else                ! Continuum: apparently normalized on x?
        k2=kpar**2
        fnorm=sqrt(2.*3.1415926*(1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
        Pk= -15*(k2**2 + (28*S**2 - 15)*k2 + 63*S**4 - 56*S**2 + 8)
@@ -709,31 +721,40 @@ end function dfdWptrap
     complex :: dfweight
     call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
-    if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
+    if(ldentaddp)then   ! Diagnostic plots of density tilde n (contributions)
     call multiframe(3,1,3)
     call autoplot(zdent,real(dentpass),2*nzd+1)
     call axis2
+    call axlabels('','!p!o~!o!qn!dq!d')
     call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
-    call winset(.true.)
     call color(4)
+    call axlabels('','            !AF!@')
+    call winset(.true.)
     call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
-    call dashset(2)
+!    call dashset(2)
     call color(3)
 !    call polyline(-zdent,-real(dentpass),2*nzd+1)
     call polyline(zdent,real(dentpass-dentpass([(i,i=nzd,-nzd,-1)])),2*nzd+1)
 !    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
     call dashset(0)
     call color(15)
-    call autoplot(zext,real(dentext),nzext)
-    call axis2
+    call minmax(real(dentpass(0:nzd)),nzd+1,dmin,dmax)
+    call pltinit(0.,zext(nzext),dmin,dmax)
+    call polyline(zext,real(dentext),nzext)
+    call axis; call axis2
+    call axlabels('','!p!o~!o!qn!dq!d')
     call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
     call winset(.true.)
     call polyline(zdent(0:nzd),real(dentpass(0:nzd)),nzd+1)
-    call autoplot(zext,real(auxext),nzext)
-    call polyline(zg(0),real(auxmodes(0:ngz,2)),ngz+1)
+    call pltinit(0.,zext(nzext),-0.42,0.42)
+    call axis; call axis2
+    call polyline(zext,real(auxext),nzext)
+    call polyline(zg(0:ngz),real(auxmodes(0:ngz,2)),ngz+1)
     call axlabels('z','Re(|q>)')
-    call pltend
     call multiframe(0,0,0)
+    call usleep(10000)
+    call accisflush
+!   call pltend                    ! To stop at each frame. 
     endif
   end subroutine dentadd
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -870,7 +891,7 @@ end subroutine makezdent
 subroutine makezext
 ! Initialize the uniform zext for external integration.
   use shiftgen
-  zemax=zextfac/real(omegag)
+  zemax=zextfac/real(omegag)+zm
   do i=0,nzext
      zext(i)=zm+i*(zemax-zm)/nzext
      auxext(i)=auxofz(zext(i),2,kpar)

@@ -299,11 +299,13 @@ section 4.1 it is shown to be $\sim 16\omega_m^2$.
 \subsection{The continuum contribution}
 
 In the region far outside the hole, $|x|\gg 1$ where
-$T=\tanh(x)\to\pm1$ and $S=\sinh(x)\to0$ in eq.\ (\ref{eq:2}), the continuum
-modes (taking them to be antisymmetrically outward propagating) are
+$T=\tanh(x)\to\pm1$ and $S=\sinh(x)\to0$ in eq.\ (\ref{eq:2}), the
+normalized continuum modes (taking them to be antisymmetrically
+outward propagating) are
 \begin{equation}
   \label{eq:14}
- \ket{w_p}= \ket{p}=\sigma_x [(-15p^4+225p^2-120)+ip(p^4-85p^2+274)]{\rm e}^{ip|x|},
+ \ket{w_p}= \ket{p}=A\etothe{ip|x|}=\sigma_x{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
+      [2\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|x|},
 \end{equation}
 where $\sigma_x=signum(x)$. Thus they are purely sinusoidal
 waves. Assuming that for large enough $|x|$ the influence of the local
@@ -321,20 +323,9 @@ $k_\perp/k_\parallel=\tan\theta$) or equivalently
   k_\parallel^2/k_\perp^2=\omega^2/(\omega_{pe}^2-\omega^2).
 \end{equation}
 (In our normalized units $\omega_{pe}=1$.)  Assuming that $\omega$ and
-$k_\perp$ are prescribed, there is therefore only one $k_\parallel$
-that satisfies this dispersion relation; and corresponding to it, the
-continuum eigenmode of $V_a$ has $p=4k_\parallel$ (using $x=z/4$). We
-shall write the mode far from the hole with a compact complex
-amplitude conveniently as $A{\rm e}^{ip|x|}$. A normalized
-eigenmode $\ket{p}$ has $A=|A|\etothe{i\theta}$ with $|A|=1/\sqrt{2\pi}$
-and
-\begin{equation}
-  \label{eq:19}
-  \theta=-\sin^{-1} \left(\frac{ p\left( p^{4}-85\,p^{2}+274 \right) }
-      { \sqrt{ \left( p^{2}+1 \right)  \left( p^{2}+4 \right)
-          \left( p^{2}+9 \right)  \left( p^{2}+16 \right)  \left(
-            p^{2}+25 \right)} }\right).
-\end{equation}
+$k_\perp$ are prescribed, there is only one $|k_\parallel|$ that
+satisfies this dispersion relation; and corresponding to it, the
+continuum eigenmode of $V_a$ has $p=4k_\parallel$ (using $x=z/4$).
 
 Intuitively, then, one might suppose that the continuum contribution is
 limited more or less to the single mode
@@ -471,7 +462,7 @@ mode. We can verify its applicability by integrating the expression
 resonances at the two poles of $w_q$:
 $q=\pm q_0=\pm4k_\perp\omega/\sqrt{1-\omega^2}$. Near them the real
 part of the denominator becomes small. Its imaginary part comes from
-the small \emph{necessarily positive} imaginary part of
+the small, \emph{necessarily positive}, imaginary part of
 $\omega=\omega_r+i\omega_i$. Then
 $16k_\perp^2-q^2(1/\omega^2-1)\simeq 16k_\perp^2-q^2(1/\omega_r^2-1)
 +iq^2/\omega_r^22(\omega_i/\omega_r)$.
