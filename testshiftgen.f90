@@ -152,7 +152,8 @@
     call legendline(.4,.05,0,' imagx'//ffan(1:iwidth))
     call dashset(0)
     call pltend
-    
+
+    if(.false.)then
     call multiframe(0,0,0)
     call charsize(.018,.018)
     call pltinit(0.,sqrt(-psig),min(pmin,rmin),max(pmax,rmax))
@@ -167,6 +168,51 @@
     call legendline(.7,.2,0,' imag')
     call dashset(0)
     call pltend
+    endif
+
+    if(.true.)then  ! Plot of auxforces.
+       i=2;j=2
+       call multiframe(1,2,0)
+       call minmax(Fauxp(i,j,:),2*nge,pmin,pmax)
+       call minmax(Fauxres(i,j,:),2*nge,rmin,rmax)
+       fpfac=max(10.*int(min(abs(pmax/rmax),abs(pmin/rmin))/10.),1.)
+       write(*,*)'rmax,pmax,fpfac',rmax,pmax,fpfac
+       call fwrite(fpfac,iwidth,0,ffan)
+       call pltinit(vinfarrayr(nge),vinfarrayr(1)*1.01,rmin,rmax)
+       call axis; call axis2
+       call axlabels('v!d!Ay!@!d','dFaux/dv!d!Ay!@!d')
+       call legendline(0.5,1.03,258,annote(1:lentrim(annote)))
+       call legendline(0.3,.9,258,'Trapped')
+       call winset(.true.)
+!    call polymark(vinfarrayr,(max(pmax,rmax)*.97+vinfarrayr*1.e-7),nge&
+!         &,ichar('|'))
+       call color(1)
+       call polyline(vinfarrayr,real(Fauxres(i,j,:)),nge)
+       call legendline(.05,.1,0,' real')
+       call color(2)
+       call dashset(2)
+       call polyline(vinfarrayr,imag(Fauxres(i,j,:)),nge)
+       call legendline(.05,.05,0,' imag')
+       call color(15)
+       call dashset(0)
+       call pltinit(vpsiarrayp(1),vpsiarrayp(nge),rmin,rmax)
+       call axis; call axis2 
+       call axlabels('v!d!Ay!@!d','')
+       call legendline(0.3,.9,258,'Passing')
+       call winset(.true.)
+!    call polymark(vpsiarrayp,(max(pmax,rmax)*.97+vpsiarrayp*1.e-7),nge&
+!         &,ichar('|'))
+       call color(3)
+       call polyline(vpsiarrayp,imag(Fauxp(i,j,:))/fpfac,nge)
+       call legendline(.4,.1,0,' real/'//ffan(1:iwidth))
+       call color(4)
+       call dashset(2)
+       call polyline(vpsiarrayp,real(Fauxp(i,j,:))/fpfac,nge)
+       call legendline(.4,.05,0,' imag/'//ffan(1:iwidth))
+       call dashset(0)
+       call pltend
+              
+    endif
     
     lioncorrect=.true.
   end subroutine testAttract
@@ -502,11 +548,11 @@ subroutine plotdent
   use shiftgen
   complex :: Ftotalg
   if(psig.ge.0)psig=-.1
-  omegag=complex(.2,.02)
+  omegag=complex(.1,.01)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
-  kg=.5
+  kg=.1
   ldentaddp=.true.   ! dentadd movie
   
   write(*,*)'kg=',kg
@@ -514,16 +560,12 @@ subroutine plotdent
   call makezdent
   call FgEint(Ftotalg,isigma)
 ! Replot the last dentadd frame and show.  
-  Wg=.1; psig=-.1
+  Wg=4.; psig=-.1
   call makezg(isigma)
+!  CapPhig=0.  ! Kludge the red line to zero.
   call dentadd(complex(0.,0.),0.)
   call pltend
   
-  call autoplot(zdent,real(dentpass),2*ngz+1)
-  call axis2
-  call dashset(1)
-  call polyline(zdent,imag(dentpass),2*ngz+1)
-  call pltend
 end subroutine plotdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use shiftgen

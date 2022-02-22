@@ -72,9 +72,9 @@ module shiftgen
   complex, dimension(nge) :: CapPhiEdge,dFext
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
-  complex, dimension(0:nge):: Fnonresg,Ftrapg
+  complex, dimension(0:nge):: Fnonresg !,Ftrapg
 !   Auxiliary Forces as a function of parallel energy/velocity.
-  complex, dimension(nauxmax,ndir,nge) :: Fauxarray
+  complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
 ! Perpendicular Harmonic force arrays.
@@ -223,10 +223,11 @@ contains
     taug(-ngz)=0.
     CapPhig(-ngz)=0.
     CapPaux(-ngz,1)=0.
-    CapPaux(-ngz,2)=something ! This can be removed now, given the following.
+!    CapPaux(-ngz,2)=something ! This can be removed now, given the following.
     p=4.*kpar
     theta=-atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
-!    CapPaux(-ngz,2)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)
+    CapPaux(-ngz,2)=-sqm1g*exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
+         /(kpar*vg(-ngz)-omegag)
     dForceg=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -255,13 +256,13 @@ contains
        do j=1,naux
           CapPaux(i,j)=CPfactor*CapPaux(i-1,j)-0.5* &
                (auxmodes(i,j)+auxmodes(i-1,j))*(1.-CPfactor)*sqm1g/omegag
-! We want auxmodes*CapPhig: <u|~V|4> -> Fauxarray(j,1)
-         dFaux(j,1)=dFaux(j,1)-sqm1g*0.5*(auxmodes(i,j)*CapPhig(i) &
-              &+auxmodes(i-1,j)*CapPhig(i-1))*abs(vpsig*dtau)
+! We want conjg(auxmodes)*CapPhig: <u|~V|4> -> Fauxarray(j,1)
+          dFaux(j,1)=dFaux(j,1)-sqm1g*0.5*(conjg(auxmodes(i,j))*CapPhig(i) &
+               &+conjg(auxmodes(i-1,j))*CapPhig(i-1))*abs(vpsig*dtau)
 ! And    phigprime*CapPaux: <4|~V|u> -> Fauxarray(j,2)
-         dFaux(j,2)=dFaux(j,2)-sqm1g*0.5*(phigprime(i)&
-              &*CapPaux(i,j)+phigprime(i-1)*CapPaux(i-1,j))&
-              &*abs(vpsig*dtau)
+          dFaux(j,2)=dFaux(j,2)-sqm1g*0.5*(phigprime(i)&
+               &*CapPaux(i,j)+phigprime(i-1)*CapPaux(i-1,j))&
+               &*abs(vpsig*dtau)
        enddo
     enddo
     if(Wg.lt.0)then     ! Trapped orbit. Add resonant term. 
@@ -272,9 +273,8 @@ contains
             + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig
        dFaux(1:naux,1)=dFaux(1:naux,1)*(1.-exptbb2**2) &
             + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig
-       dFaux(1:naux,2)=dFaux(1:naux,2)&
-            &*(1.-exptbb2**2) + sqm1g*CapPaux(ngz,1:naux)**2*(1. &
-            &-exptbb2)*vpsig
+       dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
+            + sqm1g*CapPaux(ngz,1:naux)**2*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
@@ -289,6 +289,9 @@ contains
 ! For symmetric potentials and f(v), the returned Ftotalg can simply be
 ! doubled to give the total force since then it is symmetric in isigma.
     complex Ftotalg
+    if(naux.ne.0)then
+      write(*,*)'WARNING naux=',naux,'not implemented for repelling potential.'
+    endif
     Emaxg=2.5*(sqrt(2*Tinf)+vshift)**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
     call FgReflectedEint(Ftotalrg,isigma)
@@ -309,6 +312,7 @@ contains
     dfwtpre=0.  ! silence warnings
     Ftp=0.
     dentpass=0.
+    dentext=0.
     do i=1,nge  ! Passing, corrected for psig sign.
        Wgarray(i)=max(psig,0.)+Emaxg*(i/float(nge))**ippow
        vinfarrayp(i)=-isigma*sqrt(2.*Wgarray(i))
@@ -338,6 +342,7 @@ contains
        endif
     ! End of reworked version; old version removed.
        Forcegp(i)=Forcegarray(i)*dfweight
+       Fauxp(1:naux,:,i)=Fauxarray(1:naux,:,i)*dfweight
        tbp(i)=taug(ngz)
        dfwtpre=dfweight
     enddo
@@ -385,13 +390,16 @@ contains
   subroutine FgAttractEint(Ftotalg,isigma)
     complex Ftotalg
     Emaxg=4.*Tinf+vshift**2
-!    write(*,*)'FgAttractEint',Emaxg,Tinf,vshift
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
     call FgTrappedEint(Ftotalrg,-1/Tperpg,1.,isigma)
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
-!    write(*,*)'Fs',Ftotalpg,Ftotalrg
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
+    write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
+    write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+    write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp
+    write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt
+    write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
@@ -441,21 +449,21 @@ contains
        Fnonraux(1:naux,:,i)=Fnonraux(1:naux,:,i)+sqm1g&
             &*real(Fnonraux(1:naux,:,i) -Fnonraux(1:naux,:,i-1)) &
             &/real(omegabg(i)-omegabg(i-1)) *obi
-       if(taug(ngz)*imag(omegag).lt.-2.)then!Hack fix giant dFdvpsi
-!problem
+       if(taug(ngz)*imag(omegag).lt.-2.)then!Hack fix giant dFdvpsi problem
           write(*,*)'Drop giant taug*omegai',taug(ngz),imag(omegag),dFdvpsig
-          Fnonresg(i)=0. 
+          Fnonresg(i)=0.
+          Fnonraux(:,:,i)=0.
        endif
 ! Then divide by the resonance denominator multiply by complex dvpsi and sum.
-       Ftrapg(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)*cdvpsi
-       Forcegr(i)=Ftrapg(i)/cdvpsi
+!       Ftrapg(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)*cdvpsi
+       Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
     ! Now Ftrapg(i) is a quantity when simply summed over all ne positions
     ! and multiplied by 2 gives the total force. 
        Fauxres(1:naux,:,i)=0.5*(Fnonraux(1:naux,:,i)/resdenom &
-                     + Fnonraux(1:naux,:,i-1)/resdprev)*cdvpsi
-       if(.not.(abs(Ftrapg(i)).ge.0))then
-          write(*,*)'Ftrapg NAN?',i
-          write(*,*)Fnonresg(i),Ftrapg(i)
+                     + Fnonraux(1:naux,:,i-1)/resdprev) !*cdvpsi ! See below
+       if(.not.(abs(Forcegr(i)).ge.0))then
+          write(*,*)'Forcegr NAN?',i
+          write(*,*)Fnonresg(i),Forcegr(i)
           write(*,*)omegabg(i-1),omegabg(i)
           write(*,*)omegag,omegag/omegabg(i)
           write(*,*)resdenom,resdprev
@@ -463,18 +471,21 @@ contains
           write(*,*)fe,dfe,dfeperp
           stop
        endif
-       Ftotal=Ftotal+Ftrapg(i)   ! Add to Ftotal integral (doubled later).
-       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)
+!       Ftotal=Ftotal+Ftrapg(i) !Add to Ftotal integral (doubled later).
+       Ftotal=Ftotal+Forcegr(i)*cdvpsi
+       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)  *cdvpsi
        vpsiprev=vpsi
        resdprev=resdenom
     enddo
     ! Calculate end by extrapolation.
-    Ftrapg(nge)=Ftrapg(nge-1)+0.5*(Ftrapg(nge-1)-Ftrapg(nge-2))
+!    Ftrapg(nge)=Ftrapg(nge-1)+0.5*(Ftrapg(nge-1)-Ftrapg(nge-2))
+    Forcegr(nge)=Forcegr(nge-1)+0.5*(Forcegr(nge-1)-Forcegr(nge-2))
+!    Ftotal=Ftotal+Ftrapg(nge)
+    Ftotal=Ftotal+Forcegr(nge)*cdvpsi
     Fnonresg(nge)=Fnonresg(nge-1)
-    Ftotal=Ftotal+Ftrapg(nge)
     Fauxres(1:naux,:,nge)=Fauxres(1:naux,:,nge-1)+0.5*(Fauxres(1:naux,:,nge&
          &-1)-Fauxres(1:naux,:,nge-2))
-    Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)
+    Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)  *cdvpsi
     Wgarray(nge)=psig
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
@@ -503,7 +514,8 @@ contains
     dentext(0)=dentext(0)+dvinf*CPprior*dfweight
     do i=1,nzext        ! As we go, accumulate density dentext
        CP=CPprior*CPfactor
-       Fexti=Fexti-sqm1g*0.5*(auxext(i-1)*CPprior+auxext(i)*CP)*abs(dze)
+       Fexti=Fexti-sqm1g*0.5*(conjg(auxext(i-1))*CPprior&
+            +conjg(auxext(i))*CP)*abs(dze)
        dentext(i)=dentext(i)+dvinf*CP*dfweight
        CPprior=CP
     enddo
@@ -603,24 +615,23 @@ contains
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   complex function auxofz(zval,iaux,kpar)
-    real kpar,k2
+    real kpar,p2
 ! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
 ! z or x normalization?          
     x=zval/4.
     S=1./cosh(x)
     T=tanh(x)
     if(iaux.eq.1)then   ! Discrete
-       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8  ! Normalized on z
-    else                ! Continuum: apparently normalized on x?
-       k2=kpar**2
-       fnorm=sqrt(2.*3.1415926*(1+k2)*(4+k2)*(9+k2)*(16+k2)*(25+k2))
-       Pk= -15*(k2**2 + (28*S**2 - 15)*k2 + 63*S**4 - 56*S**2 + 8)
-       Qk= k2**2 + (105*S**2 - 85)*k2 + 945*S**4 - 1155*S**2 + 274
-! real version
-!       auxofz=(T*Pk*cos(kpar*x)-kpar*Qk*sin(kpar*x))/fnorm
+       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/4  ! Normalized on x
+    else                ! Continuum: normalized on x.
+       p=4.*kpar
+       p2=p**2
+       fnorm=sqrt(2.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
+       Pk= -15*(p2**2 + (28*S**2 - 15)*p2 + 63*S**4 - 56*S**2 + 8)
+       Qk= p2**2 + (105*S**2 - 85)*p2 + 945*S**4 - 1155*S**2 + 274
 ! complex version, antisymmetric
-       auxofz=(T*Pk-sign(1.,x)*complex(0.,kpar)*Qk*sin(kpar*x))&
-            *exp(complex(0.,kpar*abs(x)))/fnorm
+       auxofz=(T*Pk+sign(1.,x)*complex(0.,p)*Qk)&
+            *exp(complex(0.,p*abs(x)))/fnorm
     endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -716,21 +727,25 @@ end function dfdWptrap
   end subroutine dfefac
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentadd(dfweight,dvinf)
+    complex :: dfweight
 ! Make dentpass equal to the weighted average of CapPhig over the zg
 ! points that reside in each of its (equally spaced) intervals.
-    complex :: dfweight
     call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
     if(ldentaddp)then   ! Diagnostic plots of density tilde n (contributions)
+    if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
+    if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
     call multiframe(3,1,3)
     call autoplot(zdent,real(dentpass),2*nzd+1)
     call axis2
     call axlabels('','!p!o~!o!qn!dq!d')
     call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
-    call color(4)
-    call axlabels('','            !AF!@')
-    call winset(.true.)
-    call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+    if(abs(dfweight).ne.0)then
+       call color(4)
+       call axlabels('','            !AF!@')
+       call winset(.true.)
+       call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+    endif
 !    call dashset(2)
     call color(3)
 !    call polyline(-zdent,-real(dentpass),2*nzd+1)
@@ -752,8 +767,13 @@ end function dfdWptrap
     call polyline(zg(0:ngz),real(auxmodes(0:ngz,2)),ngz+1)
     call axlabels('z','Re(|q>)')
     call multiframe(0,0,0)
-    call usleep(10000)
+    call usleep(20000)
     call accisflush
+    call pfget(isw)
+    if(isw.ne.0)then
+       call prtend('')
+       call pfset(0)
+    endif
 !   call pltend                    ! To stop at each frame. 
     endif
   end subroutine dentadd

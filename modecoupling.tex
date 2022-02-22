@@ -52,8 +52,10 @@ $V_a\ket{u}=\lambda u$, can be written
   \begin{split}
  \ket{u}(x)= &\exp(\pm ux)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
  840S^2 - 120]T \\
- &\qquad\qquad\pm u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2 +274)]\} \\
- \equiv&  \exp(\pm ux)(P_uT\pm uQ_u),
+ &\qquad\qquad\pm u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
+ +274)]\}
+% \\ \equiv&  \exp(\pm ux)(P_uT\pm uQ_u)
+.
   \end{split}
 \end{equation}
 Real $u$ values possess just five discrete values $j=1,2,3,4,5$ that
@@ -182,7 +184,7 @@ vector $w_u$. The off-diagonal matrix entries $s\not=u$ are the
 coupling of the potential modes by the non-adiabatic Vlasov operator
 $\tilde{V}$.  The condition for the existence of a solution is that the
 determinant of the matrix
-$(-\lambda_\perp\delta_{su}-diag(\lambda_s)+\bra{s}|\tilde{V}\ket{u})$ should
+$[(-\lambda_\perp+\lambda_s)\bra{s}\ket{s}\delta_{su}+\bra{s}|\tilde{V}\ket{u}]$ should
 be zero. A possible iterative scheme might consist of finding its
 eigenvalues, and adjusting $\omega$ until the eigenvalue for which
 $w_4$ is predominant over the other coefficients becomes zero.
@@ -228,7 +230,7 @@ eigenvalue to second order is
   +{\bra{4}|\tilde{V}\ket{4}\over \bra{4}\ket{4}}
     +\sum_{u\not=4}
     {\bra{4}|\tilde{V}\ket{u}\bra{u}|\tilde{V}\ket{4}\over
-      (\lambda_\perp-\lambda_u)\bra{4}\ket{4}}.
+      (\lambda_\perp-\lambda_u)\bra{4}\ket{4}\bra{u}\ket{u}}.
 \end{equation}
 Normally the substitution $\lambda_\perp\simeq\lambda_4$ is made in
 the final sum; but we do not need to do that since we consider
@@ -414,15 +416,16 @@ just introduced intuitively.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
-Using $s\to q$ to observe our notation for continuum modes in eq.\
-\ref{eq:10}, and writing it explicitly as an integral $w_pdp$ over a
+Using $s\to q$ to observe our notation for continuum modes, and
+supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we write eq.\
+\ref{eq:10} explicitly as an integral $w_pdp$ over a
 weight distribution function $w_p$ rather than a
-sum, the adiabatic term is
+sum. The adiabatic term is
 \begin{equation}
   \label{eq:contadiab}
   \int\bra{q}|V_a-\lambda_\perp\ket{p}w_pdp = (\lambda_q-\lambda_\perp)w_q.
 \end{equation}
-The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
+and the non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
 continuum integral
 \begin{equation}
   \label{eq:18}
@@ -480,7 +483,9 @@ for any slowly varying function $g$. On this basis
   (q_0+i\epsilon-q)2q_0}-\int{g(-q_0)dq\over
   2q_0(-q_0-i\epsilon-q) }\simeq -i\pi [g(q_0)+g(-q_0)]/2q_0. $ when
  $\epsilon$ is
-positive.}
+positive. This treatment is equivalent to closing the $q$-integration path
+along $+i\infty$ and setting the closed contour integral equal to
+$2\pi i$ times only the residue at $q=q_0+i\epsilon$.}
 \fi
 ,
 \begin{equation}
@@ -527,13 +532,15 @@ using symmetry; and the total eigenvalue equation, dropping symmetric discrete m
   \lambda_\perp=\lambda_4+{\bra{4}|\tilde{V}\ket{4}\over
     \bra{4}\ket{4}}
     +{\bra{4}|\tilde{V}\ket{2}\bra{2}|\tilde{V}\ket{4}\over
-      (\lambda_\perp-\lambda_2)\bra{4}\ket{4}}
+      (\lambda_\perp-\lambda_2)\bra{4}\ket{4} \bra{2}\ket{2}}
     +%\sum_{q=\pm q_0}
     {-i\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
     \over
     q_0(1/\omega_r^2-1)\bra{4}\ket{4}}.
 \end{equation}
-When $\ket{4}$ is normalized, then $\bra{4}\ket{4}=1$, of course. 
+When $\ket{4}$ and $\ket{2}$ are normalized as well as the
+continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
+course.
 
 \subsection{Sum over cyclotron harmonics}
 
