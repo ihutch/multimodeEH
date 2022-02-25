@@ -85,11 +85,14 @@
     use shiftgen
     real, dimension(nge) :: vpsiarrayp
     complex :: Ftotalg
-    character*40 annote,ffan
+    character*40 annote,ffan,cij
+    character*20, dimension(nauxmax,ndir) :: modelabel
 ! Give access to pf switch pfsw    
     integer pfsw
     integer pfilno,pfnextsw,pfPS,psini
     common/pltfil/pfsw,pfilno,pfnextsw,pfPS,psini
+    data modelabel/'<2|!p!o~!o!qV|4>','<q|!p!o~!o!qV|4>','&
+         &<4|!p!o~!o!qV|2>','<4!p!o~!o!q|V|q>'/
 
     write(*,*)'testAttract'
     lioncorrect=.false.
@@ -170,15 +173,33 @@
     call pltend
     endif
 
-    if(.true.)then  ! Plot of auxforces.
-       i=2;j=2
+    if(naux.ge.1)then  ! Plot of auxforces.
+    write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
+    write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+    write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp
+    write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt
+    write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa
+    write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
+    write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
+    kpar=0.1
+    write(*,*)'q0(1/omega^2-1)/pi='&
+         ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
+          do j=1,ndir
+       do i=1,naux
        call multiframe(1,2,0)
        call minmax(Fauxp(i,j,:),2*nge,pmin,pmax)
        call minmax(Fauxres(i,j,:),2*nge,rmin,rmax)
-       fpfac=max(10.*int(min(abs(pmax/rmax),abs(pmin/rmin))/10.),1.)
-       write(*,*)'rmax,pmax,fpfac',rmax,pmax,fpfac
+       ratio=min(abs(rmax/pmax),abs(rmin/pmin))
+       step=min(10,int(ratio))
+       fpfac=max(step*int(ratio/step),1.)
+!       write(*,'(a,5f8.4)')'rmax/pmax,rmin/pmin,fpfac',rmax/pmax,rmin/pmin,fpfac
        call fwrite(fpfac,iwidth,0,ffan)
        call pltinit(vinfarrayr(nge),vinfarrayr(1)*1.01,rmin,rmax)
+!       write(cij,'(''i='',i1,'' j='',i1)')i,j
+!       call legendline(.1,.95,258,cij(1:lentrim(cij)))
+       call legendline(.1,.95,258,modelabel(i,j))
+       write(cij,'(''('',2f8.4,'')'')')Ftauxt(i,j)
+       call legendline(.35,.95,258,cij(1:lentrim(cij)))
        call axis; call axis2
        call axlabels('v!d!Ay!@!d','dFaux/dv!d!Ay!@!d')
        call legendline(0.5,1.03,258,annote(1:lentrim(annote)))
@@ -199,18 +220,23 @@
        call axis; call axis2 
        call axlabels('v!d!Ay!@!d','')
        call legendline(0.3,.9,258,'Passing')
+       write(cij,'(''('',2f8.4,'')'')')Ftauxp(i,j)
+       call legendline(.35,.95,258,cij(1:lentrim(cij)))
        call winset(.true.)
 !    call polymark(vpsiarrayp,(max(pmax,rmax)*.97+vpsiarrayp*1.e-7),nge&
 !         &,ichar('|'))
        call color(3)
-       call polyline(vpsiarrayp,imag(Fauxp(i,j,:))/fpfac,nge)
-       call legendline(.4,.1,0,' real/'//ffan(1:iwidth))
+       call polyline(vpsiarrayp,imag(Fauxp(i,j,:))*fpfac,nge)
+       call legendline(.4,.1,0,' real*'//ffan(1:iwidth))
        call color(4)
        call dashset(2)
-       call polyline(vpsiarrayp,real(Fauxp(i,j,:))/fpfac,nge)
-       call legendline(.4,.05,0,' imag/'//ffan(1:iwidth))
+       call polyline(vpsiarrayp,real(Fauxp(i,j,:))*fpfac,nge)
+       call legendline(.4,.05,0,' imag*'//ffan(1:iwidth))
        call dashset(0)
        call pltend
+          enddo
+       enddo
+    
               
     endif
     
@@ -501,24 +527,29 @@ end subroutine testdenem
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine plotmodes
   use shiftgen
-  kpar=0.01
+!  kpar=0.01
+  call tsparse(ormax,oi,nvs,isw,vs,ps)
+  omegag=complex(ormax,oi)
+  kg=.01
   naux=2
-  zm=20.
+  zm=25
   psig=-.1
   isigma=-1
   Wg=.1*abs(psig)
   call makezg(isigma)
+  write(*,*)'kpar=',kpar,'omegag=',omegag
   dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
   do i=-ngz+1,ngz
      dot0=dot0+(phigprime(i-1)**2+phigprime(i)**2)*(zg(i)-zg(i-1))/2
-     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
-     dot2=dot2+real(auxmodes(i-1,2)**2+auxmodes(i,2)**2)*(zg(i)-zg(i-1))/2
+     ! Fix the z/x normalization by dividing by 2*4
+     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/8
+     dot2=dot2+(abs(auxmodes(i-1,2))**2+abs(auxmodes(i,2))**2)*(zg(i)-zg(i-1))/8
      dot12=dot12+real(auxmodes(i-1,1)*auxmodes(i-1,2)&
-          +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
+          +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/8
      dot01=dot01+real(auxmodes(i-1,1)*phigprime(i-1)&
-          +auxmodes(i,1)*phigprime(i))*(zg(i)-zg(i-1))/2
+          +auxmodes(i,1)*phigprime(i))*(zg(i)-zg(i-1))/8
      dot02=dot02+real(phigprime(i-1)*auxmodes(i-1,2)&
-          +phigprime(i)*auxmodes(i,2))*(zg(i)-zg(i-1))/2
+          +phigprime(i)*auxmodes(i,2))*(zg(i)-zg(i-1))/8
   enddo
 
   ! auxmodes should be normalized (but continuum is more problematic).
@@ -527,11 +558,12 @@ subroutine plotmodes
   dot0=dot0/(psig/ppnorm)**2
   dot01=dot01/(psig/ppnorm)
   dot02=dot02/(psig/ppnorm)
-  write(*,*)'Integral of mode^2: should = 1,    1,   Large'
+  write(*,*)'Integral of mode^2: should = 1,    1,   Uncomplete'
   write(*,*)'dot0 =',dot0,'  dot1 =',dot1,'  dot2 =',dot2
-  write(*,*)'Overlap integrals: for kpar=0, zm=big,  should be zero'
+  write(*,*)'Overlap integrals: for zm=big,  should be zero'
   write(*,*)'dot12=',dot12,'  dot01=',dot01,'  dot02=',dot02
   write(*,*)'zm=',zm,' kpar=',kpar
+  write(*,*)'psig/ppnorm',psig/ppnorm
   if(naux.gt.0)call multiframe(naux+1,1,1)
 ! call autoplot(zg,phigprime*ppnorm/psig,2*ngz+1) ! Normalized
   call autoplot(zg,phigprime,2*ngz+1)

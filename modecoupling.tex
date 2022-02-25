@@ -329,12 +329,12 @@ $k_\perp$ are prescribed, there is only one $|k_\parallel|$ that
 satisfies this dispersion relation; and corresponding to it, the
 continuum eigenmode of $V_a$ has $p=4k_\parallel$ (using $x=z/4$).
 
-Intuitively, then, one might suppose that the continuum contribution is
-limited more or less to the single mode
+Intuitively, then, the continuum contribution is limited more or less
+to the single mode
 $p/4=k_\parallel= [k_\perp^2\omega^2/(\omega_{pe}^2-\omega^2)]^{1/2}$.
-For such a mode, one can immediately calculate the value of $\Phi_m(z)$
-for \emph{inward} orbit velocity, (negative $v$) on the positive-$x$
-side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
+For such a mode, one can immediately calculate the value of
+$\Phi_m(z)$ for \emph{inward} orbit velocity, (negative $v$) on the
+positive-$x$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
 \begin{equation}
   \label{eq:16}
   \Phi_m(z) = \int_{\infty}^zA{\rm e}^{i[pz'/4+\omega_m
@@ -420,12 +420,19 @@ Using $s\to q$ to observe our notation for continuum modes, and
 supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we write eq.\
 \ref{eq:10} explicitly as an integral $w_pdp$ over a
 weight distribution function $w_p$ rather than a
-sum. The adiabatic term is
+sum:
+\begin{equation}
+  \label{continw}
+  0=(\lambda_s-\lambda_\perp)\bra{q}\ket{q}w_q+\bra{q}|\tilde{V}\ket{4}w_4
+  +\int\bra{q}|\tilde{V}\ket{p}w_pdp.
+\end{equation}
+The adiabatic term is the first, which for normalized modes is
 \begin{equation}
   \label{eq:contadiab}
-  \int\bra{q}|V_a-\lambda_\perp\ket{p}w_pdp = (\lambda_q-\lambda_\perp)w_q.
+  \int\bra{q}|V_a-\lambda_\perp\ket{p}w_pdp = \int
+  (\lambda_p-\lambda_\perp)\delta_{qp}w_pdp = (\lambda_q-\lambda_\perp)w_q.
 \end{equation}
-and the non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
+The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
 continuum integral
 \begin{equation}
   \label{eq:18}
@@ -634,7 +641,54 @@ exactly self adjoint only when $\omega$ is purely real or purely
 imaginary, it might be worth the effort of doing the evaluation both
 ways and comparing the results.
 
+\vfill\eject
+\section{Xiang Chen's worries}
 
+The continuum mode equation is
+
+\begin{equation}
+  \label{eq:19}
+  0= (\lambda_q-\lambda_\perp)w_q+\bra{q}|\tilde{V}\ket{4}w_4
+  +\tilde{V}_{ext}w_q
+  +\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q}\int w_pdp.  
+\end{equation}
+He is not persuaded that my argument demonstrates that the last term
+is negligible. He says that numerically
+$\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q} \sim 20
+\bra{q}|\tilde{V}\ket{4}$ (I presume for normalized modes), and that
+therefore $\int w_pdp\ll w_4$ is not sufficient criterion.
+
+Clarifying my argument, I claim that
+$\bra{q}|\tilde V \ket{4}\sim 16\omega$ and that, if $\int w_q$ is
+determined ignoring the final term, then
+$\int w _q dq/w_4 ={-i\pi\bra{q}|\tilde{V}\ket{4}\over
+  q_0(1/\omega_r^2-1)} \sim{-i\pi\bra{q}|\tilde{V}\ket{4}\over
+  4k_\perp/\omega_r} \sim 4\pi\omega\omega_r/k_\perp\sim 4\pi \omega$.
+This is of order the small quantity $\omega$.
+
+If it is true that $\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q} \sim 20
+\bra{q}|\tilde{V}\ket{4}$, then for the final term to be
+negligible, we need $20\int w_pdp\ll w_4$, which is
+$$
+\int w_pdp/ w_4 \sim 4\pi\omega \ll 1/20
+\quad i.e. \quad \omega\ll \sim 1/(80\pi).
+$$
+Admittedly that is a very small frequency! Thus the factor of 20, if
+true, is a significant problem, and we ought to verify it.
+
+\iffalse
+Let us be clear, however, that if the final term is not negligible,
+then it is proportional to the magnitude of the the continuum
+contribution. Therefore it belongs in the resonant denominator of the
+expression for $w_q$, which becomes
+$$
+(\lambda_q-\lambda_\perp  +\tilde{V}_{ext}
+  +\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q}\int w_pdp/w_q).
+$$
+To the extent that the resonance is narrow, the value of $w_q$ is
+large. So near the resonance peak the extra term is not very
+important, because it is of order the width.
+\fi
 
 \end{document}
 

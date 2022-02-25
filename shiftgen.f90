@@ -49,7 +49,7 @@ module shiftgen
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100,nzext=100
+  integer, parameter :: ngz=100,nge=400,nhmax=60,nzd=100,nzext=100
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
@@ -57,6 +57,7 @@ module shiftgen
   complex, dimension(-ngz:ngz) :: CapPhig
   real, dimension(-nzd:nzd) :: zdent=0.
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
+  complex, dimension(-nzd:nzd) :: CapQd,dentq
   complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2,ndir=2
   integer :: naux=2
@@ -65,7 +66,8 @@ module shiftgen
   real :: kpar
   real :: zextfac=3.5
   real, dimension(0:nzext) :: zext
-  complex, dimension(0:nzext) :: dentext,auxext
+  complex, dimension(0:nzext) :: dentext,auxext,denqext
+  complex :: qqext
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
@@ -77,6 +79,7 @@ module shiftgen
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
+  complex :: Fextqq
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
@@ -336,7 +339,7 @@ contains
 ! Now we must do the external continuum integration and add to aux(2,1)
        call Fextern(Wgarray(i),isigma,dFext(i),dvinf,dfweight)
        Ftauxp(2,1)=Ftauxp(2,1)+dvinf*dFext(i)*dfweight
-       if(zdent(nzd).ne.0)then
+       if(zdent(nzd).ne.0)then ! Do diagnostic accumulation.
           write(*,'(a,f7.4,'' ''$)')'Wg',Wgarray(i)
           call dentadd(dfweight,dvinf)
        endif
@@ -395,11 +398,15 @@ contains
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
+    if(.false.)then
     write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
     write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
     write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp
     write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt
     write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa
+    write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
+    write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
+    endif
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
@@ -454,10 +461,10 @@ contains
           Fnonresg(i)=0.
           Fnonraux(:,:,i)=0.
        endif
-! Then divide by the resonance denominator multiply by complex dvpsi and sum.
+! Then divide by the resonance denominator and sum 
 !       Ftrapg(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)*cdvpsi
        Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
-    ! Now Ftrapg(i) is a quantity when simply summed over all ne positions
+    ! Now Forcegr when multiplied by cdvpsi and summed over all ne positions
     ! and multiplied by 2 gives the total force. 
        Fauxres(1:naux,:,i)=0.5*(Fnonraux(1:naux,:,i)/resdenom &
                      + Fnonraux(1:naux,:,i-1)/resdprev) !*cdvpsi ! See below
@@ -471,7 +478,8 @@ contains
           write(*,*)fe,dfe,dfeperp
           stop
        endif
-!       Ftotal=Ftotal+Ftrapg(i) !Add to Ftotal integral (doubled later).
+!       Ftotal=Ftotal+Ftrapg(i) 
+! Add to Ftotal integral (doubled later).
        Ftotal=Ftotal+Forcegr(i)*cdvpsi
        Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)  *cdvpsi
        vpsiprev=vpsi
@@ -500,10 +508,12 @@ contains
   end subroutine FgEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine Fextern(Wgi,isigma,Fexti,dvinf,dfweight)
-! Calculate the addition to the force <q|~V|4> arising from z-positions
-! outside the hole region. ndir=1, q-> naux=2 
+! Add to the force <q|~V|4> arising from z-positions outside the hole
+! region. ndir=1, q-> naux=2.
+! Also add to <q|~V|q> (Fextqq and denqext) for verification purposes.
     real :: Wgi
     complex :: Fexti,CP,CPprior,CPfactor,dfweight
+    complex :: CQ,CQprior
     call makezext
     vi=sqrt(2.*Wgi)
     dze=zext(2)-zext(1)
@@ -512,12 +522,19 @@ contains
     Fexti=0.
     CPprior=CapPhig(ngz)
     dentext(0)=dentext(0)+dvinf*CPprior*dfweight
+    CQprior=CapPaux(ngz,2)
+    denqext(0)=denqext(0)+dvinf*CQprior*dfweight
     do i=1,nzext        ! As we go, accumulate density dentext
        CP=CPprior*CPfactor
        Fexti=Fexti-sqm1g*0.5*(conjg(auxext(i-1))*CPprior&
             +conjg(auxext(i))*CP)*abs(dze)
        dentext(i)=dentext(i)+dvinf*CP*dfweight
        CPprior=CP
+       CQ=CQprior*CPfactor
+       denqext(i)=denqext(i)+dvinf*CQ*dfweight
+       Fextqq=Fextqq-sqm1g*0.5*(conjg(auxext(i-1))*CQprior&
+            +conjg(auxext(i))*CQ)*abs(dze)*dvinf*dfweight
+       CQprior=CQ
     enddo
   end subroutine Fextern
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -732,6 +749,9 @@ end function dfdWptrap
 ! points that reside in each of its (equally spaced) intervals.
     call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
+! Similarly for the ~V|q> density.
+    call remesh(zg,CapPaux(:,2),2*ngz+1,zdent,CapQd,2*nzd+1)
+    dentq=dentq+dvinf*dfweight*CapQd
     if(ldentaddp)then   ! Diagnostic plots of density tilde n (contributions)
     if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
     if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
