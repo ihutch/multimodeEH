@@ -398,7 +398,7 @@ quantity $k_\parallel v/\omega_m$ and substituting into eq.\
 Setting aside the complexities of the cyclotron harmonic expansion
 for the moment, if $m=0$ is all we need, the first (constant) term in
 the expansion exactly cancels the adiabatic term
-$q_e\hat\phi{\partial f_{\parallel0}/\partial W_\parallel}$. The next
+$q_eA{\partial f_{\parallel0}/\partial W_\parallel}$. The next
 term (first-order) integrates to zero over the parallel velocity
 distribution because of its velocity parity. The density change
 associated with the magnetized Langmuir wave arises from the
@@ -406,11 +406,16 @@ associated with the magnetized Langmuir wave arises from the
 $\tilde{V}\ket{p}$ is the same magnitude as the adiabatic term $V_a\ket{p}$
 outside the hole, and cannot be ordered as ignorable there.
 
-Instead though, the non-adiabatic density in the external region
+Instead though, the non-adiabatic density in the wave-like external region
 becomes the potential there ($\ket{p}$) multiplied by a function of
-($\omega_m$ and) $p$ that is \emph{independent of position}. Let us call
-that factor $\tilde{V}_{ext}/16=-q_e{dn_0\over d\phi_0}[1+(k_\parallel v_t/\omega_m)^2]=[1+(k_\parallel/\omega_m)^2]$. Then
-$\tilde{V}-\tilde{V}_{ext}$ is a localized operator tending to zero in
+($\omega_m$ and) $p$ that is \emph{independent of position}. Let us
+express that in terms of an operator $\tilde{V}_{w}$ where
+\begin{equation}
+  \label{eq:20}
+\tilde n_{w}={1\over16}\tilde{V}_{w}=-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega_m\right)^2\right]=\left[1+\left(k_\parallel\over\omega_m\right)^2\right].  
+\end{equation}
+ Then
+$\tilde{V}-\tilde{V}_{w}$ is a localized operator tending to zero in
 the region beyond $z_l$. Now we demonstrate mathematically the concepts
 just introduced intuitively.
 
@@ -436,31 +441,31 @@ The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
 continuum integral
 \begin{equation}
   \label{eq:18}
-  \int \bra{q}|\tilde{V}\ket{p}w_pdp=\int\bra{q}|\tilde{V}_{ext}+(\tilde{V}-\tilde{V}_{ext})\ket{p}w_pdp
-  =\tilde{V}_{ext}w_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{p}w_pdp.
+  \int \bra{q}|\tilde{V}\ket{p}w_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp
+  =\tilde{V}_{w}w_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp.
 \end{equation}
 As can be seen in Fig. \ref{modeplots}, the form of the continuum
 modes in the inner region is almost independent of $p$. Actually for
 small $p$, which is our interest here, the differences are even
 smaller than that figure shows. Therefore, replacing $\ket{p}$ with
-$\ket{q}$ in the final term ($\int\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{p}w_pdp $), it has order of
-magnitude $\bra{q}|\tilde{V}-\tilde{V}_{ext}\ket{q}\int w_pdp$. If,
+$\ket{q}$ in the final term ($\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp $), it has order of
+magnitude $\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int w_pdp$. If,
 therefore, $\int w_pdp$ is small compared with $w_4$, this integral
 can be ignored compared with $\bra{q}|\tilde{V}\ket{4}w_4$, because
-$\bra{q}|\tilde{V}-\tilde{V}_{ext}\ket{q}$ and
+$\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}$ and
 $\bra{q}|\tilde{V}\ket{4}$ are of the same order of
 magnitude. Dropping this presumed small integral term we set the sum
 of (\ref{eq:contadiab}), $\bra{q}|\tilde{V}\ket{4}w_4$, and
 (\ref{eq:18}) to zero and find
 \begin{equation}
   \label{eq:resonance}
-  w_q = {\bra{q}|\tilde{V}\ket{4}w_4\over (\lambda_\perp-\lambda_q-\tilde{V}_{ext})}
+  w_q = {\bra{q}|\tilde{V}\ket{4}w_4\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
   ={\bra{q}|\tilde{V}\ket{4}w_4\over
     16(k_\perp^2+k_\parallel^2-k_\parallel^2/\omega^2) }
   ={\bra{q}|\tilde{V}\ket{4}w_4\over 16k_\perp^2-q^2(1/\omega^2-1) },
 \end{equation}
 using (eq.\ \ref{eq:3}) $\lambda_q=-q^2-4^2$ , $\lambda_\perp=16k_\perp^2$, and
-$\tilde{V}_{ext}=16[1+(k_\parallel/\omega)^2]=16+q^2/\omega^2$. Notice that the
+$\tilde{V}_{w}=16[1+(k_\parallel/\omega)^2]=16+q^2/\omega^2$. Notice that the
 denominator is zero when $\omega=k_\parallel/k=\cos\theta$, the
 dispersion relation of the wave in a uniform plasma. 
 
@@ -649,12 +654,12 @@ The continuum mode equation is
 \begin{equation}
   \label{eq:19}
   0= (\lambda_q-\lambda_\perp)w_q+\bra{q}|\tilde{V}\ket{4}w_4
-  +\tilde{V}_{ext}w_q
-  +\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q}\int w_pdp.  
+  +\tilde{V}_{w}w_q
+  +\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q}\int w_pdp.  
 \end{equation}
 He is not persuaded that my argument demonstrates that the last term
 is negligible. He says that numerically
-$\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q} \sim 20
+$\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q} \sim 20
 \bra{q}|\tilde{V}\ket{4}$ (I presume for normalized modes), and that
 therefore $\int w_pdp\ll w_4$ is not sufficient criterion.
 
@@ -666,7 +671,7 @@ $\int w _q dq/w_4 ={-i\pi\bra{q}|\tilde{V}\ket{4}\over
   4k_\perp/\omega_r} \sim 4\pi\omega\omega_r/k_\perp\sim 4\pi \omega$.
 This is of order the small quantity $\omega$.
 
-If it is true that $\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q} \sim 20
+If it is true that $\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q} \sim 20
 \bra{q}|\tilde{V}\ket{4}$, then for the final term to be
 negligible, we need $20\int w_pdp\ll w_4$, which is
 $$
@@ -682,8 +687,8 @@ then it is proportional to the magnitude of the the continuum
 contribution. Therefore it belongs in the resonant denominator of the
 expression for $w_q$, which becomes
 $$
-(\lambda_q-\lambda_\perp  +\tilde{V}_{ext}
-  +\bra{q}|(\tilde{V}-\tilde{V}_{ext})\ket{q}\int w_pdp/w_q).
+(\lambda_q-\lambda_\perp  +\tilde{V}_{w}
+  +\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q}\int w_pdp/w_q).
 $$
 To the extent that the resonance is narrow, the value of $w_q$ is
 large. So near the resonance peak the extra term is not very

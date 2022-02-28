@@ -580,6 +580,7 @@ subroutine plotdent
   use shiftgen
   complex :: Ftotalg
   if(psig.ge.0)psig=-.1
+  omegacg=20.
   omegag=complex(.1,.01)
   omegaonly=omegag
   isigma=-1
@@ -589,14 +590,15 @@ subroutine plotdent
   
   write(*,*)'kg=',kg
   write(*,*)psig,isigma
+  kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   call makezdent
   call FgEint(Ftotalg,isigma)
 ! Replot the last dentadd frame and show.  
   Wg=4.; psig=-.1
   call makezg(isigma)
-!  CapPhig=0.  ! Kludge the red line to zero.
   call dentadd(complex(0.,0.),0.)
-  call pltend
+  if(ldentaddp)call pltend
+
   
 end subroutine plotdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

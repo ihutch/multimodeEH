@@ -45,11 +45,11 @@ module shiftgen
   complex :: omegadiff,omegaonly
   real :: psig=.1,Wg,zm=14.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
   real :: vshift=0.,vrshift=0.  ! The shape of ion distribution.
-  real :: Tinf=1.,Tperpg=1.,Torepel=1.
+  real :: Tinf=1.,Tperpg=1.,Torepel=1.,f4norm
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=400,nhmax=60,nzd=100,nzext=100
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100,nzext=100
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
@@ -57,16 +57,18 @@ module shiftgen
   complex, dimension(-ngz:ngz) :: CapPhig
   real, dimension(-nzd:nzd) :: zdent=0.
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
-  complex, dimension(-nzd:nzd) :: CapQd,dentq
+  complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint
   complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2,ndir=2
   integer :: naux=2
   complex, dimension(-ngz:ngz,nauxmax) :: auxmodes
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   real :: kpar
-  real :: zextfac=3.5
+!  real :: zextfac=3.5
+  real :: zextfac=10.
   real, dimension(0:nzext) :: zext
-  complex, dimension(0:nzext) :: dentext,auxext,denqext
+  complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
+  complex, dimension(0:nzext) :: CapQw,denqw
   complex :: qqext
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg
@@ -85,6 +87,7 @@ module shiftgen
 ! Total forces
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg
+!   Total auxiliary forces 
 !   Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nauxmax,ndir) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
 ! Ratio of mass of ion to mass of electron
@@ -217,6 +220,7 @@ contains
 ! The result needs to be multiplied by df/dWpar.
     complex :: dForceg,CPfactor,exptbb2
     complex :: dFaux(nauxmax,ndir) ! Passed in for each energy of Fauxarray.
+    complex :: CPa0
     Wg=Wgi
     call makezg(isigma) ! Sets various time array values.
     vpsig=vg(-ngz)            ! Untrapped default ...
@@ -227,10 +231,17 @@ contains
     CapPhig(-ngz)=0.
     CapPaux(-ngz,1)=0.
 !    CapPaux(-ngz,2)=something ! This can be removed now, given the following.
-    p=4.*kpar
-    theta=-atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
-    CapPaux(-ngz,2)=-sqm1g*exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
-         /(kpar*vg(-ngz)-omegag)
+! Set the incoming CapPaux for continuum to be the wave solution.
+! Use the Phi_m(z) (A)-expression, with kpar.v negative (incoming) and sign(x)
+! negative which reverses phi at negative z. 
+    CPa0=-auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
+! This explict treatment gives essentially the same answer.
+!    p=4.*kpar
+!    theta=atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
+!    CapPaux(-ngz,2)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
+!         /(sqm1g*(-kpar*vg(-ngz)-omegag))
+!    write(*,*)CapPaux(-ngz,2),CPa0
+    CapPaux(-ngz,2)=CPa0
     dForceg=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -316,6 +327,9 @@ contains
     Ftp=0.
     dentpass=0.
     dentext=0.
+    denqext=0.
+    denqw=0.
+    denqwint=0.
     do i=1,nge  ! Passing, corrected for psig sign.
        Wgarray(i)=max(psig,0.)+Emaxg*(i/float(nge))**ippow
        vinfarrayp(i)=-isigma*sqrt(2.*Wgarray(i))
@@ -340,7 +354,6 @@ contains
        call Fextern(Wgarray(i),isigma,dFext(i),dvinf,dfweight)
        Ftauxp(2,1)=Ftauxp(2,1)+dvinf*dFext(i)*dfweight
        if(zdent(nzd).ne.0)then ! Do diagnostic accumulation.
-          write(*,'(a,f7.4,'' ''$)')'Wg',Wgarray(i)
           call dentadd(dfweight,dvinf)
        endif
     ! End of reworked version; old version removed.
@@ -398,14 +411,15 @@ contains
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
-    if(.false.)then
-    write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
-    write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-    write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp
-    write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt
-    write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa
-    write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
-    write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
+    if(.true.)then
+       write(*,'(a,8f8.4)')'Normalizing factor for |4>',f4norm
+       write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg/f4norm**2
+       write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+       write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
+       write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
+       write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa/f4norm
+       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
+       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
     endif
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -509,7 +523,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine Fextern(Wgi,isigma,Fexti,dvinf,dfweight)
 ! Add to the force <q|~V|4> arising from z-positions outside the hole
-! region. ndir=1, q-> naux=2.
+! region. ndir=1, q-> naux=2, and get the external ~n_4 dentext. 
 ! Also add to <q|~V|q> (Fextqq and denqext) for verification purposes.
     real :: Wgi
     complex :: Fexti,CP,CPprior,CPfactor,dfweight
@@ -521,20 +535,43 @@ contains
     CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
     Fexti=0.
     CPprior=CapPhig(ngz)
+    CapPext(0)=CapPhig(ngz)      ! External |4> outgoing.
     dentext(0)=dentext(0)+dvinf*CPprior*dfweight
+    CapQext(0)=CapPaux(ngz,2)    ! External |q> outgoing.
     CQprior=CapPaux(ngz,2)
     denqext(0)=denqext(0)+dvinf*CQprior*dfweight
+
+!    vko=kpar*vg(ngz)/real(omegag)
+!    wbrac=1+vko+vko**2!+vko**3+vko**4+vko**5+vko**6+vko**7+vko**8
+!    write(*,'(a,5f8.4)')'kpar,vg,vko,wbrac,omegac',kpar,vg(ngz),vko,wbrac,omegacg
+!    wbrac=1./(1-vko)
+!    wbrac=1.
+!    p=4.*kpar                    ! External wave incoming. 
+!    theta=atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
+!    CapQw(0)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
+!         /(sqm1g*(-kpar*vg(ngz)-omegag))
+! Incoming was incorrect. I need outgoing to compare with \tilde V|q>.
+    CapQw(0)=auxext(0)/(sqm1g*(kpar*vg(ngz)-omegag))  ! kv sign.
+    denqw(0)=denqw(0)+dvinf*dfweight*CapQw(0)
     do i=1,nzext        ! As we go, accumulate density dentext
        CP=CPprior*CPfactor
+       CapPext(i)=CP
        Fexti=Fexti-sqm1g*0.5*(conjg(auxext(i-1))*CPprior&
             +conjg(auxext(i))*CP)*abs(dze)
        dentext(i)=dentext(i)+dvinf*CP*dfweight
        CPprior=CP
-       CQ=CQprior*CPfactor
+
+       CQ=CPfactor*CQPrior-0.5* &
+            (auxext(i)+auxext(i-1))*(1.-CPfactor)*sqm1g/omegag
+       CapQext(i)=CQ
        denqext(i)=denqext(i)+dvinf*CQ*dfweight
        Fextqq=Fextqq-sqm1g*0.5*(conjg(auxext(i-1))*CQprior&
             +conjg(auxext(i))*CQ)*abs(dze)*dvinf*dfweight
        CQprior=CQ
+!       CapQw(i)=exp(complex(0.,kpar*zext(i)+theta))/sqrt(2.*3.1415926)&
+!            /(sqm1g*(kpar*vg(ngz)-omegag))
+       CapQw(i)=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
+       denqw(i)=denqw(i)+dvinf*dfweight*CapQw(i)
     enddo
   end subroutine Fextern
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -745,56 +782,107 @@ end function dfdWptrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentadd(dfweight,dvinf)
     complex :: dfweight
-! Make dentpass equal to the weighted average of CapPhig over the zg
+! Add to dentpass the weighted average of CapPhig over the zg
 ! points that reside in each of its (equally spaced) intervals.
-    call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
+! This is the ~V|4> density. When appropriately rescaled.
+! Scaling is that using for |4> instead phigprime gives an unnormalized
+! value |4>=8\psi/3sqrt(70)*|^4> (the normalized mode)
+    character*20 wchar
+    f4norm=abs(8.*psig/(3.*sqrt(70.)))
+    call remesh(zg,CapPhig/f4norm,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
 ! Similarly for the ~V|q> density.
     call remesh(zg,CapPaux(:,2),2*ngz+1,zdent,CapQd,2*nzd+1)
     dentq=dentq+dvinf*dfweight*CapQd
+! And the internal wave density
+    denqwint=denqwint+dvinf*dfweight*auxzd/&
+         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))
+!    write(*,*)auxzd(-1:1)
+    
     if(ldentaddp)then   ! Diagnostic plots of density tilde n (contributions)
+    write(*,'(a,f7.4,'' ''$)')'Wg',Wg
+
     if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
     if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
-    call multiframe(3,1,3)
-    call autoplot(zdent,real(dentpass),2*nzd+1)
-    call axis2
-    call axlabels('','!p!o~!o!qn!dq!d')
-    call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
-    if(abs(dfweight).ne.0)then
+
+    call multiframe(3,1,0)
+    call dcharsize(.019,.019)
+
+    call minmax(dentq,4*nzd+2,dmin,dmax)
+    call minmax(denqext,2*nzext,dqmin,dqmax)
+    dmin=min(dmin,dqmin)
+    dmax=max(dmax,dqmax)
+    call pltinit(zg(-ngz),zext(nzext),dmin,dmax)
+    call fwrite(Wg,iwidth,4,wchar)
+    call boxtitle('Passing positive velocity contributions only to W='&
+         //wchar(1:iwidth))
+    call axis; call axis2
+    call axlabels('','!p!o~!o!qn!dq!d'    )
+    call polyline(zext,real(denqext),nzext)
+    call polymark(zdent(nzd),real(dentq(nzd)),1,1)
+    call polyline(zdent(-nzd:nzd),real(dentq(-nzd:nzd)),2*nzd+1)
+    call dashset(2)
+    call polyline(zdent(-nzd:nzd),imag(dentq(-nzd:nzd)),2*nzd+1)
+    call polymark(zdent(nzd),imag(dentq(nzd)),1,1)
+    call polyline(zext,imag(denqext),nzext)
+    call color(4)
+    call color(6)
+    call polyline(zext,-imag(denqw),nzext)
+    call polyline(zdent,-imag(denqwint),2*nzd+1)
+    call dashset(0)
+!    call axlabels('','              !p!o~!o!qV!dext!d|q>')
+    call axlabels('','              !p!o~!o!qn!dw!d')
+    call polyline(zext,-real(denqw),nzext)
+    call polyline(zdent,-real(denqwint),2*nzd+1)
+    call color(4)
+    call color(15)
+
+    call minmax(dentpass,4*nzd+2,dmin,dmax)
+    call minmax(CapPhid,4*nzd+2,cmin,cmax)
+    Cfactor=min(abs(dmax),abs(dmin))/max(abs(cmin),abs(cmax))
+    call pltinit(zg(-ngz),zext(nzext),dmin,dmax)
+    call axis; call axis2
+    call axlabels('','!p!o~!o!qn!d4!d')
+    call polyline(zext,real(dentext/f4norm),nzext)
+!    call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
+    call polyline(zdent(-nzd:nzd),real(dentpass(-nzd:nzd)),2*nzd+1)
+    call dashset(2)
+    call polyline(zdent(-nzd:nzd),imag(dentpass(-nzd:nzd)),2*nzd+1)
+    call polyline(zext,imag(dentext/f4norm),nzext)
+    if(dfweight.ne.0)then
+       call dashset(3)
        call color(4)
-       call axlabels('','            !AF!@')
-       call winset(.true.)
-       call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+       call polyline(zdent,Cfactor*real(CapPhid),2*nzd+1)
+       call polyline(zext,Cfactor*real(CapPext)/f4norm,nzext)
+       call legendline(.7,.7,0,'!AF!@ (scaled)')
     endif
-!    call dashset(2)
-    call color(3)
-!    call polyline(-zdent,-real(dentpass),2*nzd+1)
-    call polyline(zdent,real(dentpass-dentpass([(i,i=nzd,-nzd,-1)])),2*nzd+1)
-!    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
     call dashset(0)
     call color(15)
-    call minmax(real(dentpass(0:nzd)),nzd+1,dmin,dmax)
-    call pltinit(0.,zext(nzext),dmin,dmax)
-    call polyline(zext,real(dentext),nzext)
-    call axis; call axis2
-    call axlabels('','!p!o~!o!qn!dq!d')
-    call polymark(zdent(nzd),real(dentpass(nzd)),1,1)
-    call winset(.true.)
-    call polyline(zdent(0:nzd),real(dentpass(0:nzd)),nzd+1)
-    call pltinit(0.,zext(nzext),-0.42,0.42)
+
+    call pltinit(zg(-ngz),zext(nzext),-0.42,0.42)
     call axis; call axis2
     call polyline(zext,real(auxext),nzext)
-    call polyline(zg(0:ngz),real(auxmodes(0:ngz,2)),ngz+1)
-    call axlabels('z','Re(|q>)')
+    call polyline(zg(-ngz:ngz),real(auxmodes(-ngz:ngz,2)),2*ngz+1)
+    call axlabels('z','|q>')
+    call legendline(.7,.9,0,'real')
+    call dashset(2)
+    call polyline(zext,imag(auxext),nzext)
+    call polyline(zg(-ngz:ngz),imag(auxmodes(-ngz:ngz,2)),2*ngz+1)
+    call legendline(.7,.8,0,'imag')
+    call dashset(0)
     call multiframe(0,0,0)
     call usleep(20000)
     call accisflush
+    
+    call eye3d(ik) ! Control of movie effect d:run f:stop
+    if(ik.eq.ichar('d'))call noeye3d(0)
+    if(ik.eq.ichar('f'))call noeye3d(9999)
+
+    call prtend('')
     call pfget(isw)
     if(isw.ne.0)then
-       call prtend('')
        call pfset(0)
     endif
-!   call pltend                    ! To stop at each frame. 
     endif
   end subroutine dentadd
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -924,18 +1012,21 @@ subroutine makezdent
   use shiftgen
   do i=-nzd,nzd
      zdent(i)=.999999*zm*i/float(nzd)
+     ! And the continuum auxmode internally on the zd mesh.  
+     auxzd(i)=auxofz(zdent(i),2,kpar)
   enddo
   CapPhidprev=0.
+  
 end subroutine makezdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine makezext
-! Initialize the uniform zext for external integration.
+! Initialize the uniform zext and |q> for external integration.
   use shiftgen
   zemax=zextfac/real(omegag)+zm
   do i=0,nzext
      zext(i)=zm+i*(zemax-zm)/nzext
      auxext(i)=auxofz(zext(i),2,kpar)
-  enddo
+  enddo     
 end subroutine makezext
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!! Routines not dependent on shiftgen.
