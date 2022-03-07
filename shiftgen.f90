@@ -73,7 +73,7 @@ module shiftgen
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
-  complex, dimension(nge) :: CapPhiEdge,dFext
+  complex, dimension(nge) :: dFext
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
   complex, dimension(0:nge):: Fnonresg
@@ -328,6 +328,8 @@ contains
     omegadiff=omegag-omegaonly
     dfwtpre=0.  ! silence warnings
     Ftp=0.
+    Fextqq=0.
+    Fextqw=0.
     dentpass=0.
     dentext=0.
     denqext=0.
@@ -352,19 +354,19 @@ contains
        do k=1,naux
           Ftauxp(k,:)=Ftauxp(k,:)+dvinf*Fauxarray(k,:,i)*dfweight
        enddo
-       CapPhiEdge(i)=CapPhig(ngz)
+       if(naux.ge.2)then
 ! Now we must do the external continuum integration and add to aux(2,1)
-       call Fextern(Wgarray(i),isigma,dFext(i),dvinf,dfweight)
-       Ftauxp(2,1)=Ftauxp(2,1)+dvinf*dFext(i)*dfweight
-       if(zdent(nzd).ne.0)then ! Do diagnostic accumulation.
-          call dentadd(dfweight,dvinf)
-! At the end calculate the <q|V-V_w|q>
+          call Fextern(Wgarray(i),isigma,dFext(i),dvinf,dfweight)
+          Ftauxp(2,1)=Ftauxp(2,1)+dvinf*dFext(i)*dfweight
+          if(zdent(nzd).ne.0)then ! Do diagnostic accumulation.
+             call dentadd(dfweight,dvinf)
+          endif
+! At the end calculate the <q|V-V_w|q> ?
           if(i.eq.nge)then
              do k=-nzd,nzd
              enddo
           endif
        endif
-    ! End of reworked version; old version removed.
        Forcegp(i)=Forcegarray(i)*dfweight
        Fauxp(1:naux,:,i)=Fauxarray(1:naux,:,i)*dfweight
        tbp(i)=taug(ngz)
@@ -539,47 +541,48 @@ contains
   subroutine Fextern(Wgi,isigma,Fexti,dvinf,dfweight)
 ! Add to the force <q|~V|4> arising from z-positions outside the hole
 ! region. ndir=1, q-> naux=2, and get the external ~n_4 dentext. 
-! Also add to <q|~V|q> (Fextqq and denqext) for verification purposes.
+! Also add to <q|~V|q> (Fextqq and denqext), and <q|Vw|q> Fextqw, denqw.
     real :: Wgi
     complex :: Fexti,CP,CPprior,CPfactor,dfweight
-    complex :: CQ,CQprior
+    complex :: CQ,CQprior,CW,CWprior
     call makezext
     vi=sqrt(2.*Wgi)
     dze=zext(2)-zext(1)
     dtau=dze/vi
     CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
-    Fexti=0.
+    Fexti=0.         ! Accumulate <q|~V|4> for just this v_||, so zero.
     CPprior=CapPhig(ngz)
-    CapPext(0)=CapPhig(ngz)      ! External |4> outgoing.
+    CapPext(0)=CPprior      ! External |4> outgoing.
     dentext(0)=dentext(0)+dvinf*CPprior*dfweight
-    CapQext(0)=CapPaux(ngz,2)    ! External |q> outgoing.
     CQprior=CapPaux(ngz,2)
+    CapQext(0)=CQprior    ! External |q> outgoing.
     denqext(0)=denqext(0)+dvinf*CQprior*dfweight
-
-! Incoming was incorrect. I need outgoing to compare with \tilde V|q>.
-    CapQw(0)=auxext(0)/(sqm1g*(kpar*vg(ngz)-omegag))  ! kv sign.
-!    CapQw(0)=auxext(0)/(sqm1g*(kpar*vg(ngz)-real(omegag)))  ! kv sign.
-    denqw(0)=denqw(0)+dvinf*dfweight*CapQw(0)
-    do i=1,nzext        ! As we go, accumulate density dentext
-       CP=CPprior*CPfactor
+! Outgoing to compare with \tilde V|q>, hence kv sign.
+    CWprior=auxext(0)/(sqm1g*(kpar*vg(ngz)-omegag))
+    CapQw(0)=CWprior 
+    denqw(0)=denqw(0)+dvinf*dfweight*CWprior
+    do i=1,nzext        ! As we go, accumulate densities dentext etc.
+       CP=CPprior*CPfactor  !Plus nothing because |q> is zero externally
        CapPext(i)=CP
        Fexti=Fexti+sqm1g*0.5*(conjg(auxext(i-1))*CPprior&
             +conjg(auxext(i))*CP)*abs(dze)
        dentext(i)=dentext(i)+dvinf*CP*dfweight
        CPprior=CP
 
-       CQ=CPfactor*CQprior+0.5* &
-            (auxext(i)+auxext(i-1))*(1.-CPfactor)*sqm1g/omegag
+       CQ=CPfactor*CQprior & ! Plus the current contribution
+            +0.5*(auxext(i)+auxext(i-1))*(1.-CPfactor)*sqm1g/omegag
        CapQext(i)=CQ
        denqext(i)=denqext(i)+dvinf*CQ*dfweight
        Fextqq=Fextqq+sqm1g*0.5*(conjg(auxext(i-1))*CQprior&
             +conjg(auxext(i))*CQ)*abs(dze)*dvinf*dfweight
        CQprior=CQ
-       CapQw(i)=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
-!       CapQw(i)=auxext(i)/(sqm1g*(kpar*vg(ngz)-real(omegag)))
-       denqw(i)=denqw(i)+dvinf*dfweight*CapQw(i)
-       Fextqw=Fextqw+sqm1g*0.5*(conjg(auxext(i-1))*CapQw(i-1)&
-            +conjg(auxext(i))*CapQw(i))*abs(dze)*dvinf*dfweight
+
+       CW=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
+       CapQw(i)=CW
+       denqw(i)=denqw(i)+dvinf*dfweight*CW
+       Fextqw=Fextqw+sqm1g*0.5*(conjg(auxext(i-1))*CWprior&
+            +conjg(auxext(i))*CW)*abs(dze)*dvinf*dfweight
+       CWprior=CW
     enddo
   end subroutine Fextern
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
