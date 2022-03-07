@@ -322,10 +322,9 @@ contains
     integer :: isigma,i,k
     real :: Emaxg
     real :: dvinf,fvinf,dfe,dfeperp
-    real :: Wnext,dvnext
-    complex :: dfweight,dfwtpre
+    real :: Wnext,dvnow,dvnext,vinfprior,vinfnow,vinfnext
+    complex :: dfweight
     omegadiff=omegag-omegaonly
-    dfwtpre=0.  ! silence warnings
     Ftp=0.
     Fextqq=0.
     Fextqw=0.
@@ -335,41 +334,37 @@ contains
     denqext=0.
     denqw=0.
     denqwint=0.
+    
+    vinfprior=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
+    Wnext=max(psig,0.)+Emaxg*(1./float(nge))**ippow
+    vinfnext=-isigma*sqrt(2.*Wnext)
+    dvnext=abs(vinfnext-vinfprior )*2.  ! Approximate the start via dvnow*2.
     do i=1,nge  ! Passing, corrected for psig sign.
-       Wgarray(i)=max(psig,0.)+Emaxg*(i/float(nge))**ippow
-       vinfarrayp(i)=-isigma*sqrt(2.*Wgarray(i))
+       Wgarray(i)=Wnext
+       vinfnow=vinfnext
+       dvnow=dvnext
+       vinfarrayp(i)=vinfnow
+       Wnext=max(psig,0.)+Emaxg*(min(i+1,nge)/float(nge))**ippow
+       vinfnext=-isigma*sqrt(2.*Wnext)
+       dvnext=abs(vinfnext-vinfnow)
        call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxarray(1,1,i))
-       dfe=dfdWpar(vinfarrayp(i),fvinf) ! fparallel slope and value
+       dfe=dfdWpar(vinfnow,fvinf) ! fparallel slope and value
        dfeperp=-fvinf/Tperpg
        dfweight=(omegag*dfe-omegadiff*dfeperp)
-    ! Reworked version
-       Wnext=max(psig,0.)+Emaxg*(min(i+1,nge)/float(nge))**ippow
-       dvnext=abs(-isigma*sqrt(2.*Wnext)-vinfarrayp(i))
-       if(i.gt.1)then
-          dvinf=0.5*(abs(vinfarrayp(i)-vinfarrayp(i-1))+dvnext)
-       else  ! Approximated start.
-          dvinf=abs(vinfarrayp(i)-sqrt(2.*max(psig,0.)))+0.5*dvnext
-       endif
-       Ftp=Ftp+dvinf*Forcegarray(i)*dfweight
+       dvinf=0.5*(dvnow+dvnext)
+       Ftp=Ftp+Forcegarray(i)*dvinf*dfweight
        do k=1,naux
-          Ftauxp(k,:)=Ftauxp(k,:)+dvinf*Fauxarray(k,:,i)*dfweight
+          Ftauxp(k,:)=Ftauxp(k,:)+Fauxarray(k,:,i)*dvinf*dfweight
        enddo
-       if(naux.ge.2)then
-! Now we must do the external continuum integration and add to aux(2,1)
-          call Fextern(Wgarray(i),isigma,dvinf,dfweight)
-          if(zdent(nzd).ne.0)then ! Do diagnostic accumulation.
-             call dentadd(dfweight,dvinf)
-          endif
-! At the end calculate the <q|V-V_w|q> ?
-          if(i.eq.nge)then
-             do k=-nzd,nzd
-             enddo
-          endif
-       endif
        Forcegp(i)=Forcegarray(i)*dfweight
        Fauxp(1:naux,:,i)=Fauxarray(1:naux,:,i)*dfweight
        tbp(i)=taug(ngz)
-       dfwtpre=dfweight
+       if(naux.ge.2)then
+! Now we must do and add the external continuum integration.
+          call Fextern(Wgarray(i),isigma,dvinf,dfweight)
+          if(zdent(nzd).ne.0)call dentadd(dfweight,dvinf) !Diagnostics
+       endif
+       vinfprior=vinfnow
     enddo
     Wgarrayp=Wgarray
   end subroutine FgPassingEint
