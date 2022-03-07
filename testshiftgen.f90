@@ -581,21 +581,25 @@ subroutine plotdent
   complex :: Ftotalg
   if(psig.ge.0)psig=-.1
   omegacg=20.
-  omegag=complex(.1,.01)
+  omegag=complex(.02,.001)
+!  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
-  kg=.1
+  kg=.02
+!  kg=.143
   ldentaddp=.true.   ! dentadd movie
   
-  write(*,*)'kg=',kg
-  write(*,*)psig,isigma
+  write(*,'(a,f7.4,a,2f8.5,a,f7.4)')' kg=',kg,' omega=(',omegag,') psi=',-psig
   kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   call makezdent
   call FgEint(Ftotalg,isigma)
 ! Replot the last dentadd frame and show.  
   Wg=4.; psig=-.1
   call makezg(isigma)
+  call pfset(3)
+  call dentadd(complex(0.,0.),0.)
+  call pfset(0)
   call dentadd(complex(0.,0.),0.)
   if(ldentaddp)call pltend
 
