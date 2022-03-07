@@ -17,7 +17,7 @@
 ! be set to omega/omega_{ps}, different for different mass
 ! species. For different charge sign, the hill peak psig must likewise
 ! be opposite. The length scale is normally the Debye length for some
-! reference temperature, the default spatial extent is |zm|=10.
+! reference temperature, the default spatial extent is |zm|=15.
 ! But for energies near zero is sometimes automatically lengthened.
 
 ! The force contribution is the integral dz of -d\phi/dz times the
@@ -38,7 +38,11 @@
 ! K=-1-sqrt(max(0,-W/psi)) attracted.  Repelling hill psi>0, attracted
 ! valley psi<0.
 
-! Version for inclusion of auxiliary coupled perturbation modes. 
+! Version for inclusion of auxiliary coupled perturbation modes,
+! and works only for sech^4 potential shape. 
+! naux (1 or 2) determines the number of auxiliary modes used.
+! 1 gives just the other discrete mode, and 2 adds the continuum.
+! Inner products should be only for Fattract (presumably electrons). 
 
 module shiftgen
   complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
@@ -49,7 +53,7 @@ module shiftgen
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100,nzext=100
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=100,nzext=200
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
@@ -65,7 +69,7 @@ module shiftgen
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   real :: kpar
 !  real :: zextfac=3.5
-  real :: zextfac=5.
+  real :: zextfac=30.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
   complex, dimension(0:nzext) :: CapQw,denqw
@@ -277,7 +281,7 @@ contains
           dFaux(j,2)=dFaux(j,2)-sqm1g*0.5*(phigprime(i)&
                &*CapPaux(i,j)+phigprime(i-1)*CapPaux(i-1,j))&
                &*abs(vpsig*dtau)
-! Corrections 3May22 signs of auxmode additions must be opposite phigprime
+! Corrections 3Mar22 signs of auxmode additions must be opposite phigprime
 ! because phigprime is minus the |4> mode.
        enddo
     enddo
@@ -415,27 +419,6 @@ contains
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
-    if(.true.)then
-       write(*,'(a,f8.4,a)')'Normalizing factor for |4>',f4norm,' applied.'
-       write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg/f4norm**2
-       write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-       write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
-       write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
-       write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa/f4norm
-       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
-       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
-       write(*,*)'########  Relative sizes of <q|V-Vw|q> and <q|V|4>'
-       write(*,*)'                       <q|V|q>       <q|Vw|q>        <q|V-Vw|q>'
-       write(*,'(a,8f8.4)')'Complex qq external:',Fextqq,Fextqw&
-            ,Fextqq-Fextqw
-       call qdenqint
-       write(*,'(a,8f8.4)')'Complex qq internal:',Fintqq,Fintqw&
-            ,Fintqq-Fintqw
-       write(*,'(a,8f8.4)')'Complex qq total   :',Fintqq+Fextqq,Fintqw+Fextqw&
-            ,Fintqq+Fextqq-Fintqw-Fextqw
-       write(*,'(a,8f8.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
-            ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
-    endif
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
@@ -541,10 +524,8 @@ contains
     complex :: CQ,CQprior,CW,CWprior,dvdfw
     call makezext
     vi=sqrt(2.*Wgi)
-    dze=zext(2)-zext(1)
-    dtau=dze/vi
+    dze=abs(zext(1)-zext(0))
     dvdfw=dvinf*dfweight
-    CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
     Fexti=0.         ! Accumulate <q|~V|4> for just this v_||, so zero.
     CPprior=CapPhig(ngz)
     CapPext(0)=CPprior      ! External |4> outgoing.
@@ -557,10 +538,12 @@ contains
     CapQw(0)=CWprior 
     denqw(0)=denqw(0)+CWprior*dvdfw
     do i=1,nzext        ! As we go, accumulate densities dentext etc.
+       dze=abs(zext(i)-zext(i-1))
+       CPfactor=exp(sqm1g*omegag*dze/vi) ! Current exponential
        CP=CPprior*CPfactor  !Plus nothing because |q> is zero externally
        CapPext(i)=CP
        Fexti=Fexti+sqm1g*0.5*(conjg(auxext(i-1))*CPprior&
-            +conjg(auxext(i))*CP)*abs(dze)*dvdfw
+            +conjg(auxext(i))*CP)*dze*dvdfw
        dentext(i)=dentext(i)+CP*dvdfw
        CPprior=CP
 
@@ -569,14 +552,14 @@ contains
        CapQext(i)=CQ
        denqext(i)=denqext(i)+CQ*dvdfw
        Fextqq=Fextqq+sqm1g*0.5*(conjg(auxext(i-1))*CQprior&
-            +conjg(auxext(i))*CQ)*abs(dze)*dvdfw
+            +conjg(auxext(i))*CQ)*dze*dvdfw
        CQprior=CQ
 
        CW=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
        CapQw(i)=CW
        denqw(i)=denqw(i)+dvinf*dfweight*CW
        Fextqw=Fextqw+sqm1g*0.5*(conjg(auxext(i-1))*CWprior&
-            +conjg(auxext(i))*CW)*abs(dze)*dvdfw
+            +conjg(auxext(i))*CW)*dze*dvdfw
        CWprior=CW
     enddo
     Ftauxp(2,1)=Ftauxp(2,1)+Fexti
@@ -1048,8 +1031,9 @@ subroutine makezext
 ! Initialize the uniform zext and |q> for external integration.
   use shiftgen
   zemax=zextfac/real(omegag)+zm
+  izext=2
   do i=0,nzext
-     zext(i)=zm+i*(zemax-zm)/nzext
+     zext(i)=zm+(zemax-zm)*i**izext/nzext**izext
      auxext(i)=auxofz(zext(i),2,kpar)
   enddo     
 end subroutine makezext
