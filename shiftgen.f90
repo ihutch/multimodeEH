@@ -69,7 +69,7 @@ module shiftgen
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   real :: kpar
 !  real :: zextfac=3.5
-  real :: zextfac=30.
+  real :: zextfac=20.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
   complex, dimension(0:nzext) :: CapQw,denqw
@@ -778,8 +778,6 @@ end function dfdWptrap
 ! This is the ~V|4> density. When appropriately rescaled.
 ! Scaling is that using for |4> instead phigprime gives an unnormalized
 ! value |4>=8\psi/3sqrt(70)*|^4> (the normalized mode)
-    character*20 wchar
-    logical :: printwait=.false.
     f4norm=abs(8.*psig/(3.*sqrt(70.)))
     call remesh(zg,CapPhig/f4norm,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
@@ -791,7 +789,15 @@ end function dfdWptrap
          (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag)))
 !    write(*,*)auxzd(-1:1)
     
-    if(ldentaddp)then   ! Diagnostic plots of density tilde n (contributions)
+    if(ldentaddp)call dentaddplot(dfweight)
+
+  end subroutine dentadd
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine dentaddplot(dfweight)
+    complex :: dfweight
+    character*20 wchar
+    logical :: printwait=.true.
+
     if(printwait)write(*,'(a,f7.4,'' ''$)')'Wg',Wg
 
     if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
@@ -876,8 +882,7 @@ end function dfdWptrap
     if(isw.ne.0)then
        call pfset(0)
     endif
-    endif
-  end subroutine dentadd
+  end subroutine dentaddplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Not fully implemented or called yet. 16 Feb 2022
   subroutine dentaddtrap(dfweight,dvinf)
