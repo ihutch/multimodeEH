@@ -579,18 +579,18 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor
-  psidef=-.2
+  ldentaddp=.false.   ! dentadd movie
+  psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.005,.0002)
-  omegag=complex(.047,.00119)
+  omegag=complex(.04,.001)
+!  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
   kg=real(omegag)
   kg=.03
   kg=.143
-  ldentaddp=.true.   ! dentadd movie
   kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
@@ -628,7 +628,8 @@ subroutine plotdent
      write(*,*)'Cfactor, qdenom',Cfactor,qresdenom
 !     write(*,'(a,2f8.4,a)')'C-factor=(',Cfactor,')'
   endif
-  
+
+  if(.not.ldentaddp)call pltend
 ! Replot the last dentadd frame and show.  
   Wg=4.;
 !  psig=psidef

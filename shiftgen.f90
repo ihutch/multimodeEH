@@ -58,10 +58,11 @@ module shiftgen
   real,parameter :: pig=3.1415926
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
-  complex, dimension(-ngz:ngz) :: CapPhig
+  complex, dimension(-ngz:ngz) :: CapPhig,ft4
   real, dimension(-nzd:nzd) :: zdent=0.
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint
+  complex, dimension(-nzd:nzd) :: ft4d,ft2d,ftqd
   complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2,ndir=2
   integer :: naux=2
@@ -444,6 +445,7 @@ contains
        dfe=dfdWptrap(Wj,fe)*fperp
        dfeperp=fe*dfperpdWperp      ! df/dW_perp
        dfweight=(omegag*dfe-omegadiff*dfeperp)
+!       write(*,*)dfe,dfweight
        vpsi=sqrt(2.*(-psig+Wj))
        vinfarrayr(i)=vpsi ! reflected==trapped for attracting hill.
        dvpsi=vpsiprev-vpsi
@@ -451,6 +453,7 @@ contains
        call Fdirect(Wgarray(i),isigma,dFdvpsig,Fauxarray(1,1,i))
        omegabg(i)=2.*pig/(2.*taug(ngz))
        call pathshiftg(i,obi)
+!       obi=0.
        omegabg(i)=omegabg(i)+sqm1g*obi
        exptb=exp(sqm1g*omegag*pig/omegabg(i))   ! Half period
        if(.not.abs(exptb).lt.1.e10)exptb=1.e10  ! Enable divide by infinity
@@ -473,6 +476,7 @@ contains
           Fnonresg(i)=0.
           Fnonraux(:,:,i)=0.
        endif
+       call dentaddtrap(dfweight,cdvpsi)
 ! Then divide by the resonance denominator and sum 
        Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
     ! Now Forcegr when multiplied by cdvpsi and summed over all ne positions
@@ -796,7 +800,7 @@ end function dfdWptrap
   subroutine dentaddplot(dfweight)
     complex :: dfweight
     character*20 wchar
-    logical :: printwait=.true.
+    logical :: printwait=.false.
 
     if(printwait)write(*,'(a,f7.4,'' ''$)')'Wg',Wg
 
@@ -885,24 +889,63 @@ end function dfdWptrap
   end subroutine dentaddplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Not fully implemented or called yet. 16 Feb 2022
-  subroutine dentaddtrap(dfweight,dvinf)
-! Make dentpass equal to the weighted average of CapPhig over the zg
+  subroutine dentaddtrap(dfweight,cdvinf)
+! Make dentpass equal to the weighted average of \Phi over the zg
 ! points that reside in each of its (equally spaced) intervals.
-    complex :: dfweight,dvinf
-    call remesh(zg,CapPhig,2*ngz+1,zdent,CapPhid,2*nzd+1)
-! We need CapPhig to have been corrected for resonant denominator.
-    dentpass=dentpass+dvinf*0.5*(dfweight*CapPhid+dfwtprev*CapPhidprev)
-    CapPhidprev=CapPhid
+! dfweight is omegag*dfe etc. ftilde is i*dfweight*\Phi (summed over
+! the perpendicular harmonics). But \Phi is not exactly CapPhig for
+! trapped orbits.
+    complex :: dfweight,cdvinf
+    complex :: resfac
+    character*20 wchar
+    f4norm=abs(8.*psig/(3.*sqrt(70.)))
+! Maybe we need  0.5(dfweight*CapPhid+dfwtprev*Caphidprev)
+!    CapPhidprev=CapPhid
     dfwtprev=dfweight
+    resfac=1+exp(sqm1g*omegag*taug(ngz))
+    do i=-ngz,ngz
+       ft4(i)=sqm1g*dfweight*(CapPhig(i)&
+            -exp(sqm1g*omegag*taug(i))*CapPhig(ngz)/resfac)/f4norm
+    enddo
+    call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
+    
+    denttrap=denttrap+cdvinf*ft4d
+
     if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
-    call autoplot(zdent,real(dentpass),2*nzd+1)
-    call color(4)
-    call polyline(zdent,0.01*real(CapPhid),2*nzd+1)
+
+    write(*,*)Wg,taug(ngz),cdvinf
+    call minmax(denttrap,4*nzd+2,dmin,dmax)
+    call minmax(ft4d,4*nzd+2,cmin,cmax)
+    Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
+    call pltinit(-zm,zm,dmin,dmax)
+    call fwrite(Wg,iwidth,6,wchar)
+    call boxtitle('Trapped contributions W='&
+         //wchar(1:iwidth))
+    call axis; call axis2
+    call axlabels('','!p!o~!o!qn!d4!d')
+    call polyline(zdent(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd+1)
+    call legendline(.03,.9,0,' real')
     call dashset(2)
-    call color(3)
-    call polyline(zg,.01*real(CapPhig),2*ngz+1) 
+    call legendline(.03,.85,0,' imag')
+    call polyline(zdent(-nzd:nzd),imag(denttrap(-nzd:nzd)),2*nzd+1)
+    if(dfweight.ne.0)then
+       call color(4)
+       call winset(.true.)
+       call polyline(zdent,Cfactor*imag(ft4d),2*nzd+1)
+       call dashset(0)
+       call polyline(zdent,Cfactor*real(ft4d),2*nzd+1)
+       call legendline(.03,.75,0,' !p!o~!o!qf (scaled)')
+!       call color(5)
+!       call polyline(zg,real(Cfactor*ft4),2*ngz+1)
+    endif
     call dashset(0)
-    call pltend
+    call color(15)
+
+    call accisflush
+    call eye3d(ik) ! Control of movie effect d:run f:stop
+    if(ik.eq.ichar('d'))call noeye3d(0)
+    if(ik.eq.ichar('f'))call noeye3d(9999)
+!    call pltend
     endif
   end subroutine dentaddtrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
