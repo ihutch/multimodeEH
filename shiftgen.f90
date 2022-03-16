@@ -61,13 +61,14 @@ module shiftgen
   complex, dimension(-ngz:ngz) :: CapPhig,ft4
   real, dimension(-nzd:nzd) :: zdent=0.
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
-  complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint
-  complex, dimension(-nzd:nzd) :: ft4d,ft2d,ftqd
+  complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
+  complex, dimension(-nzd:nzd) :: ft4d
   complex :: dfwtprev=0.
   integer, parameter :: nauxmax=2,ndir=2
   integer :: naux=2
-  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes
+  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
+  complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real :: kpar
 !  real :: zextfac=3.5
   real :: zextfac=20.
@@ -97,7 +98,8 @@ module shiftgen
 ! Ratio of mass of ion to mass of electron
   real :: rmime=1836.
 ! Whether to apply a correction to the trapped species
-  logical :: lioncorrect=.true.,lbess=.false.,ldentaddp=.false.
+  logical :: lioncorrect=.true.,lbess=.false.
+  logical :: ldentaddp=.false.,ltrapaddp=.false.
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)
@@ -416,6 +418,11 @@ contains
     complex Ftotalg
     Emaxg=4.*Tinf+vshift**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
+    if(ldentaddp)then
+       call pltend
+       call noeye3d(9999)
+    endif
+    
     call FgTrappedEint(Ftotalrg,-1/Tperpg,1.,isigma)
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
@@ -431,6 +438,9 @@ contains
     integer :: isigma
 
     omegadiff=omegag-omegaonly
+    dentqt=0.
+    denqwint=0.
+
     Ftotal=0.
     Ftotalmode=0.
     vpsiprev=sqrt(-2.*psig)
@@ -439,21 +449,21 @@ contains
     Fnonraux(1:naux,:,0)=0.
     Ftauxt(1:naux,:)=0.
     resdprev=1.
-    do i=1,nge-1       ! Trapped
+    do i=1,nge       ! Trapped
        Wgarray(i)=psig*((float(i)/nge)**iwpowg)
        Wj=Wgarray(i)
+       if(i.eq.nge)Wj=0.9999*psig   ! Prevent exact vpsi=0
        dfe=dfdWptrap(Wj,fe)*fperp
        dfeperp=fe*dfperpdWperp      ! df/dW_perp
        dfweight=(omegag*dfe-omegadiff*dfeperp)
-!       write(*,*)dfe,dfweight
        vpsi=sqrt(2.*(-psig+Wj))
        vinfarrayr(i)=vpsi ! reflected==trapped for attracting hill.
        dvpsi=vpsiprev-vpsi
 ! Calculate the force dFdvpsi for this vpsi and dvy element for one transit:
-       call Fdirect(Wgarray(i),isigma,dFdvpsig,Fauxarray(1,1,i))
+       call Fdirect(Wj,isigma,dFdvpsig,Fauxarray(1,1,i))
        omegabg(i)=2.*pig/(2.*taug(ngz))
        call pathshiftg(i,obi)
-!       obi=0.
+       obi=obi*1.
        omegabg(i)=omegabg(i)+sqm1g*obi
        exptb=exp(sqm1g*omegag*pig/omegabg(i))   ! Half period
        if(.not.abs(exptb).lt.1.e10)exptb=1.e10  ! Enable divide by infinity
@@ -499,14 +509,18 @@ contains
        vpsiprev=vpsi
        resdprev=resdenom
     enddo
+    if(.false.)then
     ! Calculate end by extrapolation.
-    Forcegr(nge)=Forcegr(nge-1)+0.5*(Forcegr(nge-1)-Forcegr(nge-2))
-    Ftotal=Ftotal+Forcegr(nge)*cdvpsi
-    Fnonresg(nge)=Fnonresg(nge-1)  ! Seems a hack but not used elsewhere.
-    Fauxres(1:naux,:,nge)=Fauxres(1:naux,:,nge-1)&
-         +0.5*(Fauxres(1:naux,:,nge-1)-Fauxres(1:naux,:,nge-2))
-    Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)  *cdvpsi
-    Wgarray(nge)=psig
+       Forcegr(nge)=Forcegr(nge-1)+0.5*(Forcegr(nge-1)-Forcegr(nge-2))
+       Ftotal=Ftotal+Forcegr(nge)*cdvpsi
+       Fnonresg(nge)=Fnonresg(nge-1)  ! Seems a hack but not used elsewhere.
+       Fauxres(1:naux,:,nge)=Fauxres(1:naux,:,nge-1)&
+            +0.5*(Fauxres(1:naux,:,nge-1)-Fauxres(1:naux,:,nge-2))
+       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)  *cdvpsi
+       Wgarray(nge)=psig
+       Wg=psig
+       call dentaddtrap(dfweight,cdvpsi)
+    endif
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -785,10 +799,10 @@ end function dfdWptrap
     f4norm=abs(8.*psig/(3.*sqrt(70.)))
     call remesh(zg,CapPhig/f4norm,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*dfweight*CapPhid
-! Similarly for the ~V|q>  density.
+! Similarly for the ~V|q>  passing density.
     call remesh(zg,CapPaux(:,2),2*ngz+1,zdent,CapQd,2*nzd+1)
     dentq=dentq+dvinf*dfweight*CapQd
-! And the wave-generated internal density V_w|q>.
+! And the wave-generated internal passing density V_w|q>.
     denqwint=denqwint+dvinf*dfweight*(auxzd/&
          (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag)))
 !    write(*,*)auxzd(-1:1)
@@ -876,7 +890,7 @@ end function dfdWptrap
     if(printwait)call usleep(20000)
     call accisflush
     
-    if(.not.printwait)call noeye3d(0)
+!    if(.not.printwait)call noeye3d(0)
     call eye3d(ik) ! Control of movie effect d:run f:stop
     if(ik.eq.ichar('d'))call noeye3d(0)
     if(ik.eq.ichar('f'))call noeye3d(9999)
@@ -899,53 +913,89 @@ end function dfdWptrap
     complex :: resfac
     character*20 wchar
     f4norm=abs(8.*psig/(3.*sqrt(70.)))
-! Maybe we need  0.5(dfweight*CapPhid+dfwtprev*Caphidprev)
-!    CapPhidprev=CapPhid
+! Maybe we need to add in the form including prior weighting?
     dfwtprev=dfweight
     resfac=1+exp(sqm1g*omegag*taug(ngz))
-    do i=-ngz,ngz
-       ft4(i)=sqm1g*dfweight*(CapPhig(i)&
-            -exp(sqm1g*omegag*taug(i))*CapPhig(ngz)/resfac)/f4norm
-    enddo
+    ft4=sqm1g*dfweight*(CapPhig&
+         -exp(sqm1g*omegag*taug)*CapPhig(ngz)/resfac)/f4norm
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
-    
+    do j=1,naux ! Similarly for the auxmode trapped f
+       ftraux(:,j)=sqm1g*dfweight*(CapPaux(:,j)&
+            -exp(sqm1g*omegag*taug)*CapPaux(ngz,j)/resfac)
+       call remesh(zg,ftraux(:,j),2*ngz+1,zdent,ftrauxd(:,j),2*nzd+1)
+    enddo    
     denttrap=denttrap+cdvinf*ft4d
+    dentqt=dentqt+cdvinf*ftrauxd(:,2)
+! And the wave-generated internal density V_w|q>?
+    denqwint=denqwint+cdvinf*dfweight*(auxzd/&
+         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag)))
 
     if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
-
-    write(*,*)Wg,taug(ngz),cdvinf
-    call minmax(denttrap,4*nzd+2,dmin,dmax)
-    call minmax(ft4d,4*nzd+2,cmin,cmax)
-    Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
-    call pltinit(-zm,zm,dmin,dmax)
-    call fwrite(Wg,iwidth,6,wchar)
-    call boxtitle('Trapped contributions W='&
-         //wchar(1:iwidth))
-    call axis; call axis2
-    call axlabels('','!p!o~!o!qn!d4!d')
-    call polyline(zdent(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd+1)
-    call legendline(.03,.9,0,' real')
-    call dashset(2)
-    call legendline(.03,.85,0,' imag')
-    call polyline(zdent(-nzd:nzd),imag(denttrap(-nzd:nzd)),2*nzd+1)
-    if(dfweight.ne.0)then
-       call color(4)
-       call winset(.true.)
-       call polyline(zdent,Cfactor*imag(ft4d),2*nzd+1)
-       call dashset(0)
-       call polyline(zdent,Cfactor*real(ft4d),2*nzd+1)
-       call legendline(.03,.75,0,' !p!o~!o!qf (scaled)')
+       
+!       write(*,*)Wg,taug(ngz),cdvinf
+       if(Wgarray(nge).eq.psig)then
+          write(*,*)'Last step increment fraction @ x=0',&
+               cdvinf*ftrauxd(0,2)/dentqt(0)
+          call pfset(3)
+       endif
+       call minmax(denttrap,4*nzd+2,dmin,dmax)
+       call minmax(ft4d,4*nzd+2,cmin,cmax)
+       Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
+       call multiframe(2,1,0)
+       call pltinit(-zm,zm,dmin,dmax)
+       call fwrite(Wg,iwidth,6,wchar)
+       call boxtitle('Trapped positive velocity contributions W='&
+            //wchar(1:iwidth))
+       call axis; call axis2
+       call axlabels('','!p!o~!o!qn!dt4!d')
+       call polyline(zdent(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd+1)
+       call legendline(.03,.9,0,' real')
+       call dashset(2)
+       call legendline(.03,.85,0,' imag')
+       call polyline(zdent(-nzd:nzd),imag(denttrap(-nzd:nzd)),2*nzd+1)
+       if(dfweight.ne.0)then
+          call color(4)
+          call winset(.true.)
+          call polyline(zdent,Cfactor*imag(ft4d),2*nzd+1)
+          call dashset(0)
+          call polyline(zdent,Cfactor*real(ft4d),2*nzd+1)
+          write(wchar,'(e8.2)')Cfactor
+          call legendline(.03,.75,0,' !p!o~!o!qf!dt4!d*'//wchar(1:lentrim(wchar)))
+!       call legendline(.03,.75,0,' !p!o~!o!qf!dt4!d (scaled)')
 !       call color(5)
 !       call polyline(zg,real(Cfactor*ft4),2*ngz+1)
-    endif
-    call dashset(0)
-    call color(15)
-
-    call accisflush
-    call eye3d(ik) ! Control of movie effect d:run f:stop
-    if(ik.eq.ichar('d'))call noeye3d(0)
-    if(ik.eq.ichar('f'))call noeye3d(9999)
-!    call pltend
+       endif
+       call dashset(0)
+       call color(15)
+       call accisflush
+       call minmax(dentqt,4*nzd+2,dmin,dmax)
+       call minmax(ftrauxd(:,2),4*nzd+2,cmin,cmax)
+       Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
+!    write(*,*)cmax,cmin,Cfactor
+       call pltinit(-zm,zm,dmin,dmax)
+       call axis
+       call polyline(zdent(-nzd:nzd),real(dentqt(-nzd:nzd)),2*nzd+1)
+       call axlabels('z','!p!o~!o!qn!dtq!d')
+       call dashset(2)
+       call polyline(zdent(-nzd:nzd),imag(dentqt(-nzd:nzd)),2*nzd+1)
+       call color(4)
+       call winset(.true.)
+       call polyline(zdent,Cfactor*imag(ftrauxd(:,2)),2*nzd+1)
+       call dashset(0)
+       call polyline(zdent,Cfactor*real(ftrauxd(:,2)),2*nzd+1)
+       write(wchar,'(f5.3)')Cfactor
+       call legendline(.03,.85,0,' !p!o~!o!qf!dtq!d*'//wchar(1:lentrim(wchar)))
+       call multiframe(0,0,0)
+       call pfget(isw)
+       if(isw.ne.0.and.Wg.ne.psig)then
+          call prtend('')
+          call pfset(0)
+       endif
+       call eye3d(ik) ! Control of movie effect d:run f:stop
+       if(ik.eq.ichar('d'))call noeye3d(0)
+       if(ik.eq.ichar('f'))call noeye3d(9999)
+       if(ik.eq.ichar('p'))call pfset(3)
+       
     endif
   end subroutine dentaddtrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

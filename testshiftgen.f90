@@ -579,29 +579,30 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor
-  ldentaddp=.false.   ! dentadd movie
+  ldentaddp=.true.   ! dentadd movie
+  ltrapaddp=.true.   ! trapped movie
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.04,.001)
+  omegag=complex(.05,.0001)
 !  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
   kg=real(omegag)
-  kg=.03
-  kg=.143
+!  kg=.03
+!  kg=.143
   kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
   call makezdent
   call FgEint(Ftotalg,isigma)
+  call qdenqint
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   Cfactor=1.+sqm1g*3.1415926*(Fintqq+Fextqq-Fintqw-Fextqw)/ &
-!       (4.*kpar*(1./real(omegag)**2-1.)) /4   ! x-normalized.
        (qresdenom*4)
-       if(.true.)then
+  if(.true.)then
      write(*,'(a,f8.4,a)')'Normalizing factor for |4>',f4norm,' applied.'
      write(*,*)'These are strictly 4 times the normalized inner products:'&
           ,' because integrals dz'
@@ -610,35 +611,27 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
      write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
      write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa/f4norm
-     write(*,*)'i\pi<q|V|4><4|V|q>/<4|V|4>/4*qdenom='&
-          ,sqm1g*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/Ftotalg/(4.*qresdenom)
+     write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
+          ')    4.kpar.(1/real(omegag)**2-1.)=',qresdenom
+
+     write(*,'(2a)')'Size of q term relative to 4 term,',&
+          ' <i\pi<q|V|4><4|V|q>/(4*qdenom*C)/<4|V|4>='
+     write(*,*)sqm1g*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(4.*qresdenom*Cfactor)/Ftotalg
      write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4='&
           ,Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/4.
      write(*,*)'########  Relative sizes of <q|V-Vw|q> and <q|V|4>'
      write(*,*)'                        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
      write(*,'(a,7f9.4)')'Complex qq external:',Fextqq,Fextqw&
           ,Fextqq-Fextqw
-     call qdenqint
      write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq,Fintqw&
           ,Fintqq-Fintqw
      write(*,'(a,7f9.4)')'Complex qq total   :',Fintqq+Fextqq,Fintqw+Fextqw&
           ,Fintqq+Fextqq-Fintqw-Fextqw
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
           ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
-     write(*,*)'Cfactor, qdenom',Cfactor,qresdenom
-!     write(*,'(a,2f8.4,a)')'C-factor=(',Cfactor,')'
   endif
 
-  if(.not.ldentaddp)call pltend
-! Replot the last dentadd frame and show.  
-  Wg=4.;
-!  psig=psidef
-  call makezg(isigma)
-  call pfset(3)
-  call dentadd(complex(0.,0.),0.)
-  call pfset(0)
-  call dentadd(complex(0.,0.),0.)
-  if(ldentaddp)call pltend
+  call pltend
 
   
 end subroutine plotdent

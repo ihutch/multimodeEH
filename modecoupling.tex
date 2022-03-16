@@ -36,34 +36,32 @@ parallel length streaks or waves, often called ``whistlers'', that are
 magnetized Langmuir waves during oscillatory instability at high
 magnetic field.
 
-A theoretical method to address the alteration to the unstable mode of
-the complicated Vlasov-Poisson linearized stability of a localized
-structure was addressed mathematically in some early plasma
-literature[]. A relatively compact approach can be achieved by
-representing the perturbation of potential in terms of the eigenmodes
-(which are orthogonal) of a judiciously chosen differential
-operator. In the present context the operator generally used
-represents the Poisson equation for steady (or very slowly varying)
-potential ($\nabla^2\phi+n=0$ in appropriately normalized units). The
-particle density $n_0(z)$ associated with the potential equilibrium
+A relatively compact approach to managing a generalization of the
+unstable mode of a Vlasov-Poisson problem [] is to represent the
+perturbation of potential in terms of the eigenmodes (which are
+orthogonal) of a judiciously chosen differential operator. In the
+present context the operator generally used represents the Poisson
+equation for steady (or very slowly varying) potential
+($\nabla^2\phi+n=0$ in appropriately normalized units). The particle
+density $n_0(z)$ associated with the potential equilibrium
 $\phi_0(z)$, can be determined from this equation. Then for
 infinitessimally slow linearized potential perturbations $\phi_1$
 about this equilibrium the perturbed density is
 $n_1=\phi_1dn_0/d\phi_0$, and the resulting Poisson equation can be
 written as the operator $V_a =(\nabla^2+dn_0/d\phi_0)$ acting on
-$\phi_1$. The expansion of the potential perturbation is most
-naturally in terms of the eigenmodes of $V_a$. $V_a$ is called the
-``adiabatic'' operator, and the associated density perturbation $n_1$
-the adiabatic density (perturbation). For purely growing instabilities
-$\omega=0+i\omega_i$, at the threshold $\omega_i\sim 0$, evidently the
-adiabatic response is nearly equal to the total because changes are
-infinitessimally slow; so the non-adiabatic part $\tilde V$ of the
-operator is small compared with $V_a$ in the perturbed Poisson
-equation. Consequently to lowest order the perturbation unstable mode
-is equal to the eigenmode of $V_a$ with zero eigenvalue. For a
-solitary potential structure in a uniform background, such a zero
-eigenvalue always exists, and its eigenmode has the form of a uniform
-shift of the equilibrium.
+$\phi_1$. This $V_a$ is called the ``adiabatic'' operator, and the
+associated density perturbation $n_1$ the adiabatic density
+(perturbation). The expansion of the potential perturbation is most
+naturally in terms of the eigenmodes of $V_a$. For purely growing
+instabilities $\omega=0+i\omega_i$, at the threshold $\omega_i\sim 0$,
+evidently the adiabatic response is nearly equal to the total because
+changes are infinitessimally slow; so the non-adiabatic part
+$\tilde V$ of the operator is small compared with $V_a$ in the
+perturbed Poisson equation. Consequently to lowest order the
+perturbation unstable mode is equal to the eigenmode of $V_a$ with
+zero eigenvalue. For a solitary potential structure in a uniform
+background, such a zero eigenvalue always exists, and its eigenmode
+has the form of a uniform shift of the equilibrium.
 
 By the preceding argument, determining where $\omega_i=0$, i.e. the
 stability threshold, can be accomplished exactly using just the shift
@@ -71,17 +69,17 @@ mode, provided that the real part $\omega_r$ of the mode frequency is
 zero. However, some hole instabilities are oscillatory:
 $\omega_r\not=0$, $\omega_i>0$. Then the marginal unstable mode is not
 purely the shift mode, and the extent to which it includes
-contributions from other eigenmodes of $V_a$ becomes a live issue. It
-can be explored by carrying the perturbation analysis to first order
-in the other eigenmodes, in much the way that time-independent
-perturbation theory is used in quantum mechanics. This was
-successfully pursued in an early study of the one-dimensional
-instability of a train of electron holes, which leads eventually to
-hole merger[]. However, the few subsequent efforts to apply it [] have
-been of limited utility either because of perturbing about the wrong
-eigenmode, or, more fundamentally because of adopting inappropriate
-approximations to the solution of the Vlasov equation, which
-constitutes the complementary (and more difficult) part of the
+contributions from other eigenmodes of $V_a$ becomes an important
+question. It can be explored by carrying the perturbation analysis to
+first order in the other eigenmodes, in much the way that
+time-independent perturbation theory is used in quantum
+mechanics. This was successfully pursued in an early study of the
+one-dimensional instability of a train of electron holes, which leads
+eventually to hole merger[]. However, the few subsequent efforts to
+apply it [] have been of limited utility either because of perturbing
+about the wrong eigenmode, or, more fundamentally because of adopting
+inappropriate approximations to the solution of the Vlasov equation,
+which constitutes the complementary (and more difficult) part of the
 Poisson-Vlasov system: the non-adiabatic perturbation.
 
 
@@ -338,7 +336,7 @@ velocity $v$ at $(z,t)$. When a uniform magnetic field in the
 $z$-direction is present with cyclotron frequency $\Omega$, the
 perturbation has transverse wavenumber $k_\perp$, and the background
 perpendicular velocity distribution is Maxwellian, then the
-distribution function perturbation is the following sum over cyclotron
+distribution function perturbation is[] the following sum over cyclotron
 harmonics
 \begin{equation}\label{eq:ftmagnetic}
   \begin{split}
@@ -434,11 +432,11 @@ $(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
 $\omega_m z=1$. Thus, the density influence of the localized hole
 perturbation extends approximately a normalized distance
 $z_l\simeq 1/\omega_m$ (dimensionally
-$z_l= \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
+$z_l\simeq \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
 attenuated further away. At $z>z_l$, moreover, the outward going
 contribution to $\tilde n$ is increasingly contributed by the spatial
 range $[z-z_l,z]$, and merges into being given by the same integral as
-\ref{eq:16}.  Thus $\tilde n$ perturbations for inward and outward
+\ref{eq:16}.  Thus distant $\tilde n$ perturbations for inward and outward
 going velocities are given approximately by integrating $dv$ the
 same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite sign.
 
