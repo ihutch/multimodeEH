@@ -579,12 +579,12 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor
-  ldentaddp=.true.   ! dentadd movie
-  ltrapaddp=.true.   ! trapped movie
+  ldentaddp=.false.   ! dentadd movie
+  ltrapaddp=.false.   ! trapped movie
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.05,.0001)
+  omegag=complex(.01,.001)
 !  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
@@ -611,9 +611,14 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
      write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
      write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa/f4norm
+     write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
+          abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
      write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
           ')    4.kpar.(1/real(omegag)**2-1.)=',qresdenom
-
+     write(*,*)'Amplitude \int w_q dq/w_4=',&
+          -sqm1g*3.1415926*Ftauxa(2,1)/qresdenom/Cfactor/f4norm
+     write(*,*)'Amplitude         w_2/w_4=',&
+          Ftauxa(1,1)/16./f4norm
      write(*,'(2a)')'Size of q term relative to 4 term,',&
           ' <i\pi<q|V|4><4|V|q>/(4*qdenom*C)/<4|V|4>='
      write(*,*)sqm1g*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(4.*qresdenom*Cfactor)/Ftotalg
@@ -631,7 +636,7 @@ subroutine plotdent
           ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
   endif
 
-  call pltend
+  if(ltrapaddp)call pltend
 
   
 end subroutine plotdent

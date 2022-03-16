@@ -84,53 +84,47 @@ Poisson-Vlasov system: the non-adiabatic perturbation.
 
 
 \section{Eigenmode Expansion}
-Let us adopt a minimalist bra-ket notation with the modes in
-which we expand our solutions
-denoted $\ket{u}$, where the range of $u$ being either real, $p,q,r,\dots$, or
-integer, $j,l,m,\dots$, denotes respectively continuum or discrete modes. The
-inner product denotes an overlap integral over (parallel) spatial
-coordinate $\bra{u}\ket{s}\equiv \int u^*(x)s(x)dx$. Insofar as the
-eigenmodes are orthonormal, we write $\bra{u}\ket{s}=\delta_{us}$,
-where for continuum modes such that $u$ and $s$ are real parameters,
-this is (approximately) a Dirac delta function,
-$\delta_{us}=\delta(u-s)$, whereas for discrete modes $\delta_{jl}$ is
-the Kronecker delta.
+Let us adopt a minimalist bra-ket notation for the eigenmodes in which
+we expand: $\ket{e}$, where the label $e$ being either real
+$p,q,r,\dots$, or integer, $j,l,m,\dots$, will denote respectively
+continuum or discrete eigenmodes. The inner product of any two
+Hilbert-space vectors (complex potential functions of $z$) denotes an
+overlap integral over (parallel) spatial coordinate
+$\bra{u}\ket{s}\equiv \int u^*(z)s(z)dz$. Insofar as the eigenmodes
+are orthonormal, we write $\bra{u}\ket{s}=\delta_{us}$, where for
+continuum modes such that $u$ and $s$ are real parameters, this is
+(approximately) a Dirac delta function, $\delta_{us}=\delta(u-s)$,
+whereas for discrete modes $\delta_{jl}$ is the Kronecker delta.
 
 \subsection{Adiabatic Response Eigenmodes}
-In scaled units Poisson's equation is $d^2\phi/dz^2=n-1$. It is
-convenient for the eigenmode expansion to use an alternate parallel coordinate
-$x=z/4$ so that the equilibrium is of the form
-$\phi_0=\psi\sech^4(x)=\psi\sech^4(z/4)$.  The linearized equilibrium
-(``adiabatic'') Poisson operator for a hole potential (writing for brevity
-$S=\sech(x)$ and $T=\tanh(x)$ and denoting the $x$-derivative by
-prime) can then be written
+In scaled units Poisson's equation is $d^2\phi/dz^2=n-1$. The
+equilibrium analyzed is of the form $\phi_0=\psi\sech^4(z/4)$.  The linearized
+equilibrium (``adiabatic'') Poisson operator for a hole potential
+(writing for brevity $S=\sech(z/4)$ and $T=\tanh(z/4)$ and denoting
+the $z$-derivative by prime) can then be written
 \begin{equation}
   \label{eq:1}
-  V_a = \left[{d^2\over dx^2} - 4^2{dn\over d\phi}\right]
-  = \left[{d^2\over dx^2} - {\phi^{'''}\over \phi'}\right]
-  = \left[{d^2\over dx^2} +30S^2- 4^2\right].
+  V_a = \left[{d^2\over dz^2} - {dn\over d\phi_0}\right]
+  = \left[{d^2\over dz^2} - {\phi_0^{'''}\over \phi_0'}\right]
+  = \left[{d^2\over dz^2} +{30\over 16}S^2- 1\right].
 \end{equation}
-Notation $V$ reminds us that this is the part of the Vlasov operator,
+Notation $V$ reminds us that this is part of the Vlasov operator,
 transforming a potential into a density, and the subscript $a$ denotes
-adiabatic (meaning steady). The factor $4^2$ multiplying the density arises
-because of operating in $x$-space. [There might be a better choice of
-notation simplification that avoided this double parallel notation;
-but that needs more thought.]  The eigenmodes of this operator, satisfying
-$V_a\ket{u}=\lambda \ket{u}$, can be written
+adiabatic (meaning steady).  The eigenmodes of this
+operator, satisfying $V_a\ket{u}=\lambda \ket{u}$, can be written
 \begin{equation}
   \label{eq:2}
   \begin{split}
- \ket{u}(x)= &\exp(\pm ux)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
+ \ket{u}(z)= &\exp(\pm uz/4)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
  840S^2 - 120]T \\
  &\qquad\qquad\pm u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
  +274)]\}
-% \\ \equiv&  \exp(\pm ux)(P_uT\pm uQ_u)
 .
   \end{split}
 \end{equation}
 Real $u$ values possess just five discrete values $j=1,2,3,4,5$ that
-satisfy $\ket{j}(x)\to0$ as $x\to\infty$. In contrast, imaginary
-$u$-values $u=ip$ give rise to the continuum modes $\ket{p}(x)$ which
+satisfy $\ket{j}(z)\to0$ as $z\to\infty$. In contrast, imaginary
+$u$-values $u=ip$ give rise to the continuum modes $\ket{p}(z)$ which
 are formally finite at infinity. The overlap integral $\bra{p}\ket{q}$
 over a finite domain exists; and, as the domain tends to infinity, it tends
 to a delta function.
@@ -138,44 +132,44 @@ to a delta function.
 The corresponding eigenvalues are
 \begin{equation}
   \label{eq:3}
-  \lambda_u= u^2-4^2=-p^2-4^2.
+  \lambda_u= u^2/16-1=-p^2/16-1.
 \end{equation}
-The odd numbered discrete eigenmodes are symmetric (about $x=0$); and
+The odd numbered discrete eigenmodes are symmetric (about $z=0$); and
 the even numbered are antisymmetric. Normalized so that
 $\bra{j}\ket{l}=\delta_{jl}$ they are given in Table \ref{discrete}. 
 \begin{table}[ht]
   \center
 \begin{tabular}{ccc}\
   Mode & Eigenvalue & Normalized Form\\
-  $\ket{1}$& -15&$S(21S^4 - 28S^2 + 8)\sqrt{30}/16$\\
-  $\ket{2}$& -12&$TS^2(3S^2 - 2)\sqrt{105}/4$\\
-  $\ket{3}$& -7 &$-S^3(9S^2 - 8)\sqrt{105}/16 $\\
-  $\ket{4}$&  0 &$-3TS^4\sqrt{70}/8 $\\
-  $\ket{5}$&  9 &$3S^5\sqrt{35}/16 $\\
+  $\ket{1}$& -15/16&$S(21S^4 - 28S^2 + 8)\sqrt{30}/32$\\
+  $\ket{2}$& -12/16&$TS^2(3S^2 - 2)\sqrt{105}/8$\\
+  $\ket{3}$& -7/16 &$-S^3(9S^2 - 8)\sqrt{105}/32 $\\
+  $\ket{4}$&  0 &$-3TS^4\sqrt{70}/16 $\\
+  $\ket{5}$&  9/16 &$3S^5\sqrt{35}/32 $\\
 \end{tabular}
 \caption{Discrete eigenmodes.\label{discrete}}
 \end{table}
 \noindent
 In particular $\lambda_4=0$ for the shift mode
-$\ket{4}\propto d\phi_0/dx$, and it is the the predominant
+$\ket{4}\propto d\phi_0/dz$, and it is the the predominant
 perturbation in essentially all linear instabilities. Moreover, it
 couples only to antisymmetric modes; so $\ket{2}$ is the only other
 discrete mode that needs to be considered.
 
 The antisymmetric continuum modes are obtained by taking the sign to
-reverse across $x=0$, i.e.\ $\pm\to \sigma_x={\rm signum}(x)$.  It can
+reverse across $z=0$, i.e.\ $\pm\to \sigma_z={\rm signum}(z)$.  It can
 be shown that continuum modes are ``normalized'' by dividing eq.\
 (\ref{eq:2}) by the factor
 \begin{equation}
-  [2\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}, 
+  [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}, 
   \label{eq:4}
 \end{equation}
 in the sense that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$. Far
-from the hole ($x\gg1$) the normalized oscillatory continuum modes are
-sinusoidal with amplitude $1/\sqrt{2\pi}=0.3989$. The eigenmodes are
+from the hole ($z\gg1$) the normalized oscillatory continuum modes are
+sinusoidal with amplitude $1/\sqrt{8\pi}=0.19947$. The eigenmodes are
 plotted in Fig.\ \ref{modeplots}.
 \begin{figure}\center
-  \includegraphics[width=0.6\hsize]{continmode}
+  \includegraphics[width=0.6\hsize]{continmodez}
 \caption{Eigenmodes of the adiabatic response operator.\label{modeplots}}
 \end{figure}
 
@@ -190,9 +184,9 @@ transverse wavenumber $k_\perp$ and frequency $\omega$, Poisson's
 equation becomes
 \begin{equation}
   \label{eq:5}
-  (-16k_\perp^2+V_a+\tilde{V})\ket{\hat\phi}=0,
+  (-k_\perp^2+V_a+\tilde{V})\ket{\hat\phi}=0,
 \end{equation}
-in which it is convenient to regard $16k_\perp^2\equiv\lambda_\perp$ as the
+in which it is convenient to regard $k_\perp^2\equiv\lambda_\perp$ as the
 full eigenvalue. 
 We suppose its solution can be expanded as a sum of scalar
 weights $w_u$ times the eigenmodes of $V_a$, $\ket{u}$:
@@ -227,10 +221,10 @@ The expression $\bra{4}|\tilde{V}\ket{4}/\bra{4}\ket{4}$ is the ``Rayleigh
 quotient'' approximation for the eigenvalue of $V_a+\tilde{V}$
 (because $\lambda_4=0$). It is
 physically the (normalized) jetting force on particles because of the
-unperturbed electric field $-d\phi_0/dx\propto\bra{4}|$, acting on the
-non-adiabatic density perturbation $16 \tilde n = \tilde{V}\ket{4}$, integrated
+unperturbed electric field $-d\phi_0/dz\propto\bra{4}|$, acting on the
+non-adiabatic density perturbation $\tilde n = \tilde{V}\ket{4}$, integrated
 over the entire hole. It balances the (normalized) Maxwell shear
-stress from the transverse kinking of the hole ($16k_\perp^2$) to
+stress from the transverse kinking of the hole ($k_\perp^2$) to
 make the total force zero.
 
 Actually $\tilde{V}$ is a complicated nonlinear function of the complex
@@ -239,7 +233,7 @@ dispersion relation between $\omega$ and $k_\perp$ must be solved by
 some kind of iterative procedure searching for an $\omega$ that
 satisfies eq.\ (\ref{eq:8}). The imaginary part of $\omega$ thus found
 determines the stability of the hole. This approximation has been
-extensively pursued in the past and yielded stability results
+extensively pursued in recent publications[] and yielded stability results
 that are in reasonable (but not perfect) agreement with simulation.
 The question at hand is whether analysis can determine approximately
 the magnitude of the other coefficients $w_u$ for $u\not=4$, and
@@ -320,7 +314,7 @@ $\tilde{V}$ must be adopted.
 
 The operator $\tilde{V}$ transforms a potential perturbation $\ket{u}$ into
 a non-adiabatic density perturbation $\tilde n$, both of which are
-functions of $x$. It does so by solving the time-dependent Vlasov
+functions of $z$. It does so by solving the time-dependent Vlasov
 equation for the non-adiabatic distribution function perturbation
 $\tilde f(x,v)$ and integrating it: $\tilde n =\int \tilde f dv$. The
 linearized solution can be written in terms of an integral over past
@@ -356,7 +350,7 @@ $\tilde n_m(z)=\int \tilde f_m dv$. Eliding the $t$ and $y$-dependence
 as implicit, we have
 \begin{equation}
   \label{eq:13}
-\tilde  n_m={\scriptstyle {1\over16}}\tilde{V}_{m}\ket{\hat\phi}={\scriptstyle{1\over16}}\tilde{V}_{m}\sum_u w_u\ket{u}=\int \sum_u w_u
+\tilde  n_m=\tilde{V}_{m}\ket{\hat\phi}=\tilde{V}_{m}\sum_u w_u\ket{u}=\int \sum_u w_u
   \tilde f_{um} dv=\sum_u w_u \tilde n_{um},
 \end{equation}
 where $\tilde f_{um}$ denotes $\tilde f_m$ with
@@ -365,22 +359,22 @@ similarly $\tilde n_{um}=\int \tilde f_{um}dv$.
 
 We shall later require  the order of magnitude of $\tilde V\ket{4}$
 outside the hole.  In Hutchinson 2018,
-section 4.1 it is shown to be $\sim 16\omega_m^2$.
+section 4.1 it is shown to be $\sim \omega_m^2$.
 
 
 \subsection{The continuum contribution}
 
-In the region far outside the hole, $|x|\gg 1$ where
-$T=\tanh(x)\to\pm1$ and $S=\sinh(x)\to0$ in eq.\ (\ref{eq:2}), the
+In the region far outside the hole, $|z/4|\gg 1$ where
+$T=\tanh(z/4)\to\pm1$ and $S=\sinh(z/4)\to0$ in eq.\ (\ref{eq:2}), the
 normalized continuum modes (taking them to be antisymmetrically
 outward propagating) are
 \begin{equation}
   \label{eq:14}
- \ket{w_p}= \ket{p}=A\etothe{ip|x|}=\sigma_x{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
-      [2\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|x|},
+ \ket{w_p}= \ket{p}=A\etothe{ip|z/4|}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
+      [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|z/4|},
 \end{equation}
-where $\sigma_x=signum(x)$. Thus they are purely sinusoidal
-waves. Assuming that for large enough $|x|$ the influence of the local
+where $\sigma_z=signum(z)$. Thus they are purely sinusoidal
+waves. Assuming that for large enough $|z|$ the influence of the local
 hole potential becomes negligible, such waves should there be
 identified with the normal modes of the uniform background plasma.
 The applicable normal mode for the present electrostatic approximation
@@ -397,36 +391,36 @@ $k_\perp/k_\parallel=\tan\theta$) or equivalently
 (In our normalized units $\omega_{pe}=1$.)  Assuming that $\omega$ and
 $k_\perp$ are prescribed, there is only one $|k_\parallel|$ that
 satisfies this dispersion relation; and corresponding to it, the
-continuum eigenmode of $V_a$ has $p=4k_\parallel$ (using $x=z/4$).
+continuum eigenmode of $V_a$ has $p=4k_\parallel$.
 
 Intuitively, then, the continuum contribution is limited more or less
 to the single mode
 $p/4=k_\parallel= [k_\perp^2\omega^2/(\omega_{pe}^2-\omega^2)]^{1/2}$.
 For such a mode, one can immediately calculate the value of
 $\Phi_m(z)$ for \emph{inward} orbit velocity, (negative $v$) on the
-positive-$x$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
+positive-$z$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
 \begin{equation}
   \label{eq:16}
   \Phi_m(z) = \int_{\infty}^zA{\rm e}^{i[pz'/4+\omega_m
     (z-z')/v]}dz'/v
-  ={A{\rm e}^{ipx} \over i(pv/4-\omega_m)}={A{\rm e}^{ik_\parallel z} \over
+  ={A{\rm e}^{ipz/4} \over i(pv/4-\omega_m)}={A{\rm e}^{ik_\parallel z} \over
     i(k_\parallel v-\omega_m)},
 \end{equation}
 where dropping the infinity limit is justified by positive imaginary
 part of $\omega$.  This $\Phi_m$ applies for all $z$ down to where the
 eigenmode begins to deviate significantly, because of non-zero hole
-potential, from the external wave; obviously that $z$ is of order 4
-(i.e.\ $x\sim 1$). The non-adiabatic perturbation to \emph{outward}
-(positive) orbit velocity, by contrast, is strongly affected by the
-rapid variation of potential across the hole at $z\sim 0$ whose effect
-is carried into the external region. However,
-that local hole perturbation develops a phase shift further into the
-positive z region that is equal to $z\omega_m/v$; and so different $v$
-contributions to the density $\tilde n$ arising in
-$\int \tilde f(v) dv$ oscillate increasingly rapidly with $v$, as $z$
-increases, cancelling out eachother's contribution to $\tilde n$. This
-integral, omitting the common factor $\etothe{ik_\parallel z}$ and
-ignoring the width of the hole, looks like
+potential, from the external wave; obviously that $z$ is of order
+4. The non-adiabatic perturbation to \emph{outward} (positive) orbit
+velocity, by contrast, is strongly affected by the rapid variation of
+potential across the hole at $z\sim 0$ whose effect is carried into
+the external region. However, that local hole perturbation develops a
+phase shift further into the positive z region that is equal to
+$z\omega_m/v$; and so different $v$ contributions to the density
+$\tilde n$ arising in $\int \tilde f(v) dv$ oscillate increasingly
+rapidly with $v$, as $z$ increases, cancelling out eachother's
+contribution to $\tilde n$. This integral, omitting the common factor
+$\etothe{ik_\parallel z}$ and ignoring the width of the hole, looks
+like
 $(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
   z/v}\etothe{-v^2/2}dv$.  It has its first $z$-zero near
 $\omega_m z=1$. Thus, the density influence of the localized hole
@@ -436,9 +430,10 @@ $z_l\simeq \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
 attenuated further away. At $z>z_l$, moreover, the outward going
 contribution to $\tilde n$ is increasingly contributed by the spatial
 range $[z-z_l,z]$, and merges into being given by the same integral as
-\ref{eq:16}.  Thus distant $\tilde n$ perturbations for inward and outward
-going velocities are given approximately by integrating $dv$ the
-same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite sign.
+\ref{eq:16}.  Thus distant $\tilde n$ perturbations for inward and
+outward going velocities are given approximately by integrating $dv$
+the same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite
+sign.
 
 The importance of the non-adiabatic response in the wave region can be
 understood intuitively by recognizing that the criterion for ignoring
@@ -473,7 +468,7 @@ $q_eA{\partial f_{\parallel0}/\partial W_\parallel}$. The next
 term (first-order) integrates to zero over the parallel velocity
 distribution because of its velocity parity. The density change
 associated with the magnetized Langmuir wave arises from the
-\emph{second order} term in the Taylor expansion. The Vlasov term
+\emph{second order} term in the Taylor expansion. The total Vlasov term
 $\tilde{V}\ket{p}$ is the same magnitude as the adiabatic term $V_a\ket{p}$
 outside the hole, and cannot be ordered as ignorable there.
 
@@ -483,8 +478,9 @@ becomes the potential there ($\ket{p}$) multiplied by a function of
 express that in terms of an operator $\tilde{V}_{w}$ where
 \begin{equation}
   \label{eq:20}
-\tilde n_{w}={1\over16}\tilde{V}_{w}=-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega_m\right)^2\right]=\left[1+\left(k_\parallel\over\omega_m\right)^2\right].  
+\tilde{V}_{w}\simeq-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega_m\right)^2\right]=\left[1+\left(k_\parallel\over\omega_m\right)^2\right],
 \end{equation}
+and gives rise to a density perturbation $n_w$.
  Then
 $\tilde{V}-\tilde{V}_{w}$ is a localized operator tending to zero in
 the region beyond $z_l$. Now we demonstrate mathematically the concepts
@@ -538,11 +534,11 @@ giving
   \label{eq:resonance}
   w_q = {\bra{q}|\tilde{V}\ket{4}w_4+G\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
   ={\bra{q}|\tilde{V}\ket{4}w_4+G\over
-    16(k_\perp^2+k_\parallel^2-k_\parallel^2/\omega^2) }
-  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over 16k_\perp^2-q^2(1/\omega^2-1) },
+    (k_\perp^2+k_\parallel^2-1-k_\parallel^2/\omega^2) }
+  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
 \end{equation}
-using (eq.\ \ref{eq:3}) $\lambda_q=-q^2-4^2$ , $\lambda_\perp=16k_\perp^2$, and
-$\tilde{V}_{w}=16[1+(k_\parallel/\omega)^2]=16+q^2/\omega^2$. Notice that the
+using (eq.\ \ref{eq:3}) $\lambda_q=-q^2/16-1$ , $\lambda_\perp=k_\perp^2$, and
+$\tilde{V}_{w}=[1+(k_\parallel/\omega)^2]=1+q^2/(16\omega^2)$. Notice that the
 denominator is zero when $\omega=k_\parallel/k=\cos\theta$, the
 dispersion relation of the wave in a uniform plasma. 
 
@@ -554,8 +550,8 @@ $q=\pm q_0=\pm4k_\perp\omega/\sqrt{1-\omega^2}$. Near them the real
 part of the denominator becomes small. Its imaginary part comes from
 the small, \emph{necessarily positive}, imaginary part of
 $\omega=\omega_r+i\omega_i$. Then
-$16k_\perp^2-q^2(1/\omega^2-1)\simeq 16k_\perp^2-q^2(1/\omega_r^2-1)
-+iq^2/\omega_r^22(\omega_i/\omega_r)$.  A resonant integral for small
+$k_\perp^2-(q/4)^2(1/\omega^2-1)\simeq k_\perp^2-(q/4)^2(1/\omega_r^2-1)
++i(q/4)^2/\omega_r^22(\omega_i/\omega_r)$.  A resonant integral for small
 positive $\epsilon$ generally gives
 \begin{equation}
   \label{resint}
@@ -576,12 +572,12 @@ $2\pi i$ times only the residue at $q=q_0+i\epsilon$.}
 ,
 \begin{equation}
   \label{poles}
-  \int w_q dq \simeq -i\pi {(\bra{q_0}|\tilde{V}\ket{4}
+  \int w_q dq \simeq -i4\pi {(\bra{q_0}|\tilde{V}\ket{4}
     +\bra{-q_0}|\tilde{V}\ket{4})w_4+2G
     \over
     2q_0(1/\omega_r^2-1)
   }
-  =\sum_{q=\pm q_0}{-i\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
+  =\sum_{q=\pm q_0}{-i4\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
     \over
     2q_0(1/\omega_r^2-1)}.
 \end{equation}
@@ -589,24 +585,24 @@ $2\pi i$ times only the residue at $q=q_0+i\epsilon$.}
 Taking the $G$ term to the left hand side and reinserting its definition, we get
 \begin{equation}
   \label{eq:22}
-\left(1+{i\pi \bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right)\int w_pdp  =\sum_{q=\pm q_0}{-i\pi\bra{q}|\tilde{V}\ket{4}  \over
+\left(1+{i4\pi \bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right)\int w_pdp  =\sum_{q=\pm q_0}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
     2q_0(1/\omega_r^2-1)}w_4;
 \end{equation}
 and, for brevity, the approximately constant coefficient on the left will
 be written
 \begin{equation}
   \label{eq:23}
-  C \equiv \left(1+{i\pi\bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right).
+  C \equiv \left(1+{i4\pi\bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right).
 \end{equation}
 
 The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
 becomes (approximately)
 \begin{equation}
   \label{eigcon}
-  \sum_{q=\pm q_0} {-i\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
+  \sum_{q=\pm q_0} {-i4\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
     \over
     2q_0(1/\omega_r^2-1)\bra{4}\ket{4}C}
-  ={-i\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
+  ={-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
     \over
     q_0(1/\omega_r^2-1)\bra{4}\ket{4}C},
 \end{equation}
@@ -618,13 +614,18 @@ using symmetry; and the total eigenvalue equation, dropping symmetric discrete m
     +{\bra{4}|\tilde{V}\ket{2}\bra{2}|\tilde{V}\ket{4}\over
       (\lambda_\perp-\lambda_2)\bra{4}\ket{4} \bra{2}\ket{2}}
     +%\sum_{q=\pm q_0}
-    {-i\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
+    {-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
     \over
     q_0(1/\omega_r^2-1)\bra{4}\ket{4}C}.
 \end{equation}
 When $\ket{4}$ and $\ket{2}$ are normalized as well as the
 continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
 course.
+
+This analysis thus shows that the entire influence of the continuum
+can (for given $\omega$ and $k_\perp$) be approximated by a single
+parallel wavenumber $k_\parallel= q_0/4$ continuum mode, having an
+amplitude $w_{q_0}=\int w_q dv$.
 
 \subsection{Sum over cyclotron harmonics}
 
@@ -674,7 +675,7 @@ which is much greater than the hole extent.
 
 The non-adiabatic density $\tilde V \ket{4}/16$ in the external region
 arises only from orbits that are moving outward; that is: when the
-sign of $v$ and $x$ are the same. Therefore the external contribution
+sign of $v$ and $z$ are the same. Therefore the external contribution
 to $\bra{q}|\tilde V \ket{4}$ can be derived on the positive side of
 the hole from a positive-going velocity integration over orbits that
 start at the positive hole edge, taking the $\Phi_m$ there as initial

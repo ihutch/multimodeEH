@@ -463,7 +463,7 @@ contains
        call Fdirect(Wj,isigma,dFdvpsig,Fauxarray(1,1,i))
        omegabg(i)=2.*pig/(2.*taug(ngz))
        call pathshiftg(i,obi)
-       obi=obi*1.
+!       obi=obi*1.
        omegabg(i)=omegabg(i)+sqm1g*obi
        exptb=exp(sqm1g*omegag*pig/omegabg(i))   ! Half period
        if(.not.abs(exptb).lt.1.e10)exptb=1.e10  ! Enable divide by infinity
@@ -509,18 +509,18 @@ contains
        vpsiprev=vpsi
        resdprev=resdenom
     enddo
-    if(.false.)then
+!    if(.false.)then
     ! Calculate end by extrapolation.
-       Forcegr(nge)=Forcegr(nge-1)+0.5*(Forcegr(nge-1)-Forcegr(nge-2))
-       Ftotal=Ftotal+Forcegr(nge)*cdvpsi
-       Fnonresg(nge)=Fnonresg(nge-1)  ! Seems a hack but not used elsewhere.
-       Fauxres(1:naux,:,nge)=Fauxres(1:naux,:,nge-1)&
-            +0.5*(Fauxres(1:naux,:,nge-1)-Fauxres(1:naux,:,nge-2))
-       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)  *cdvpsi
-       Wgarray(nge)=psig
-       Wg=psig
-       call dentaddtrap(dfweight,cdvpsi)
-    endif
+!       Forcegr(nge)=Forcegr(nge-1)+0.5*(Forcegr(nge-1)-Forcegr(nge-2))
+!       Ftotal=Ftotal+Forcegr(nge)*cdvpsi
+!       Fnonresg(nge)=Fnonresg(nge-1)  ! Seems a hack but not used elsewhere.
+!       Fauxres(1:naux,:,nge)=Fauxres(1:naux,:,nge-1)&
+!    +0.5*(Fauxres(1:naux,:,nge-1)-Fauxres(1:naux,:,nge-2))
+!       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,nge)  *cdvpsi
+!       Wgarray(nge)=psig
+!       Wg=psig
+!       call dentaddtrap(dfweight,cdvpsi)
+!    endif
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -930,7 +930,7 @@ end function dfdWptrap
     denqwint=denqwint+cdvinf*dfweight*(auxzd/&
          (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag)))
 
-    if(.true.)then   ! Diagnostic plots of density tilde n (contributions)
+    if(ltrapaddp)then   ! Diagnostic plots of density tilde n (contributions)
        
 !       write(*,*)Wg,taug(ngz),cdvinf
        if(Wgarray(nge).eq.psig)then
