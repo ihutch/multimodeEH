@@ -579,19 +579,20 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor
-  ldentaddp=.false.   ! dentadd movie
-  ltrapaddp=.false.   ! trapped movie
+  complex :: F44t=0,F44p=0
+  ldentaddp=.true.   ! dentadd movie
+  ltrapaddp=.true.   ! trapped movie
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.01,.001)
-!  omegag=complex(.047,.00119)
+  omegag=complex(.1,.01)
+  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
   kg=real(omegag)
 !  kg=.03
-!  kg=.143
+  kg=.143
   kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
@@ -603,10 +604,37 @@ subroutine plotdent
   Cfactor=1.+sqm1g*3.1415926*(Fintqq+Fextqq-Fintqw-Fextqw)/ &
        (qresdenom*4)
   if(.true.)then
+! Form the density versions of inner products, compensating for symmetry
+! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
+     dzd=zm/nzd
+     if(.true.)then   ! remesh
+     do i=-nzd+1,nzd
+        F44t=F44t-0.5*&
+             (conjg(phipd(i))*(denttrap(i)-denttrap(-i))&
+             +conjg(phipd(i-1))*(denttrap(i-1)-denttrap(1-i)))*dzd
+        F44p=F44p-0.5*&
+             (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
+             +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
+     enddo
+     else             ! remesh2
+     do i=-nzd,nzd-1
+        F44t=F44t-&
+             (conjg(phipd(i))*(denttrap(i)-denttrap(-i)))*dzd
+        F44p=F44p-0.5*&
+             (conjg(phipd(i))*(dentpass(i)-dentpass(-i)))*dzd
+     enddo
+     endif
      write(*,'(a,f8.4,a)')'Normalizing factor for |4>',f4norm,' applied.'
      write(*,*)'These are strictly 4 times the normalized inner products:'&
           ,' because integrals dz'
-     write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4>  =',Ftotalg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex <4|n_4           =',(F44t+F44p)/f4norm
+     write(*,'(a,8f8.4)')'Complex Ftotalpg <4|V|4> =',2.*Ftotalpg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex <4|n_p4          =',F44p/f4norm
+     write(*,'(a,8f8.4)')'Complex Ftotalrg <4|V|4> =',2.*Ftotalrg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex <4|n_t4          =',F44t/f4norm
+!     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
+     write(*,*)'nt4 force verification ratio',f4norm*F44t/(2.*Ftotalrg)
      write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
      write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
      write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
@@ -634,6 +662,11 @@ subroutine plotdent
           ,Fintqq+Fextqq-Fintqw-Fextqw
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
           ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
+
+     
+
+     
+
   endif
 
   if(ltrapaddp)call pltend
