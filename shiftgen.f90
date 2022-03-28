@@ -64,7 +64,7 @@ module shiftgen
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
-  complex, dimension(-nzd:nzd) :: ft4d,phipd
+  complex, dimension(-nzd:nzd) :: ft4d,phipd,denstore
   complex :: dfwtprev=0.
   complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
@@ -227,6 +227,7 @@ contains
     complex :: dForceg,CPfactor,exptbb2
     complex :: dFaux(nauxmax,ndir) ! Passed in for each energy of Fauxarray.
     Wg=Wgi
+    f4norm=abs(16.*psig/(3.*sqrt(70.)))
     call makezg(isigma) ! Sets various time array values.
     vpsig=vg(-ngz)            ! Untrapped default ...
     if(Wg.lt.0.)vpsig=vg(0)   ! Trapped particle f(v) reference.
@@ -270,9 +271,8 @@ contains
        CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
        CapPhig(i)=CPfactor*CapPhig(i-1)-phigp*(1.-CPfactor)*sqm1g/omegag
 ! This is <4|~V|4>
-       dForceg=dForceg-sqm1g*&
-            0.5*(CapPhig(i)*phigprime(i)+CapPhig(i-1)*phigprime(i-1))&
-            *abs(vpsig*dtau)
+       dForceg=dForceg-sqm1g*0.5*(CapPhig(i)*phigprime(i)&
+            +CapPhig(i-1)*phigprime(i-1))*abs(vpsig*dtau)
        do j=1,naux
 ! CapPhi for auxmodes 
           CapPaux(i,j)=CPfactor*CapPaux(i-1,j)+0.5* &
@@ -302,6 +302,7 @@ contains
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
     endif
+! ? Normalize each dFaux? Maybe not.
 ! Each call to Fdirect leaves the CapPhi z-arrays for this energy,
   end subroutine Fdirect
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -487,6 +488,7 @@ contains
           Fnonraux(:,:,i)=0.
        endif
        if(naux.ge.2.and.zdent(nzd).ne.0)then
+!          resdenhalf=1+exptb
           call dentaddtrap(dfweight,cdvpsi)
        endif
 ! Then divide by the resonance denominator and sum 
@@ -786,7 +788,6 @@ end function dfdWptrap
 ! This is the ~V|4> density. When appropriately rescaled.
 ! Scaling is that using for |4> instead phigprime gives an unnormalized
 ! value |4>=8\psi/3sqrt(70)*|^4> (the normalized mode)
-    f4norm=abs(8.*psig/(3.*sqrt(70.)))
 ! Need to correct *vinf/v.
     vinfbyv=sqrt((Wg)/(-phi0d+Wg))
 !    vinfbyv=1.
@@ -904,14 +905,11 @@ end function dfdWptrap
 ! trapped orbits.
     complex :: dfweight,cdvinf
     complex :: resfac
-    f4norm=abs(8.*psig/(3.*sqrt(70.)))
-! Need to correct *vpsi/v.
-    vpsibyv=sqrt(max((-psig+Wg)/(-phi0d+Wg),0.))
-!    write(*,'(10f8.2)')vpsibyv
-!    vpsibyv=1.
+! Need to correct *vpsi/v. Limit how close to zero v can be.
+    vpsibyv=sqrt((-psig+Wg)/max(-phi0d+Wg,2.e-5))
 ! Maybe we need to add in the form including prior weighting?
     dfwtprev=dfweight
-    resfac=1+exp(sqm1g*omegag*taug(ngz)) ! Half period version.
+    resfac=1+exp(sqm1g*omegag*taug(ngz)) ! Unshifted Half period version.
     ft4=sqm1g*dfweight*(CapPhig&
          -exp(sqm1g*omegag*taug)*CapPhig(ngz)/resfac)/f4norm
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
@@ -952,8 +950,12 @@ end function dfdWptrap
     endif
     
     call fwrite(Wg,iwidth,6,wchar)
-    call boxtitle('Trapped positive velocity contributions W='&
-         //wchar(1:iwidth))
+    if(real(dfweight).ne.1)then
+       call boxtitle('Trapped positive velocity contributions W='&
+            //wchar(1:iwidth))
+    else
+       call boxtitle('Antisymmetrized total perturbed densities')
+    endif
     call axis;
     call axlabels('','!p!o~!o!qn!dt4!d')
     call polyline(zdmid(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd)

@@ -578,15 +578,15 @@ end subroutine plotmodes
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine plotdent
   use shiftgen
-  complex :: Ftotalg,Cfactor
+  complex :: Ftotalg,Cfactor,dfweight=1,cdummy
   complex :: F44t=0,F44p=0
   ldentaddp=.true.   ! dentadd movie
   ltrapaddp=.true.   ! trapped movie
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-!  omegag=complex(.1,.01)
-  omegag=complex(.047,.00119)
+  omegag=complex(.02,.001)
+!  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
@@ -624,9 +624,8 @@ subroutine plotdent
              (conjg(phipd(i))*(dentpass(i)-dentpass(-i)))*dzd
      enddo
      endif
-     write(*,'(a,f8.4,a)')'Normalizing factor for |4>',f4norm,' applied.'
-     write(*,*)'These are strictly 4 times the normalized inner products:'&
-          ,' because integrals dz'
+     write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
+          ' applied to all forces.'
      write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4>  =',Ftotalg/f4norm**2
      write(*,'(a,8f8.4)')'Complex <4|n_4           =',(F44t+F44p)/f4norm
      write(*,'(a,8f8.4)')'Complex Ftotalpg <4|V|4> =',2.*Ftotalpg/f4norm**2
@@ -634,24 +633,28 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex Ftotalrg <4|V|4> =',2.*Ftotalrg/f4norm**2
      write(*,'(a,8f8.4)')'Complex <4|n_t4          =',F44t/f4norm
 !     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
-     write(*,*)'nt4 force verification ratio',f4norm*F44t/(2.*Ftotalrg)
+     write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
      write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-     write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp/f4norm
-     write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt/f4norm
-     write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa/f4norm
+     write(*,'(a,8f8.4)')'Complx FtAuxp=',Ftauxp/f4norm
+     write(*,'(a,8f8.4)')'Complx FtAuxt=',Ftauxt/f4norm
+     write(*,'(a,8f8.4)')'Complx FtAuxa=',Ftauxa/f4norm
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
-     write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
-          ')    4.kpar.(1/real(omegag)**2-1.)=',qresdenom
-     write(*,*)'Amplitude \int w_q dq/w_4=',&
-          -sqm1g*3.1415926*Ftauxa(2,1)/qresdenom/Cfactor/f4norm
+     write(*,*)
      write(*,*)'Amplitude         w_2/w_4=',&
-          Ftauxa(1,1)/16./f4norm
+          Ftauxa(1,1)/f4norm/(kg**2+12/16.)
+     write(*,*)'Amplitude \int w_q dq/w_4=',&
+          -sqm1g*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
+     write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
+          ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
      write(*,'(2a)')'Size of q term relative to 4 term,',&
-          ' <i\pi<q|V|4><4|V|q>/(4*qdenom*C)/<4|V|4>='
-     write(*,*)sqm1g*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(4.*qresdenom*Cfactor)/Ftotalg
-     write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4='&
-          ,Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/4.
+          ' -i.4\pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C)='
+     write(*,*)-sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor)/Ftotalg
+     write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
+     write(*,*)Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/(kg**2+12/16.)
+!     write(*,*)Ftauxa(1,1),Ftauxa(1,2),Ftotalg
+     if(.false.)then
+     write(*,*)
      write(*,*)'########  Relative sizes of <q|V-Vw|q> and <q|V|4>'
      write(*,*)'                        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
      write(*,'(a,7f9.4)')'Complex qq external:',Fextqq,Fextqw&
@@ -662,9 +665,21 @@ subroutine plotdent
           ,Fintqq+Fextqq-Fintqw-Fextqw
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
           ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
+     endif
 
      if(ltrapaddp)call pltend
-
+     
+     denstore=denttrap
+     do i=-nzd,nzd
+        denttrap(i)=denstore(i)-denstore(-i)
+     enddo
+     denstore=dentqt
+     do i=-nzd,nzd
+        dentqt(i)=denstore(i)-denstore(-i)
+     enddo
+     call dentaddtrapplot(dfweight,cdummy)
+     call pltend
+     
   endif
 
 
