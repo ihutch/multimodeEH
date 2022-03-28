@@ -418,7 +418,7 @@ contains
     complex Ftotalg
     Emaxg=4.*Tinf+vshift**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
-    if(ldentaddp)then
+    if(naux.ge.2.and.zdent(nzd).ne.0.and.ldentaddp)then
        call pltend
        call noeye3d(9999)
     endif
@@ -486,7 +486,9 @@ contains
           Fnonresg(i)=0.
           Fnonraux(:,:,i)=0.
        endif
-       call dentaddtrap(dfweight,cdvpsi)
+       if(naux.ge.2.and.zdent(nzd).ne.0)then
+          call dentaddtrap(dfweight,cdvpsi)
+       endif
 ! Then divide by the resonance denominator and sum 
        Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
     ! Now Forcegr when multiplied by cdvpsi and summed over all ne positions
@@ -672,11 +674,11 @@ contains
     S=1./cosh(x)
     T=tanh(x)
     if(iaux.eq.1)then   ! Discrete
-       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/4  ! Normalized on x
-    else                ! Continuum: normalized on x.
+       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8
+    else
        p=4.*kpar
        p2=p**2
-       fnorm=sqrt(2.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
+       fnorm=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
        Pk= -15*(p2**2 + (28*S**2 - 15)*p2 + 63*S**4 - 56*S**2 + 8)
        Qk= p2**2 + (105*S**2 - 85)*p2 + 945*S**4 - 1155*S**2 + 274
 ! complex version, antisymmetric
@@ -1139,26 +1141,15 @@ subroutine makezdent
   use shiftgen
   logical :: lrmesh=.true.
   do i=-nzd,nzd
-  if(lrmesh)then    ! remesh
      zdent(i)=.999999*zm*i/float(nzd)
      ! And the continuum auxmode internally on the zd mesh.  
      auxzd(i)=auxofz(zdent(i),2,kpar)
      phi0d(i)=phigofz(zdent(i)) ! and phi0d
      phipd(i)=phigprimeofz(zdent(i)) ! and phi0prime.
      zdmid(i)=zdent(i)
-  else              ! remesh2
-     zdent(i)=1.000001*zm*i/float(nzd)
-     zdmid(i)=1.000001*zm*(i+0.5)/float(nzd)
-     ! And the continuum auxmode internally on the zd mesh.  
-     auxzd(i)=auxofz(zdmid(i),2,kpar)
-     phi0d(i)=phigofz(zdmid(i)) ! and phi0d
-     phipd(i)=phigprimeofz(zdmid(i)) ! and phi0prime.
-
-  endif
   enddo
-  if(.not.lrmesh)zdmid=0.5*(cshift(zdent,0)+cshift(zdent,1))   !remesh2
+  if(.not.lrmesh)zdmid=0.5*(cshift(zdent,0)+cshift(zdent,1))
   CapPhidprev=0.
-  
 end subroutine makezdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine makezext

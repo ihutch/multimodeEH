@@ -585,7 +585,7 @@ subroutine plotdent
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.1,.01)
+!  omegag=complex(.1,.01)
   omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
@@ -603,7 +603,7 @@ subroutine plotdent
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   Cfactor=1.+sqm1g*3.1415926*(Fintqq+Fextqq-Fintqw-Fextqw)/ &
        (qresdenom*4)
-  if(.true.)then
+  if(naux.ge.2)then
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
      dzd=zm/nzd
@@ -663,13 +663,10 @@ subroutine plotdent
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
           ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
 
-     
-
-     
+     if(ltrapaddp)call pltend
 
   endif
 
-  if(ltrapaddp)call pltend
 
   
 end subroutine plotdent

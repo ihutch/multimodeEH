@@ -313,13 +313,13 @@ $\tilde{V}$ must be adopted.
 \section{Calculating the Eigenmode coefficients}
 \subsection{The Non-adiabatic Linearized Vlasov Operator}
 
-The operator $\tilde{V}$ transforms a potential perturbation $\ket{u}$ into
-a non-adiabatic density perturbation $\tilde n$, both of which are
-functions of $z$. It does so by solving the time-dependent Vlasov
-equation for the non-adiabatic distribution function perturbation
-$\tilde f(x,v)$ and integrating it: $\tilde n =\int \tilde f dv$. The
-linearized solution can be written in terms of an integral over past
-time along the unperturbed orbit which is
+The operator $\tilde{V}$ transforms a potential perturbation $\ket{u}$
+into a non-adiabatic density perturbation $\tilde n$, both of which
+are complex functions of $z$. It does so by solving the linearized
+time-dependent Vlasov equation for the non-adiabatic distribution
+function perturbation $\tilde f(x,v)$ and integrating it:
+$\tilde n =\int \tilde f dv$. The solution can be written in terms of
+an integral over past time along the unperturbed orbit which is
 \begin{equation}
   \label{eq:phim}
   \Phi_m(z,v,t)\equiv 
@@ -381,7 +381,7 @@ identified with the normal modes of the uniform background plasma.
 The applicable normal mode for the present electrostatic approximation
 when $\omega<\Omega,\omega_{pe}$ (and $\omega/k\gg v_{te}$) is the high
 frequency end of the whistler branch of the cold plasma dispersion
-relation at high refractive index $N=kc/\omega$. This is the obliquely
+relation at high refractive index $kc/\omega$. This is the obliquely
 propagating ``magnetized langmuir wave'', for which
 $\omega\approx\omega_{pe}\cos\theta$ (where
 $k_\perp/k_\parallel=\tan\theta$) or equivalently
@@ -410,18 +410,18 @@ positive-$z$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
 where dropping the infinity limit is justified by positive imaginary
 part of $\omega$.  This $\Phi_m$ applies for all $z$ down to where the
 eigenmode begins to deviate significantly, because of non-zero hole
-potential, from the external wave; obviously that $z$ is of order
-4. The non-adiabatic perturbation to \emph{outward} (positive) orbit
-velocity, by contrast, is strongly affected by the rapid variation of
-potential across the hole at $z\sim 0$ whose effect is carried into
-the external region. However, that local hole perturbation develops a
-phase shift further into the positive z region that is equal to
-$z\omega_m/v$; and so different $v$ contributions to the density
-$\tilde n$ arising in $\int \tilde f(v) dv$ oscillate increasingly
-rapidly with $v$, as $z$ increases, cancelling out eachother's
-contribution to $\tilde n$. This integral, omitting the common factor
-$\etothe{ik_\parallel z}$ and ignoring the width of the hole, looks
-like
+potential, from the external wave; obviously that $z$ is of order a
+few times 4. The non-adiabatic perturbation to \emph{outward}
+(positive) orbit velocity, by contrast, is strongly affected by the
+rapid variation of potential across the hole at $z\sim 0$ whose effect
+is carried into the external region. However, that local hole
+perturbation develops a phase shift further into the positive z region
+that is equal to $z\omega_m/v$; and so different $v$ contributions to
+the density $\tilde n$ arising in $\int \tilde f(v) dv$ oscillate
+increasingly rapidly with $v$, as $z$ increases, cancelling out
+eachother's contribution to $\tilde n$. The density integral, omitting the
+common factor $\etothe{ik_\parallel z}$ and ignoring the width of the
+hole, looks like
 $(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
   z/v}\etothe{-v^2/2}dv$.  It has its first $z$-zero near
 $\omega_m z=1$. Thus, the density influence of the localized hole
@@ -529,7 +529,7 @@ If $\int w_pdp$ is sufficiently small compared with $w_4$, the final
 term can be ignored.  If, however, the term cannot be dropped, it has
 weak dependence on $q$ locally, depending only on the integral
 $\int w_pdp$. Let us for brevity denote it in eq.\ (\ref{eq:21}) as
-$G$. The value of $w_4$ by contrast has resonant dependence on $q$,
+$G$. The value of $w_q$ by contrast has resonant dependence on $q$,
 giving
 \begin{equation}
   \label{eq:resonance}
@@ -576,24 +576,23 @@ $2\pi i$ times only the residue at $q=q_0+i\epsilon$.}
   \int w_q dq \simeq -i4\pi {(\bra{q_0}|\tilde{V}\ket{4}
     +\bra{-q_0}|\tilde{V}\ket{4})w_4+2G
     \over
-    2q_0(1/\omega_r^2-1)
+    2q_0(1/\omega^2-1)
   }
   =\sum_{q=\pm q_0}{-i4\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
     \over
-    2q_0(1/\omega_r^2-1)}.
+    2q_0(1/\omega^2-1)}.
 \end{equation}
-[Should we write $1/\omega^2$ instead of $1/\omega_r^2$?]
 Taking the $G$ term to the left hand side and reinserting its definition, we get
 \begin{equation}
   \label{eq:22}
-\left(1+{i4\pi \bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right)\int w_pdp  =\sum_{q=\pm q_0}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
-    2q_0(1/\omega_r^2-1)}w_4;
+\left(1+{i4\pi \bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega^2-1)}\right)\int w_pdp  =\sum_{q=\pm q_0}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
+    2q_0(1/\omega^2-1)}w_4;
 \end{equation}
 and, for brevity, the approximately constant coefficient on the left will
 be written
 \begin{equation}
   \label{eq:23}
-  C \equiv \left(1+{i4\pi\bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega_r^2-1)}\right).
+  C \equiv \left(1+{i4\pi\bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega^2-1)}\right).
 \end{equation}
 
 The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
@@ -602,10 +601,10 @@ becomes (approximately)
   \label{eigcon}
   \sum_{q=\pm q_0} {-i4\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
     \over
-    2q_0(1/\omega_r^2-1)\bra{4}\ket{4}C}
+    2q_0(1/\omega^2-1)\bra{4}\ket{4}C}
   ={-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
     \over
-    q_0(1/\omega_r^2-1)\bra{4}\ket{4}C},
+    q_0(1/\omega^2-1)\bra{4}\ket{4}C},
 \end{equation}
 using symmetry; and the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \begin{equation}
@@ -617,7 +616,7 @@ using symmetry; and the total eigenvalue equation, dropping symmetric discrete m
     +%\sum_{q=\pm q_0}
     {-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
     \over
-    q_0(1/\omega_r^2-1)\bra{4}\ket{4}C}.
+    q_0(1/\omega^2-1)\bra{4}\ket{4}C}.
 \end{equation}
 When $\ket{4}$ and $\ket{2}$ are normalized as well as the
 continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
