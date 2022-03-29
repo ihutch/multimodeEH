@@ -57,7 +57,7 @@ module shiftgen
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
   integer, parameter :: nauxmax=2,ndir=2
-  integer :: naux=2
+  integer :: naux=0
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
   complex, dimension(-ngz:ngz) :: CapPhig,ft4
@@ -247,7 +247,6 @@ contains
 !    theta=atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
 !    CapPaux(-ngz,2)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
 !         /(sqm1g*(-kpar*vg(-ngz)-omegag))
-
     dForceg=0.
     dFaux=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
@@ -255,7 +254,7 @@ contains
        phigp=0.5*(phigprime(i)+phigprime(i-1))
        vmean=0.5*(vg(i)+vg(i-1))
 ! Calculate dtau
-       if(zR.ne.0.and.abs(vg(i)).le.0.5*sqrt(2.*max(0.,Wg-psig)))then
+       if(zR.ne.0.and.abs(vg(i)).le.0.5*sqrt(2.*max(Wg,Wg-psig)))then
           dtau=-((vg(i)-vg(i-1))/phigp) ! Use dtau=dv*dtau/dv
           if(ips.gt.0)iws=i               ! Reflected track
        else                               ! Use dtau=dx*dtau/dx
@@ -263,8 +262,9 @@ contains
           if(ips.le.0..or.zR.eq.0)iws=i   ! Attracted or unreflected
        endif
        if(.not.dtau.lt.1e6)then           ! Test for NAN error
-          write(*,*)'In Fdirect',Wg
-          write(*,*)i,'dtau=',dtau,v0,vg(i-1),vg(i),zR,Wg,vpsig,phigp
+          write(*,*)'In Fdirect dtau error',Wg
+          write(*,*)i,'dtau=',dtau,v0,vg(i-1),vg(i),zR,Wg,phig(i-1)
+          !,vpsig,phigp
           stop
        endif
        taug(i)=taug(i-1)+dtau
@@ -788,6 +788,8 @@ end function dfdWptrap
 ! This is the ~V|4> density. When appropriately rescaled.
 ! Scaling is that using for |4> instead phigprime gives an unnormalized
 ! value |4>=8\psi/3sqrt(70)*|^4> (the normalized mode)
+! The densities here accumulated are from normalized modes (including 4).
+
 ! Need to correct *vinf/v.
     vinfbyv=sqrt((Wg)/(-phi0d+Wg))
 !    vinfbyv=1.
@@ -903,6 +905,7 @@ end function dfdWptrap
 ! dfweight is omegag*dfe etc. ftilde is i*dfweight*\Phi (summed over
 ! the perpendicular harmonics). But \Phi is not exactly CapPhig for
 ! trapped orbits.
+! The densities here accumulated are from normalized modes (including 4).
     complex :: dfweight,cdvinf
     complex :: resfac
 ! Need to correct *vpsi/v. Limit how close to zero v can be.
@@ -950,14 +953,14 @@ end function dfdWptrap
     endif
     
     call fwrite(Wg,iwidth,6,wchar)
-    if(real(dfweight).ne.1)then
+    if(real(dfweight).ne.999)then
        call boxtitle('Trapped positive velocity contributions W='&
             //wchar(1:iwidth))
     else
-       call boxtitle('Antisymmetrized total perturbed densities')
+       call boxtitle('Antisymmetrized total densities')
     endif
     call axis;
-    call axlabels('','!p!o~!o!qn!dt4!d')
+    call axlabels('','!p!o~!o!qn!d4!d')
     call polyline(zdmid(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd)
     call legendline(.03,.9,0,' real')
     call dashset(2)
@@ -968,14 +971,14 @@ end function dfdWptrap
        call axptset(1.,0.)
        call ticrev
        call altyaxis(1./Cfactor,1./Cfactor)
-       call axlabels('','!p!o~!o!qf!dt4!d')
+       call axlabels('','!p!o~!o!qf!d4!d')
        call ticrev
        call winset(.true.)
        call polyline(zdmid,Cfactor*imag(ft4d),2*nzd)
        call dashset(0)
        call polyline(zdmid,Cfactor*real(ft4d),2*nzd)
 !          write(wchar,'(e8.2)')Cfactor
-!          call legendline(.03,.75,0,' !p!o~!o!qf!dt4!d*'//wchar(1:lentrim(wchar)))
+!          call legendline(.03,.75,0,' !p!o~!o!qf!d4!d*'//wchar(1:lentrim(wchar)))
     else
        call axis2          
     endif
@@ -994,7 +997,7 @@ end function dfdWptrap
     endif
     call axis
     call polyline(zdmid(-nzd:nzd),real(dentqt(-nzd:nzd)),2*nzd)
-    call axlabels('z','!p!o~!o!qn!dtq!d')
+    call axlabels('z','!p!o~!o!qn!dq!d')
     call dashset(2)
     call polyline(zdmid(-nzd:nzd),imag(dentqt(-nzd:nzd)),2*nzd)
     if(dfweight.ne.0.and.abs(Wg-psig).gt.1.e-3)then
@@ -1002,7 +1005,7 @@ end function dfdWptrap
        call axptset(1.,0.)
        call ticrev
        call altyaxis(1./Cfactor,1./Cfactor)
-       call axlabels('','!p!o~!o!qf!dtq!d')
+       call axlabels('','!p!o~!o!qf!dq!d')
        call ticrev
        call winset(.true.)
        call polyline(zdmid,Cfactor*imag(ftrauxd(:,2)),2*nzd)
@@ -1141,7 +1144,6 @@ subroutine makezdent
 ! Initialize the uniform zdent, triggering dent saving during FtEint.
 ! Make sure that it is never seen as being outside zm.
   use shiftgen
-  logical :: lrmesh=.true.
   do i=-nzd,nzd
      zdent(i)=.999999*zm*i/float(nzd)
      ! And the continuum auxmode internally on the zd mesh.  
@@ -1150,7 +1152,6 @@ subroutine makezdent
      phipd(i)=phigprimeofz(zdent(i)) ! and phi0prime.
      zdmid(i)=zdent(i)
   enddo
-  if(.not.lrmesh)zdmid=0.5*(cshift(zdent,0)+cshift(zdent,1))
   CapPhidprev=0.
 end subroutine makezdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

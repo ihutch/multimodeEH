@@ -578,15 +578,16 @@ end subroutine plotmodes
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine plotdent
   use shiftgen
-  complex :: Ftotalg,Cfactor,dfweight=1,cdummy
+  complex :: Ftotalg,Cfactor,dfweight=999,cdummy
   complex :: F44t=0,F44p=0
+  naux=2
   ldentaddp=.true.   ! dentadd movie
   ltrapaddp=.true.   ! trapped movie
-  psidef=-.1
+  psidef=-.5
   if(psig.ge.0)psig=psidef
   omegacg=20.
   omegag=complex(.02,.001)
-!  omegag=complex(.047,.00119)
+  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
@@ -673,9 +674,19 @@ subroutine plotdent
      do i=-nzd,nzd
         denttrap(i)=denstore(i)-denstore(-i)
      enddo
-     denstore=dentqt
+     if(.true.)then
+     denstore=dentpass
+     do i=-nzd,nzd
+        denttrap(i)=denttrap(i)+dentpass(i)-dentpass(-i)
+     enddo
+     endif
+     denstore=dentqt     ! Trapped
      do i=-nzd,nzd
         dentqt(i)=denstore(i)-denstore(-i)
+     enddo
+     denstore=dentq      ! Passing
+     do i=-nzd,nzd
+        dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
      enddo
      call dentaddtrapplot(dfweight,cdummy)
      call pltend
