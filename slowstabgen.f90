@@ -1,6 +1,6 @@
 ! New version of omegacont.f90 to use for slow hole stability including
 ! the effects of ion force Fi.
-
+! This version uses only shiftgen.
 ! Contour the real and imaginary force(s) over a complex omega domain.
 ! For k, psi and Omegac having some values.
 ! Solve for the complex omega that makes the complex force zero.
@@ -10,9 +10,8 @@
 program fomegasolve
   use iterfind
   real :: kin,kmid
-  logical :: lcont=.false.,lplot=.false.,lerase=.false.,lTiscan=.false.
-!  integer, parameter :: nk=1,noc=1,npsi=8,nvsin=21,nv0=0
-  integer, parameter :: nk=1,noc=1,npsi=1,nvsin=5,nv0=0
+  logical :: lcont=.true.,lplot=.false.,lerase=.false.,lTiscan=.false.
+  integer, parameter :: nk=1,noc=1,npsi=8,nvsin=21,nv0=0
   real :: Omegacarr(noc),karr(nk),psiparray(npsi),vsinarray(nv0:nvsin)
   real :: Tiarray(nvsin)
   real :: ormax,oimax

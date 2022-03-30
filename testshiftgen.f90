@@ -155,9 +155,9 @@
     call legendline(.4,.05,0,' imagx'//ffan(1:iwidth))
     call dashset(0)
     call pltend
-
-    if(.false.)then
     call multiframe(0,0,0)
+
+    if(.true.)then
     call charsize(.018,.018)
     call pltinit(0.,sqrt(-psig),min(pmin,rmin),max(pmax,rmax))
     call axis
@@ -236,7 +236,6 @@
        call pltend
           enddo
        enddo
-    
               
     endif
     
@@ -441,6 +440,7 @@
        if(argument(1:3).eq.'-oc')read(argument(4:),*)Omegacg
        if(argument(1:3).eq.'-kg')read(argument(4:),*)kg
        if(argument(1:2).eq.'-n')read(argument(3:),*)nvs
+       if(argument(1:2).eq.'-a')read(argument(3:),*)naux
        if(argument(1:2).eq.'-c')then
           ipfset=-3
           read(argument(3:),*,err=201,end=201)ipfset
@@ -468,6 +468,7 @@
     write(*,101) '-or.. -oi..  set omega       [',ormax,oi
     write(*,101) '-oc.. -kg..  set O_c, set k  [',Omegacg,kg
     write(*,102) '-n..         set number of vs[',nvs
+    write(*,102) '-a..         set nauxmodes   [',naux
     write(*,102) '-s..         set switches    [',isw
     write(*,*)' s=1 Frepel, 2 Fattr, 4 Fi(omega), 8 PlotForce, 16&
          & denem,',' 32 Modes, 64 SumHarm'

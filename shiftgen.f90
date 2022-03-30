@@ -699,7 +699,7 @@ contains
     dfdWptrap=((15./16.)/sqrt(-psig)-experfcc(sqWj)/sqrt(pig))/sqrt(2.)
 ! This is the approximate correction for ion charge applied only when
 ! we are evaluating an attracted species.
-    if(lioncorrect)then
+    if(lioncorrect.and.vrshift.ne.9999)then
        vsx=1.3+0.2*psig
        vsa=vrshift     ! The vshift of the reflected species.
        denem1=(-1.+(vsa/vsx)**ri) /(1.+0.25*psig+vsa**2*(vsa/(vsx +(3.3&
@@ -1100,7 +1100,8 @@ end subroutine ionforce
 subroutine electronforce(Felec,omegain,kin,Omegacp,psiin,vsin,isigma)
 ! Inputs in electron units except for vsin in ion units. No permanent
 ! changes to shiftgen parameters. vshift is set temporarily to zero,
-! and vrshift to ion shift vsin.
+! and vrshift to ion shift vsin. 
+! Turn off ion density correction by passing vsin=9999.
   use shiftgen
   real :: kin
   complex :: omegain,Felec
