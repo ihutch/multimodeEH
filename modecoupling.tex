@@ -325,14 +325,14 @@ an integral over past time along the unperturbed orbit which is
   \Phi_m(z,v,t)\equiv 
   \int_{-\infty}^t \hat\phi(z(\tau)){\rm e}^{-i\omega_m(\tau-t)}d\tau,
 \end{equation}
-where $\phi_1(y,z,t)=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ is the potential
-perturbation, and $z(\tau)$ is the past unperturbed orbit having
-velocity $v$ at $(z,t)$. When a uniform magnetic field in the
-$z$-direction is present with cyclotron frequency $\Omega$, the
-perturbation has transverse wavenumber $k_\perp$, and the background
-perpendicular velocity distribution is Maxwellian, then the
-distribution function perturbation is[] the following sum over cyclotron
-harmonics
+where $\phi_1(y,z,t)=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ is
+the potential perturbation, and $z(\tau)$ is the parallel position of
+the past unperturbed orbit having velocity $v$ at $(z,t)$. When a
+uniform magnetic field in the $z$-direction is present with cyclotron
+frequency $\Omega$, the perturbation has transverse wavenumber
+$k_\perp$, and the background perpendicular velocity distribution is
+Maxwellian, then the distribution function perturbation is[] the
+following sum over cyclotron harmonics
 \begin{equation}\label{eq:ftmagnetic}
   \begin{split}
     \tilde f(z,y,v,t) &=  {\rm e}^{i(k_\perp y-\omega t)}
@@ -382,12 +382,16 @@ The applicable normal mode for the present electrostatic approximation
 when $\omega<\Omega,\omega_{pe}$ (and $\omega/k\gg v_{te}$) is the high
 frequency end of the whistler branch of the cold plasma dispersion
 relation at high refractive index $kc/\omega$. This is the obliquely
-propagating ``magnetized langmuir wave'', for which
+propagating ``magnetized langmuir wave'', for which at high
+$\Omega/\omega_{pe}$, 
 $\omega\approx\omega_{pe}\cos\theta$ (where
-$k_\perp/k_\parallel=\tan\theta$) or equivalently
+$k_\perp/k_\parallel=\tan\theta$). More completely, in the cold
+electrostatic limit ignoring ion response, the dispersion relation
+(including the upper hybrid waves) is
 \begin{equation}
   \label{eq:15}
-  k_\parallel^2/k_\perp^2=\omega^2/(\omega_{pe}^2-\omega^2).
+  k_\parallel^2/k_\perp^2={\omega^2(\Omega^2+\omega_{pe}^2-\omega^2)
+    \over(\Omega^2-\omega^2)(\omega_{pe}^2-\omega^2)}.
 \end{equation}
 (In our normalized units $\omega_{pe}=1$.)  Assuming that $\omega$ and
 $k_\perp$ are prescribed, there is only one $|k_\parallel|$ that
@@ -396,7 +400,7 @@ continuum eigenmode of $V_a$ has $p=4k_\parallel$.
 
 Intuitively, then, the continuum contribution is limited more or less
 to the single mode
-$p/4=k_\parallel= [k_\perp^2\omega^2/(\omega_{pe}^2-\omega^2)]^{1/2}$.
+$p/4=k_\parallel$ given by eq.\ (\ref{eq:15}).
 For such a mode, one can immediately calculate the value of
 $\Phi_m(z)$ for \emph{inward} orbit velocity, (negative $v$) on the
 positive-$z$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
@@ -457,7 +461,7 @@ quantity $k_\parallel v/\omega_m$ and substituting into eq.\
   \tilde f_m = i\left[\omega_m
     {\partial f_{\parallel0}\over \partial W_\parallel}
     +m\Omega {f_{\parallel0}\over T_\perp}\right]
-  q_e{\rm e}^{-\xi_t^2}I_m(\xi_t^2) A{\rm e}^{ipx}
+  q_e{\rm e}^{-\xi_t^2}I_m(\xi_t^2) A{\rm e}^{ik_\parallel z}
   \left[1+{k_\parallel v\over\omega_m}+
     \left({k_\parallel v\over\omega_m}\right)^2+\dots\right]
   \Big/(-i\omega_m).
@@ -476,16 +480,32 @@ outside the hole, and cannot be ordered as ignorable there.
 Instead though, the non-adiabatic density in the wave-like external region
 becomes the potential there ($\ket{p}$) multiplied by a function of
 ($\omega_m$ and) $p$ that is \emph{independent of position}. Let us
-express that in terms of an operator $\tilde{V}_{w}$ where
+express that in terms of an operator $\tilde{V}_{w}$. If only $m=0$
+($\omega_m=\omega$) is
+required and higher harmonic terms are negligible, then by inspection
+of eq.\ (\ref{eq:17}), the operator
+would be 
 \begin{equation}
   \label{eq:20}
-\tilde{V}_{w}\simeq-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega_m\right)^2\right]=\left[1+\left(k_\parallel\over\omega_m\right)^2\right],
+\tilde{V}_{w}\sim-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega\right)^2\right]=1+\left(k_\parallel\over\omega\right)^2.
 \end{equation}
-and gives rise to a density perturbation $n_w$.
- Then
+However, that approximation effectively implements the limit
+$\Omega\to \infty$, and gives a dispersion relation
+$k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
+than the full cold plasma expression for finite $\Omega/\omega$: eq.\
+(\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
+the harmonic sum for the electrostatic dispersion
+relation\footnote{See, e.g., Swanson (1989) section 4.4.} are also
+included to lowest order in $\xi_t^2$. The resulting form is
+\begin{equation}
+  \label{eq:24}
+  \tilde V_w= 1 + \left(k_\parallel\over\omega\right)^2 +
+  k_\perp^2 {T_\perp/T_\parallel\over\omega^2-\Omega^2}.
+\end{equation}
+Then
 $\tilde{V}-\tilde{V}_{w}$ is a localized operator tending to zero in
-the region beyond $z_l$. Now we demonstrate mathematically the concepts
-just introduced intuitively.
+the region beyond $z_l$. Now we demonstrate mathematically the
+concepts just introduced intuitively.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
@@ -529,82 +549,102 @@ If $\int w_pdp$ is sufficiently small compared with $w_4$, the final
 term can be ignored.  If, however, the term cannot be dropped, it has
 weak dependence on $q$ locally, depending only on the integral
 $\int w_pdp$. Let us for brevity denote it in eq.\ (\ref{eq:21}) as
-$G$. The value of $w_q$ by contrast has resonant dependence on $q$,
+$G$. The value of $w_q$ by contrast has resonant dependence on $q$
+(i.e.\ on $k_\parallel$),
 giving
 \begin{equation}
   \label{eq:resonance}
   w_q = {\bra{q}|\tilde{V}\ket{4}w_4+G\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
   ={\bra{q}|\tilde{V}\ket{4}w_4+G\over
-    (k_\perp^2+k_\parallel^2-1-k_\parallel^2/\omega^2) }
-  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
+    (k_\perp^2+k_\parallel^2+1-\tilde V_w) },
+%  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
 \end{equation}
-using (eq.\ \ref{eq:3}) $\lambda_q=-q^2/16-1$ , $\lambda_\perp=k_\perp^2$, and
-$\tilde{V}_{w}=[1+(k_\parallel/\omega)^2]=1+q^2/(16\omega^2)$. Notice that the
-denominator is zero when $\omega=k_\parallel/k=\cos\theta$, the
-dispersion relation of the wave in a uniform plasma. 
+using (eq.\ \ref{eq:3}) $\lambda_q=-q^2/16-1=-k_\parallel^2-1$ and
+$\lambda_\perp=k_\perp^2$.
+%, and $\tilde{V}_{w}=[1+(k_\parallel/\omega)^2]=1+q^2/(16\omega^2)$
+Let us write the denominator as
+\begin{equation}
+  \label{eq:25}
+  k_\perp^2+k_\parallel^2+1-\tilde
+  V_w=k_\perp^2\left(1-{T_\perp/T_\parallel\over\omega^2-\Omega^2}\right)
+  +k_\parallel^2\left(1-{1\over\omega^2}\right)
+= {1\over4^2}\left({1\over\omega^2}-1\right)\left(q_0^2-q^2\right)
+\end{equation}
+where
+\begin{equation}
+  \label{eq:26}
+  q_0=4k_\perp\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}
+  \Bigg/\sqrt{{1\over\omega^2}-1}.
+\end{equation}
+The denominator is zero when $q^2=q_0^2$ which is the
+dispersion relation of the wave in a uniform plasma, equal to the cold
+plasma expression when $T_\perp/T_\parallel=1$.
 
-In view of the resonant form of this expression, we can regard the
+In view of the resonant form of the expression for $w_q$, we can regard the
 integral over this resonance $\int w_q dq$ as quantifying total
 continuum perturbation.  The integral $dq$ of the expression for $w_q$
 just found (\ref{eq:resonance}) encounters the two poles of $w_q$ at
-$q=\pm q_0=\pm4k_\perp\omega/\sqrt{1-\omega^2}$. Near them the real
+$q=\pm q_0$.
+% =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
+Near them the real
 part of the denominator becomes small. Its imaginary part comes from
 the small, \emph{necessarily positive}, imaginary part of
-$\omega=\omega_r+i\omega_i$. Then
-$k_\perp^2-(q/4)^2(1/\omega^2-1)\simeq k_\perp^2-(q/4)^2(1/\omega_r^2-1)
-+i(q/4)^2/\omega_r^22(\omega_i/\omega_r)$.  A resonant integral for small
-positive $\epsilon$ generally gives
+$\omega=\omega_r+i\omega_i$. It can then quickly be shown that $q_0$
+has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$ .  A resonant integral for small
+positive $\epsilon$ and real $q$ generally gives
 \begin{equation}
   \label{resint}
-  \int_{-}^{+} {g(q) dq\over q_0\pm i\epsilon-q}\simeq \mp i\pi g(q_0)
+  \int_{-}^{+} {g(q) dq\over q_{0r}\pm i\epsilon-q}\simeq \mp i\pi g(q_{0r})
 \end{equation}
 for any slowly varying function $g$. On this basis
 \iftrue
 \footnote{Write the integral $\int{g(q)dq\over
-  (q_0+i\epsilon)^2-q^2}=\int{g(q)dq\over 
-(q_0+i\epsilon-q)(q_0+i\epsilon+q)}\simeq \int{g(q_0)dq\over
-  (q_0+i\epsilon-q)2q_0}-\int{g(-q_0)dq\over
-  2q_0(-q_0-i\epsilon-q) }\simeq -i\pi [g(q_0)+g(-q_0)]/2q_0. $ when
+  (q_{0r}+i\epsilon)^2-q^2}=\int{g(q)dq\over 
+(q_{0r}+i\epsilon-q)(q_{0r}+i\epsilon+q)}\simeq \int{g(q_{0r})dq\over
+  (q_{0r}+i\epsilon-q)2q_{0r}}-\int{g(-q_{0r})dq\over
+  2q_{0r}(-q_{0r}-i\epsilon-q) }\simeq -i\pi [g(q_{0r})+g(-q_{0r})]/2q_{0r}. $ when
  $\epsilon$ is
 positive. This treatment is equivalent to closing the $q$-integration path
 along $+i\infty$ and setting the closed contour integral equal to
-$2\pi i$ times only the residue at $q=q_0+i\epsilon$.}
+$2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
 \fi
 ,
 \begin{equation}
   \label{poles}
-  \int w_q dq \simeq -i4\pi {(\bra{q_0}|\tilde{V}\ket{4}
-    +\bra{-q_0}|\tilde{V}\ket{4})w_4+2G
+  \int w_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
+    +\bra{-q_{0r}}|\tilde{V}\ket{4})w_4+2G
     \over
-    2q_0(1/\omega^2-1)
+    2q_{0r}(1/\omega^2-1)/4^2
   }
-  =\sum_{q=\pm q_0}{-i4\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
+  =\sum_{q=\pm q_{0r}}{-i4\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
     \over
-    2q_0(1/\omega^2-1)}.
+    2q_{0r}(1/\omega^2-1)/4^2}.
 \end{equation}
 Taking the $G$ term to the left hand side and reinserting its definition, we get
 \begin{equation}
   \label{eq:22}
-\left(1+{i4\pi \bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega^2-1)}\right)\int w_pdp  =\sum_{q=\pm q_0}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
-    2q_0(1/\omega^2-1)}w_4;
+  \left(1+{i4\pi \bra{q_{0r}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0r}}\over
+      q_{0r}(1/\omega^2-1)/4^2}\right)\int w_pdp
+  =\sum_{q=\pm q_{0r}}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
+    2q_{0r}(1/\omega^2-1)/4^2}w_4;
 \end{equation}
 and, for brevity, the approximately constant coefficient on the left will
 be written
 \begin{equation}
   \label{eq:23}
-  C \equiv \left(1+{i4\pi\bra{q_0}|\tilde{V}-\tilde{V}_{w}\ket{q_0}\over q_0(1/\omega^2-1)}\right).
+  C \equiv \left(1+{i4\pi\bra{q_{0r}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0r}}\over q_{0r}(1/\omega^2-1)/4^2}\right).
 \end{equation}
 
 The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
 becomes (approximately)
 \begin{equation}
   \label{eigcon}
-  \sum_{q=\pm q_0} {-i4\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
-    \over
-    2q_0(1/\omega^2-1)\bra{4}\ket{4}C}
-  ={-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
-    \over
-    q_0(1/\omega^2-1)\bra{4}\ket{4}C},
+  \sum_{q=\pm q_{0r}} {-i4\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
+    4^2 \over
+    2q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C}
+  ={-i4\pi\bra{4}|\tilde V \ket{q_{0r}}\bra{q_{0r}}|\tilde{V}\ket{4}
+    4^2 \over
+    q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C},
 \end{equation}
 using symmetry; and the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \begin{equation}
@@ -613,10 +653,10 @@ using symmetry; and the total eigenvalue equation, dropping symmetric discrete m
     \bra{4}\ket{4}}
     +{\bra{4}|\tilde{V}\ket{2}\bra{2}|\tilde{V}\ket{4}\over
       (\lambda_\perp-\lambda_2)\bra{4}\ket{4} \bra{2}\ket{2}}
-    +%\sum_{q=\pm q_0}
-    {-i4\pi\bra{4}|\tilde V \ket{q_0}\bra{q_0}|\tilde{V}\ket{4}
+    +%\sum_{q=\pm q_{0r}}
+    {-i4\pi\bra{4}|\tilde V \ket{q_{0r}}\bra{q_{0r}}|\tilde{V}\ket{4}4^2
     \over
-    q_0(1/\omega^2-1)\bra{4}\ket{4}C}.
+    q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C}.
 \end{equation}
 When $\ket{4}$ and $\ket{2}$ are normalized as well as the
 continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
@@ -624,141 +664,27 @@ course.
 
 This analysis thus shows that the entire influence of the continuum
 can (for given $\omega$ and $k_\perp$) be approximated by a single
-parallel wavenumber $k_\parallel= q_0/4$ continuum mode, having an
-amplitude $w_{q_0}=\int w_q dv$.
+parallel wavenumber $k_\parallel= q_{0r}/4$ continuum mode, having an
+amplitude $w_{q_{0r}}=\int w_q dv$.
 
-\subsection{Sum over cyclotron harmonics}
-
-Section \ref{reducing} is written as if only one cyclotron harmonic
-($m=0$) is needed. But it can in fact be applied separately to each
-needed harmonic ($m\not=0$), interpreting each occurrence of $\omega$
-as $\omega_m$. Each harmonic then has a different value of
-$q_0=q_{0m}=4k_\perp\omega_m/\sqrt{1-\omega_m^2}$, with a different
-resonant wave number of the external continuum. But each harmonic has
-a weight still given by eq.\ (\ref{poles}) and a contribution
-(\ref{eigcon}) to the total eigenvalue. Provided that no additional
-resonances are introduced by the harmonic sum, the eigenmode and
-eigenvalue contributions are simply summed.
-
-When $\xi_t=k\sqrt{T_\perp/m_e}/\Omega$ is small, very few cyclotron
-harmonics are required because $I_m(\xi_t^2)\propto \xi_t^{2m}$. When
-$\xi_t$ is large, instead, the dependence $\etothe{-\xi_t^2}$
-predominates in eq.\ (\ref{eq:ftmagnetic}), and many harmonics up to
-$\sim 3\xi_t$ approximate a continuous integral over the perpendicular
-Maxwellian. In either case, the relevant range of $\omega_m$ is
-approximately $\omega\pm 3k_\perp v_{t\perp}$. Therefore, when
-$T_\perp \sim 1$ (near isotropy of the external distribution giving
-$ v_{t\perp}\sim 1$), and $k_\perp\ll 1$ (long perpendicular wavelength
-compared to hole length) the main effect is to broaden the
-$q$-resonance by a width
-$\delta \omega\sim3k_\perp v_{t\perp}\ll 1 $. We will assume
-that this effect, which is represented in our calculation, is
-sufficient and that cyclotron resonances are unimportant.
-
-
-\subsection{Evaluating $\bra{4}|\tilde{V}\ket{q}$ and $\bra{q}|\tilde{V}\ket{4}$}
-
-All the needed inner product integrals over $z$ are limited to the
-hole region where the discrete modes are nonzero, except for
-$\bra{q}|\tilde V\ket{4}$.  The numerical scheme for the hole region
-is identical to code previously used for a single mode ($\ket{4}$)
-analysis [], but expanded to calculate the required additional terms
-in eq.\ (\ref{eigtotal}), consisting of products between $\ket{4}$
-and the auxiliary modes $\ket{2}$ and $\ket{q}$.  The exception,
-$\bra{q}|\tilde V\ket{4}$, requires integration beyond the hole since
-the outward moving orbits cause density perturbation there, even from
-potentials localized to the hole. The the continuum potential mode
-$\bra{q}|$ is not limited in extent; so numerical evaluation of
-$\bra{q}|\tilde V\ket{4}$ requires $z$ integrals to $\gtrsim z_l$,
-which is much greater than the hole extent.
-
-
-The non-adiabatic density $\tilde V \ket{4}/16$ in the external region
-arises only from orbits that are moving outward; that is: when the
-sign of $v$ and $z$ are the same. Therefore the external contribution
-to $\bra{q}|\tilde V \ket{4}$ can be derived on the positive side of
-the hole from a positive-going velocity integration over orbits that
-start at the positive hole edge, taking the $\Phi_m$ there as initial
-condition, and then continuing the spatial integral for greater $z$.
-Then by symmetry we can simply double this contribution to account for
-the outgoing orbits of opposite $z$ (and $v$) sign, and add the
-internal (trapped and passing) hole integral, to give the total
-$\bra{q}|\tilde V \ket{4}$.  The external integration is calculated on
-a much coarser mesh than the hole integrals, with comparable mesh
-count, but extending sufficiently beyond $z_l$.
-
-The inner products for prescribed $\omega$ and $k$ give the eigenvalue
-from eq.\ (\ref{eigtotal}) and the total eigenmode as the sum eq.\
-\ref{eq:6} with $w_2/w_4$ and $w_q/w_4$ given by \ref{eq:11} and
-\ref{eq:resonance} respectively. 
-
-
-
-\appendix
-\section{Ignorability of $\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q}$}
-\label{ignorability}
-
-In figure \ref{ntildeplots} the processes of reduction of the
-eigenvalue equations are illustrated by presenting example perturbed
-densities calculated numerically. The key requirement is to remove the
-otherwise large $\bra{q}|\tilde V\ket{q}$ by subtracting from
-$\tilde V$ a wave-mode represented by $\tilde V_w$.
-\begin{figure}[htp]
-\center  \includegraphics[width=0.7\hsize]{ntildeplots}
-  \caption{Illustrative figure of contributions to eigenmode
-    equations. \label{ntildeplots}}
-\end{figure}
-The challenge is that outside the hole ($z\gg 4$) the
-continuum-generated non-adiabatic density perturbation
-$\tilde n_q=\tilde V\ket{q}/16$ remains large; so an inner product
-$\bra{q}|\tilde V\ket{q}$ (integrating $\int^\infty dz$) has large
-contributions from the external region. It is not small. However, the
-corresponding wave mode density arising from applying the
-$z$-independent operator
-$\tilde V_w=\int_0^\infty dv {i\over(k_\parallel v-\omega)}$ to
-$\ket{q}$ and multiplying by the leading factors of eq.\ \ref{eq:17},
-yielding $\tilde n_w$ is an excellent approximation to $\tilde n$ in
-the external region, as the top panel shows. Consequently, even though
-the wave mode $\bra{q}|$ is non-negligible to near infinity, its
-inner product $\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q}$ is finite,
-and (as the numerics demonstrates) of approximately the same amplitude
-as $\bra{q}|\tilde V\ket{4}$. The density corresponding to
-$|\tilde V\ket{4}/16$ is shown in the middle panel, and the continuum
-mode for reference in the bottom panel.
-
-\iffalse
-The continuum mode equation is
-
-\begin{equation}
-  \label{eq:19}
-  0= (\lambda_q-\lambda_\perp)w_q+\bra{q}|\tilde{V}\ket{4}w_4
-  +\tilde{V}_{w}w_q
-  +\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q}\int w_pdp.  
-\end{equation}
-He is not persuaded that my argument demonstrates that the last term
-is negligible. He says that numerically
-$\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q} \sim 20
-\bra{q}|\tilde{V}\ket{4}$ (I presume for normalized modes), and that
-therefore $\int w_pdp\ll w_4$ is not sufficient criterion.
-
-Clarifying my argument, I claim that
-$\bra{q}|\tilde V \ket{4}\sim 16\omega$ and that, if $\int w_q$ is
-determined ignoring the final term, then
-$\int w _q dq/w_4 ={-i\pi\bra{q}|\tilde{V}\ket{4}\over
-  q_0(1/\omega_r^2-1)} \sim{-i\pi\bra{q}|\tilde{V}\ket{4}\over
-  4k_\perp/\omega_r} \sim 4\pi\omega\omega_r/k_\perp\sim 4\pi \omega$.
-This is of order the small quantity $\omega$.
-
-If it is true that $\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{q} \sim 20
-\bra{q}|\tilde{V}\ket{4}$, then for the final term to be
-negligible, we need $20\int w_pdp\ll w_4$, which is
-$$
-\int w_pdp/ w_4 \sim 4\pi\omega \ll 1/20
-\quad i.e. \quad \omega\ll \sim 1/(80\pi).
-$$
-Admittedly that is a very small frequency! Thus the factor of 20, if
-true, is a significant problem, and we ought to verify it.
-\fi
+Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
+cyclotron harmonics to determine $q_{0r}.$ That is justified by
+supposing that the finite Larmor radius parameter
+$\xi_t=k_\perp\sqrt{T_\perp/m_e}/\Omega$ is small, and recognizing
+$I_m(\xi_t^2)\propto \xi_t^{2m}$. If $\xi_t$ is not small (because
+$\Omega\not\gg k_\perp v_{t\perp}$), instead, the dependence
+$\etothe{-\xi_t^2}$ predominates in eq.\ (\ref{eq:ftmagnetic}), and
+harmonics up to $|m|\sim 3\xi_t$ approximate a continuous integral
+over the perpendicular Maxwellian, with the relevant range of
+$\omega_m$ approximately $\omega\pm 3k_\perp v_{t\perp}$. The
+resultant resonance width $k_\perp v_{t\perp}$ exceeds $\sim\omega$
+(because for the whistler mode $\omega < \Omega$), and there is no
+substantial resonance defining the wave dispersion relation. We may
+expect that the continuum mode contribution itself is then suppressed,
+and it is probably justifiable to ignore coupling to the continuum modes.
+But whether it is ignorable or not, the present calculation of the
+coupling is no longer valid, and so we drop continuum mode coupling when
+$\xi_t>1/2$.
 
 \end{document}
 

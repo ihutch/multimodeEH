@@ -236,10 +236,7 @@ contains
     taug(-ngz)=0.
     CapPhig(-ngz)=0.
     CapPaux(-ngz,:)=0.
-!    CapPaux(-ngz,2)=something ! This can be removed now, given the following.
 ! Set the incoming CapPaux for continuum to be the wave solution.
-! Use the Phi_m(z) (A)-expression, with kpar.v negative (incoming) and sign(x)
-! negative which reverses phi at negative z. 
 !    CapPaux(-ngz,2)=-auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
    if(Wg.ge.0)CapPaux(-ngz,2)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
 ! This explict treatment gives essentially the same answer.
@@ -550,7 +547,7 @@ contains
     do i=1,nzext        ! As we go, accumulate densities dentext etc.
        dze=abs(zext(i)-zext(i-1))
        CPfactor=exp(sqm1g*omegag*dze/vi) ! Current exponential
-       CP=CPprior*CPfactor  !Plus nothing because |q> is zero externally
+       CP=CPprior*CPfactor  !Plus nothing because |4> is zero externally
        CapPext(i)=CP
        Fexti=Fexti+0.5*(conjg(auxext(i-1))*CPprior&
             +conjg(auxext(i))*CP)*dze*dvdfw
@@ -621,18 +618,22 @@ contains
          &,'')'',i4,f8.4)') ' EI(0),Ftt(0)  =',EIm(0),Fpg(0)&
          &,nharmonicsg,Oceff
     Ftotalsumg=Fpg(0)*EIm(0)
+    Ftauxsum(1:naux,:)=Ftauxa(1:naux,:)*EIm(0)
     do m=1,nharmonicsg
        omegag=omegaonly+m*Oceff
        if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5 ! Prevent zero.
        call FgEint(Fpg(m),isigma)
        if(real(omegaonly).eq.0)then   !Short cut.
           Ftotalsumg=Ftotalsumg+2*real(Fpg(m))*EIm(m)
+          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+2*real(Ftauxa(1:naux,:))*EIm(m)
        else      ! Full sum over plus and minus m.
           Ftotalsumg=Ftotalsumg+Fpg(m)*EIm(m)
+          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
           omegag=omegaonly-m*Oceff
           if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5
           call FgEint(Fpg(-m),isigma)
           Ftotalsumg=Ftotalsumg+Fpg(-m)*EIm(m)
+          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
        endif
        if(lbess)write(*,'(a,i2,a,e11.4,''('',2e12.4,'')('',2e12.4,'')'')')&
             ' EI(',m,'),Fpg(+-m)=',EIm(m),Fpg(m),Fpg(-m)
@@ -1080,6 +1081,10 @@ subroutine ionforce(Fi,omega,kin,Omegacin,psiin,vsin,isigma)
   use shiftgen
   complex :: Fi,omega,omg
   real :: psiin,vsin,Omegacin,kin
+  if(vsin.eq.9999)then
+     Fi=0.
+     return
+  endif
   kg=kin
 !  write(*,*)'ionforce kg=',kg
   omg=omegag;omc=Omegacg;pg=psig;vs=vshift
