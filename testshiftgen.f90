@@ -582,9 +582,9 @@ subroutine plotdent
   complex :: Ftotalg,Cfactor,dfweight=999,cdummy
   complex :: F44t=0,F44p=0
   naux=2
-  ldentaddp=.true.   ! dentadd movie
-  ltrapaddp=.true.   ! trapped movie
-  psidef=-.5
+!  ldentaddp=.true.   ! dentadd movie
+!  ltrapaddp=.true.   ! trapped movie
+  psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
   omegag=complex(.02,.001)
@@ -631,15 +631,15 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4>  =',Ftotalg/f4norm**2
      write(*,'(a,8f8.4)')'Complex <4|n_4           =',(F44t+F44p)/f4norm
      write(*,'(a,8f8.4)')'Complex Ftotalpg <4|V|4> =',2.*Ftotalpg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_p4          =',F44p/f4norm
+     write(*,'(a,8f8.4)')'Complex <4|n_p4 (passing)=',F44p/f4norm
      write(*,'(a,8f8.4)')'Complex Ftotalrg <4|V|4> =',2.*Ftotalrg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_t4          =',F44t/f4norm
+     write(*,'(a,8f8.4)')'Complex <4|n_t4 (trapped)=',F44t/f4norm
 !     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
      write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-     write(*,'(a,8f8.4)')'Complx FtAuxp=',Ftauxp/f4norm
-     write(*,'(a,8f8.4)')'Complx FtAuxt=',Ftauxt/f4norm
-     write(*,'(a,8f8.4)')'Complx FtAuxa=',Ftauxa/f4norm
+     write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp/f4norm
+     write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt/f4norm
+     write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa/f4norm
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
      write(*,*)

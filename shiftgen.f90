@@ -938,8 +938,8 @@ end function dfdWptrap
     character*20 wchar
 
     if(Wgarray(nge).eq.psig)then
-       write(*,*)'Last step increment fraction @ x=0',&
-            cdvinf*ftrauxd(0,2)/dentqt(0)
+!       write(*,*)'Last step increment fraction @ x=0',&
+!            cdvinf*ftrauxd(0,2)/dentqt(0)
        call pfset(3)
     endif
     call multiframe(2,1,1)

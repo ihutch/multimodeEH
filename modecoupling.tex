@@ -40,15 +40,15 @@ A relatively compact approach to managing a generalization of the
 unstable mode of a Vlasov-Poisson problem [] is to represent the
 perturbation of potential in terms of the eigenmodes (which are
 orthogonal) of a judiciously chosen differential operator. In the
-present context the operator generally used represents the Poisson
+present context, the operator generally used represents the Poisson
 equation for steady (or very slowly varying) potential
-($\nabla^2\phi+n=0$ in appropriately normalized units). The particle
+($\nabla^2\phi-n=0$ in appropriately normalized units). The particle
 density $n_0(z)$ associated with the potential equilibrium
 $\phi_0(z)$, can be determined from this equation. Then for
 infinitessimally slow linearized potential perturbations $\phi_1$
 about this equilibrium the perturbed density is
 $n_1=\phi_1dn_0/d\phi_0$, and the resulting Poisson equation can be
-written as the operator $V_a =(\nabla^2+dn_0/d\phi_0)$ acting on
+written as the operator $V_a =(\nabla^2-dn_0/d\phi_0)$ acting on
 $\phi_1$. This $V_a$ is called the ``adiabatic'' operator, and the
 associated density perturbation $n_1$ the adiabatic density
 (perturbation). The expansion of the potential perturbation is most
@@ -111,31 +111,37 @@ the $z$-derivative by prime) can then be written
 Notation $V$ reminds us that this is partly the Vlasov operator,
 transforming a potential into a density, and the subscript $a$ denotes
 adiabatic (meaning steady).  The eigenmodes of this
-operator, satisfying $V_a\ket{u}=\lambda \ket{u}$, can be written
+operator, satisfying $V_a\ket{u}=\lambda \ket{u}$, can be found [] by
+applying the raising operator $4 {d\over dz}-T$ five times to
+the function $ \etothe{uz/4}$ yielding
 \begin{equation}
   \label{eq:2}
   \begin{split}
- \ket{u}(z)= &\exp(\pm uz/4)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
+ \ket{u}(z)= &\exp(uz/4)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
  840S^2 - 120]T \\
- &\qquad\qquad\pm u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
- +274)]\}
-.
-  \end{split}
+ &\qquad\qquad u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
+ +274)]\}.
+\end{split}
 \end{equation}
-Real $u$ values possess just five discrete values $j=1,2,3,4,5$ that
-satisfy $\ket{j}(z)\to0$ as $z\to\infty$. In contrast, imaginary
-$u$-values $u=ip$ give rise to the continuum modes $\ket{p}(z)$ which
-are formally finite at infinity. The overlap integral $\bra{p}\ket{q}$
-over a finite domain exists; and, as the domain tends to infinity, it tends
-to a delta function.
+For real $u$, as $u z\to+\infty$ the mode is bounded (and tends to
+zero) only if $u$ is one of the discrete roots of the polynomial in
+the braces obtained by letting $S\to 0$ and $T\to {\rm sign}(u)$. These
+are $u=j=1,2,3,4,5$. The odd numbered discrete modes are symmetric in
+$z$, and the even numbered are antisymmetric. In contrast, imaginary
+$u$-values $u=ip$ give rise to the continuum modes which are formally
+finite at infinity. Their overlap integral over a finite domain
+exists; and, as the domain tends to infinity, it tends to a delta
+function. The continuum eigenmodes have definite parity only if $u$
+reverses sign with $z$; so we write $u=i \sigma_z p$ where
+$\sigma_z={\rm sign}(z)$, and positive $p$ represents antisymmetric
+outwardly-propagating waves.
 
 The corresponding eigenvalues are
 \begin{equation}
   \label{eq:3}
   \lambda_u= u^2/16-1=-p^2/16-1.
 \end{equation}
-The odd numbered discrete eigenmodes are symmetric (about $z=0$); and
-the even numbered are antisymmetric. Normalized so that
+Normalized so that
 $\bra{j}\ket{l}=\delta_{jl}$ they are given in Table \ref{discrete}. 
 \begin{table}[ht]
   \center
@@ -156,15 +162,15 @@ perturbation in essentially all linear instabilities. Moreover, it
 couples only to antisymmetric modes; so $\ket{2}$ is the only other
 discrete mode that needs to be considered.
 
-The antisymmetric continuum modes are obtained by taking the sign to
-reverse across $z=0$, i.e.\ $\pm\to \sigma_z={\rm signum}(z)$.  It can
-be shown that continuum modes are ``normalized'' by dividing eq.\
+It can
+be shown that the the continuum modes are ``normalized'', in the sense
+that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$, by dividing eq.\
 (\ref{eq:2}) by the factor
 \begin{equation}
-  [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}, 
+  [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}.
   \label{eq:4}
 \end{equation}
-in the sense that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$. Far
+Far
 from the hole ($z\gg1$) the normalized oscillatory continuum modes are
 sinusoidal with amplitude $1/\sqrt{8\pi}=0.19947$, and parallel wavenumber
 $k_\parallel=p/4$. The eigenmodes are plotted in Fig.\
@@ -358,9 +364,13 @@ where $\tilde f_{um}$ denotes $\tilde f_m$ with
 $\ket{\hat\phi}=\ket{u}$ substituted in eq. (\ref{eq:ftmagnetic}), and
 similarly $\tilde n_{um}=\int \tilde f_{um}dv$.
 
-We shall later require  the order of magnitude of $\tilde V\ket{4}$
-outside the hole.  In Hutchinson 2018,
-section 4.1 it is shown to be $\sim \omega_m^2$.
+Solving analytically for $\Phi_m$ and $n_m$ in the non-uniform
+equilibrium of an electron hole seems too difficult. The approach
+taken here is to perform the required integrations numerically.
+
+%We shall later require  the order of magnitude of $\tilde V\ket{4}$
+%outside the hole.  In Hutchinson 2018,
+%section 4.1 it is shown to be $\sim \omega_m^2$.
 
 
 \subsection{The continuum contribution}
@@ -374,7 +384,7 @@ outward propagating) are
  \ket{w_p}= \ket{p}=A\etothe{ip|z/4|}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
       [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|z/4|},
 \end{equation}
-where $\sigma_z=signum(z)$. Thus they are purely sinusoidal
+where $\sigma_z={\rm sign}(z)$. Thus they are purely sinusoidal
 waves. Assuming that for large enough $|z|$ the influence of the local
 hole potential becomes negligible, such waves should there be
 identified with the normal modes of the uniform background plasma.
@@ -490,30 +500,35 @@ would be
 \tilde{V}_{w}\sim-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega\right)^2\right]=1+\left(k_\parallel\over\omega\right)^2.
 \end{equation}
 However, that approximation effectively implements the limit
-$\Omega\to \infty$, and gives a dispersion relation
+$\Omega\gg \omega_{pe}$, and gives a dispersion relation
 $k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
 than the full cold plasma expression for finite $\Omega/\omega$: eq.\
 (\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
 the harmonic sum for the electrostatic dispersion
 relation\footnote{See, e.g., Swanson (1989) section 4.4.} are also
-included to lowest order in $\xi_t^2$. The resulting form is
+included to lowest order in $\xi_t^2$. The resulting analytic form is
 \begin{equation}
   \label{eq:24}
   \tilde V_w= 1 + \left(k_\parallel\over\omega\right)^2 +
   k_\perp^2 {T_\perp/T_\parallel\over\omega^2-\Omega^2}.
 \end{equation}
-Then
-$\tilde{V}-\tilde{V}_{w}$ is a localized operator tending to zero in
-the region beyond $z_l$. Now we demonstrate mathematically the
-concepts just introduced intuitively.
+But we use the analytic form only to determine $k_\parallel$ from eq.\
+(\ref{eq:15}), the same for all harmonics. Our numerical
+implementation actually evaluates $\Phi_m$ as
+$\ket{q}/i(k_\parallel v -\omega_m)$, integrates the resulting
+$\tilde f_m$ $dv$ and sums over harmonics $m$ to get
+$\tilde V_w\ket{q}$.  The crucial point is that
+$(\tilde{V}-\tilde{V}_{w})\ket{q}$ is localized, tending to zero in
+the region beyond $z_l$.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
-Using $s\to q$ to observe our notation for continuum modes, and
-supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we write eq.\
-\ref{eq:10} explicitly as an integral $w_pdp$ over a
-weight distribution function $w_p$ rather than a
-sum:
+Now we discuss mathematically how the concepts just introduced
+intuitively are implemented.  Using $s\to q$ to observe our notation
+for continuum modes, and supposing them to be normalized
+($\bra{q}\ket{p}=\delta_{qp}$), we write eq.\ \ref{eq:10} explicitly
+as an integral $w_pdp$ over a weight distribution function $w_p$
+rather than a sum:
 \begin{equation}
   \label{continw}
   0=(\lambda_q-\lambda_\perp)w_q+\bra{q}|\tilde{V}\ket{4}w_4
@@ -542,7 +557,7 @@ term giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp\simeq
 equation
 \begin{equation}
   \label{eq:21}
-  (\lambda_q-\lambda_\perp-\tilde V_w)w_q= \bra{q}|\tilde{V}\ket{4}w_4
+  (\lambda_\perp-\lambda_q-\tilde V_w)w_q= \bra{q}|\tilde{V}\ket{4}w_4
   +\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int w_pdp.
 \end{equation}
 If $\int w_pdp$ is sufficiently small compared with $w_4$, the final
@@ -559,14 +574,14 @@ giving
     (k_\perp^2+k_\parallel^2+1-\tilde V_w) },
 %  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
 \end{equation}
-using (eq.\ \ref{eq:3}) $\lambda_q=-q^2/16-1=-k_\parallel^2-1$ and
+using eq.\ (\ref{eq:3}) $\lambda_q=-q^2/16-1=-k_\parallel^2-1$ and
 $\lambda_\perp=k_\perp^2$.
 %, and $\tilde{V}_{w}=[1+(k_\parallel/\omega)^2]=1+q^2/(16\omega^2)$
-Let us write the denominator as
+Let us write the denominator using eq.\ (\ref{eq:24})as
 \begin{equation}
   \label{eq:25}
   k_\perp^2+k_\parallel^2+1-\tilde
-  V_w=k_\perp^2\left(1-{T_\perp/T_\parallel\over\omega^2-\Omega^2}\right)
+  V_w\simeq k_\perp^2\left(1-{T_\perp/T_\parallel\over\omega^2-\Omega^2}\right)
   +k_\parallel^2\left(1-{1\over\omega^2}\right)
 = {1\over4^2}\left({1\over\omega^2}-1\right)\left(q_0^2-q^2\right)
 \end{equation}
@@ -576,12 +591,12 @@ where
   q_0=4k_\perp\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}
   \Bigg/\sqrt{{1\over\omega^2}-1}.
 \end{equation}
-The denominator is zero when $q^2=q_0^2$ which is the
+The denominator is zero when $q^2=q_0^2$ which is the approximate
 dispersion relation of the wave in a uniform plasma, equal to the cold
 plasma expression when $T_\perp/T_\parallel=1$.
 
 In view of the resonant form of the expression for $w_q$, we can regard the
-integral over this resonance $\int w_q dq$ as quantifying total
+integral over this resonance $\int w_q dq$ as quantifying the total
 continuum perturbation.  The integral $dq$ of the expression for $w_q$
 just found (\ref{eq:resonance}) encounters the two poles of $w_q$ at
 $q=\pm q_0$.
@@ -594,7 +609,8 @@ has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$ .  A resonant integr
 positive $\epsilon$ and real $q$ generally gives
 \begin{equation}
   \label{resint}
-  \int_{-}^{+} {g(q) dq\over q_{0r}\pm i\epsilon-q}\simeq \mp i\pi g(q_{0r})
+  \int_{-}^{+} {g(q) dq\over \pm q_{0r} \pm i\epsilon-q}\simeq \mp
+  i\pi g(\pm q_{0r})
 \end{equation}
 for any slowly varying function $g$. On this basis
 \iftrue
@@ -608,7 +624,6 @@ positive. This treatment is equivalent to closing the $q$-integration path
 along $+i\infty$ and setting the closed contour integral equal to
 $2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
 \fi
-,
 \begin{equation}
   \label{poles}
   \int w_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
@@ -677,14 +692,13 @@ $\etothe{-\xi_t^2}$ predominates in eq.\ (\ref{eq:ftmagnetic}), and
 harmonics up to $|m|\sim 3\xi_t$ approximate a continuous integral
 over the perpendicular Maxwellian, with the relevant range of
 $\omega_m$ approximately $\omega\pm 3k_\perp v_{t\perp}$. The
-resultant resonance width $k_\perp v_{t\perp}$ exceeds $\sim\omega$
-(because for the whistler mode $\omega < \Omega$), and there is no
-substantial resonance defining the wave dispersion relation. We may
-expect that the continuum mode contribution itself is then suppressed,
-and it is probably justifiable to ignore coupling to the continuum modes.
-But whether it is ignorable or not, the present calculation of the
-coupling is no longer valid, and so we drop continuum mode coupling when
-$\xi_t>1/2$.
+resultant frequency spread exceeds $\sim\omega$ for the whistler mode
+(for which $\omega < \Omega$) implying that high harmonic
+(perpendicular Landau) damping is strong. The continuum mode
+contribution itself is then suppressed, and it is reasonable to ignore
+coupling to the continuum modes, which we do when
+$\xi_t\gtrsim 1/2$.
+
 
 \end{document}
 
