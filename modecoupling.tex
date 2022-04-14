@@ -601,19 +601,33 @@ continuum perturbation.  The integral $dq$ of the expression for $w_q$
 just found (\ref{eq:resonance}) encounters the two poles of $w_q$ at
 $q=\pm q_0$.
 % =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
-Near them the real
-part of the denominator becomes small. Its imaginary part comes from
-the small, \emph{necessarily positive}, imaginary part of
-$\omega=\omega_r+i\omega_i$. It can then quickly be shown that $q_0$
-has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$ .  A resonant integral for small
-positive $\epsilon$ and real $q$ generally gives
+Near them the real part of the denominator becomes small. Its
+imaginary part comes from the small, \emph{necessarily positive},
+imaginary part of
+$\omega=\omega_r+i\omega_i$. It can then quickly be shown that
+$q_0$ has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$.
+\iftrue%
+The infinite integral along the real
+$q$-axis can be closed by returning in the upper part of the complex
+plane ($\Im(q)$ positive) where the eigenmode tends
+to zero. Its value is then just $2\pi i$ times the residue at the positive $q_0$ pole.
+\begin{equation}
+  \label{poles}
+  \int w_q dq 
+  ={2\pi i(\bra{q_0}|\tilde{V}\ket{4}w_4+G)
+    \over
+    -2q_{0}(1/\omega^2-1)/4^2}.
+\end{equation}
+\else
+A resonant integral for small positive
+$\epsilon$ and real $q$ generally gives
 \begin{equation}
   \label{resint}
   \int_{-}^{+} {g(q) dq\over \pm q_{0r} \pm i\epsilon-q}\simeq \mp
   i\pi g(\pm q_{0r})
 \end{equation}
-for any slowly varying function $g$. On this basis
-\iftrue
+for any slowly varying function $g$.
+On this basis
 \footnote{Write the integral $\int{g(q)dq\over
   (q_{0r}+i\epsilon)^2-q^2}=\int{g(q)dq\over 
 (q_{0r}+i\epsilon-q)(q_{0r}+i\epsilon+q)}\simeq \int{g(q_{0r})dq\over
@@ -623,7 +637,6 @@ for any slowly varying function $g$. On this basis
 positive. This treatment is equivalent to closing the $q$-integration path
 along $+i\infty$ and setting the closed contour integral equal to
 $2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
-\fi
 \begin{equation}
   \label{poles}
   \int w_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
@@ -635,55 +648,59 @@ $2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
     \over
     2q_{0r}(1/\omega^2-1)/4^2}.
 \end{equation}
+\fi
 Taking the $G$ term to the left hand side and reinserting its definition, we get
 \begin{equation}
   \label{eq:22}
-  \left(1+{i4\pi \bra{q_{0r}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0r}}\over
-      q_{0r}(1/\omega^2-1)/4^2}\right)\int w_pdp
-  =\sum_{q=\pm q_{0r}}{-i4\pi\bra{q}|\tilde{V}\ket{4}  \over
-    2q_{0r}(1/\omega^2-1)/4^2}w_4;
+  \left(1+{i2\pi \bra{q_{0}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0}}\over
+      2q_{0}(1/\omega^2-1)/4^2}\right)\int w_pdp
+  ={-i2\pi\bra{q_0}|\tilde{V}\ket{4}w_4
+    \over
+    2q_{0}(1/\omega^2-1)/4^2}.
 \end{equation}
 and, for brevity, the approximately constant coefficient on the left will
 be written
 \begin{equation}
   \label{eq:23}
-  C \equiv \left(1+{i4\pi\bra{q_{0r}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0r}}\over q_{0r}(1/\omega^2-1)/4^2}\right).
+  C \equiv
+  \left(1+{i2\pi\bra{q_{0}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0}}\over
+      2q_{0}(1/\omega^2-1)/4^2}\right).
 \end{equation}
 
+This analysis thus shows that the entire influence of the continuum
+can (for given $\omega$ and $k_\perp$) be approximated by a single
+parallel wavenumber $k_\parallel= q_{0}/4$ continuum mode, having an
+amplitude $\int w_p dp$ given by eq.\ (\ref{eq:22}).
+
 The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
-becomes (approximately)
+becomes
 \begin{equation}
   \label{eigcon}
-  \sum_{q=\pm q_{0r}} {-i4\pi\bra{4}|\tilde V \ket{q}\bra{q}|\tilde{V}\ket{4}
-    4^2 \over
-    2q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C}
-  ={-i4\pi\bra{4}|\tilde V \ket{q_{0r}}\bra{q_{0r}}|\tilde{V}\ket{4}
-    4^2 \over
-    q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C},
+  {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
+    \over
+    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}=
+  {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
+    \over
+    k_\parallel(1/\omega^2-1)\bra{4}\ket{4}C}.
 \end{equation}
-using symmetry; and the total eigenvalue equation, dropping symmetric discrete modes, becomes
+And the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \begin{equation}
   \label{eigtotal}
   \lambda_\perp=\lambda_4+{\bra{4}|\tilde{V}\ket{4}\over
     \bra{4}\ket{4}}
     +{\bra{4}|\tilde{V}\ket{2}\bra{2}|\tilde{V}\ket{4}\over
       (\lambda_\perp-\lambda_2)\bra{4}\ket{4} \bra{2}\ket{2}}
-    +%\sum_{q=\pm q_{0r}}
-    {-i4\pi\bra{4}|\tilde V \ket{q_{0r}}\bra{q_{0r}}|\tilde{V}\ket{4}4^2
+    +%\sum_{q=\pm q_{0}}
+    {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
     \over
-    q_{0r}(1/\omega^2-1)\bra{4}\ket{4}C}.
+    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}.
 \end{equation}
 When $\ket{4}$ and $\ket{2}$ are normalized as well as the
 continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
 course.
 
-This analysis thus shows that the entire influence of the continuum
-can (for given $\omega$ and $k_\perp$) be approximated by a single
-parallel wavenumber $k_\parallel= q_{0r}/4$ continuum mode, having an
-amplitude $w_{q_{0r}}=\int w_q dv$.
-
 Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
-cyclotron harmonics to determine $q_{0r}.$ That is justified by
+cyclotron harmonics to determine $q_{0}.$ That is justified by
 supposing that the finite Larmor radius parameter
 $\xi_t=k_\perp\sqrt{T_\perp/m_e}/\Omega$ is small, and recognizing
 $I_m(\xi_t^2)\propto \xi_t^{2m}$. If $\xi_t$ is not small (because

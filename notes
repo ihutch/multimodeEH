@@ -35,3 +35,56 @@ kpar is low, of order pi divided by the domain size.
 Fixed testshiftgen to remove all dependence on shiftgen as well as
 some other bugs. This can now be used for testing an upgradeded
 shiftgen that is able to use multiple modes.
+
+
+11 Apr 2022
+Looking into analytic form of trapped distribution.
+In old shifgen git the first implementation was
+
+commit 7c15b0b33cedd5304654d82b1278592592398484
+Author: Ian Hutchinson <ihutch@mit.edu>
+Date:   Fri May 31 15:59:06 2019 -0400
+
+    Changed the trapped particle hole distribution from the beta
+    approximate form of Schamel to the exact sinh^4 analytic solution
+    expression.
+
+I see nothing in log books relating to that.
+The form is derived in an email from Xiang on 11 Nov 2018.
+
+The prior commit was
+commit 87257eece1b3316dafdbafbdc1726d12b470123d
+
+The crucial diffs between these commits are
+     beta=-1.-(15./16.)*sqrt(pi/psi) 
+-!      beta=beta*(.8-.9/abs(beta))    ! Ad hoc correction density
+-!      beta=beta*(1.-.75/abs(beta))    ! Ad hoc correction force.
+     ! vy-arrays
+     vymax=vymnorm*sqrt(Ty)
+     dvy=vymax*2./(nvy-1.)                       ! vy-step
+@@ -185,7 +183,8 @@ contains
+     Ftotal=0.
+     Wjprev=0.
+     feprev=1/sqrt(2.*pi)
+-    dfeprev=-beta*feprev*fperp
++!    dfeprev=-beta*feprev*fperp  ! Old Schamel approx
++    dfeprev=(15./(16.*sqrt(2.*psi))-1./sqrt(2.*pi))*fperp ! New exact analytic
+     dfeperpprev=feprev*dfperpdWperp
+     vpsiprev=sqrt(2.*psi)
+     omegab(0)=0.
+@@ -193,8 +192,14 @@ contains
+     exptbprev=0.                  !Silence warnings
+     do i=1,ne-1
+        Wj=psi*(-(float(i)/ne)**iwpow)
+-       fe=exp(-beta*Wj)/sqrt(2.*pi) ! Normalized f_\parallel
+-       dfe=-beta*fe*fperp           ! df_||/dW_||
++       ! Old Schamel approximate form.
++!       fe=exp(-beta*Wj)/sqrt(2.*pi) ! Normalized f_\parallel
++!       dfe=-beta*fe*fperp           ! df_||/dW_||
++       ! New exact sech^4 hole form.
++       sqWj=sqrt(-Wj)
++       fe=((2./pi)*sqWj+(15./16.)*Wj/sqrt(psi)+experfcc(sqWj)/sqrt(pi))/sqrt(2.)
++       dfe=((15./16.)/sqrt(psi)-experfcc(sqWj)/sqrt(pi))/sqrt(2.)*fperp
++       ! End of choice
+        dfeperp=fe*dfperpdWperp      ! df/dW_perp
+

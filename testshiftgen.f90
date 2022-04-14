@@ -81,7 +81,7 @@
   end subroutine testFrepel
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine testAttract
+  subroutine testAttract(isw)
     use shiftgen
     real, dimension(nge) :: vpsiarrayp
     complex :: Ftotalg
@@ -91,8 +91,9 @@
     integer pfsw
     integer pfilno,pfnextsw,pfPS,psini
     common/pltfil/pfsw,pfilno,pfnextsw,pfPS,psini
-    data modelabel/'<2|!p!o~!o!qV|4>','<q|!p!o~!o!qV|4>','&
-         &<4|!p!o~!o!qV|2>','<4!p!o~!o!q|V|q>'/
+    data modelabel/'<2|!p!o~!o!qV|4>','<q|!p!o~!o!qV|4>'&
+         ,'<4|!p!o~!o!qV|2>','<4!p!o~!o!q|V|q>'&
+         ,'<2|!p!o~!o!qV|2>','<q|!p!o~!o!qV|q>'/
 
     write(*,*)'testAttract'
     lioncorrect=.false.
@@ -110,6 +111,10 @@
        call dcharsize(.025,.025)
     endif
     call FgEint(Ftotalg,isigma)  ! Generic call is the same.
+    if(isw.eq.2)then
+       write(*,'(a,3f8.5)')'     W               tb/2       for  psi=',-psig
+       write(*,'(i4,g12.4,f12.4)')(i,Wgarrayr(i),tbr(i),i=1,nge)
+    endif
     vpsiarrayp=sqrt(2.*(Wgarrayp(1:nge)-psig))
 !    call fvinfplot
     psi=-psig                     ! psi is the positive depth
@@ -702,10 +707,11 @@ use shiftgen
 integer :: nvs=1,isw=3
 real :: ormax=0.,oi=0.
 call tsparse(ormax,oi,nvs,isw,vs,ps)
+iswin=isw
 omegag=complex(ormax,oi)
   if(isw-2*(isw/2).eq.1) call testFrepel
   isw=isw/2 ! 2
-  if(isw-2*(isw/2).eq.1) call testAttract
+  if(isw-2*(isw/2).eq.1) call testAttract(iswin)
   isw=isw/2 ! 4
   if(isw-2*(isw/2).eq.1) call Frepelofomega
   isw=isw/2 ! 8

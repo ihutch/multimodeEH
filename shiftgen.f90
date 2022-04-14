@@ -56,7 +56,7 @@ module shiftgen
   integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=200
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
-  integer, parameter :: nauxmax=2,ndir=2
+  integer, parameter :: nauxmax=2,ndir=3
   integer :: naux=0
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
@@ -84,7 +84,7 @@ module shiftgen
   complex, dimension(0:nge):: Fnonresg
 !   Auxiliary Forces as a function of parallel energy/velocity.
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
-  ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> 
+  ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
   complex :: Fexti,Fextqq,Fextqw,Fintqq,Fintqw
 ! Perpendicular Harmonic force arrays.
@@ -292,9 +292,11 @@ contains
        dForceg=dForceg*(1.-exptbb2**2) &
             + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig  ! Maybe abs(vpsig)?
        dFaux(1:naux,1)=dFaux(1:naux,1)*(1.-exptbb2**2) &
-            + sqm1g*conjg(CapPaux(ngz,1:naux))*CapPhig(ngz)*(1.-exptbb2)*vpsig
+! error     + sqm1g*conjg(CapPaux(ngz,1:naux))*CapPhig(ngz)*(1.-exptbb2)*vpsig
+            + sqm1g*CapPaux(ngz,1:naux)*CapPhig(ngz)*(1.-exptbb2)*vpsig
        dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
-            + sqm1g*conjg(CapPhig(ngz))*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
+!            + sqm1g*conjg(CapPhig(ngz))*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
+            + sqm1g*CapPhig(ngz)*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
@@ -509,6 +511,7 @@ contains
        Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)  *cdvpsi
        vpsiprev=vpsi
        resdprev=resdenom
+       tbr(i)=taug(ngz)
     enddo
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
