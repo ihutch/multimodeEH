@@ -100,6 +100,8 @@ module shiftgen
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
   logical :: ldentaddp=.false.,ltrapaddp=.false.
+  logical :: lstepbench=.false.
+  real :: analdiff 
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)
@@ -150,9 +152,14 @@ contains
        phig(i)=phigofz(zg(i))
        vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
        phigprime(i)=phigprimeofz(zg(i))
-       do j=1,naux
-          auxmodes(i,j)=auxofz(zg(i),j,kpar)
-       enddo
+       if(lstepbench)then
+          auxmodes(i,1)=auxofz(zg(i),3,kpar)
+          auxmodes(i,2)=auxofz(zg(i),2,kpar)
+       else
+          do j=1,naux
+             auxmodes(i,j)=auxofz(zg(i),j,kpar)
+          enddo
+       endif
        if(i.gt.0)then
           zg(-i)=ivs*zg(i)
           phig(-i)=phig(i)
@@ -172,6 +179,13 @@ contains
           stop
        endif
     enddo
+    if(lstepbench.and..false.)then
+       call autoplot(zg,real(auxmodes(:,1)),2*ngz+1)
+       call polyline(zg,real(auxmodes(:,2)),2*ngz+1)
+       call accisflush
+       call usleep(20000)
+!       call pltend
+    endif
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
@@ -281,6 +295,9 @@ contains
           dFaux(j,2)=dFaux(j,2)-sqm1g*0.5*(phigprime(i)&
                &*CapPaux(i,j)+phigprime(i-1)*CapPaux(i-1,j))&
                &*abs(vpsig*dtau)
+! Self-forces for auxmodes when needed. j=1: |2>, j=2: |q>
+          dFaux(j,3)=dFaux(j,3)+sqm1g*0.5*(conjg(auxmodes(i,j))*CapPaux(i,j) &
+               &+conjg(auxmodes(i-1,j))*CapPaux(i-1,j))*abs(vpsig*dtau)
 ! Corrections 3Mar22 signs of auxmode additions must be opposite phigprime
 ! because phigprime is minus the |4> mode.
        enddo
@@ -297,6 +314,8 @@ contains
        dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
 !            + sqm1g*conjg(CapPhig(ngz))*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
             + sqm1g*CapPhig(ngz)*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
+       dFaux(1:naux,3)=dFaux(1:naux,3)*(1.-exptbb2**2) &
+            + sqm1g*CapPaux(ngz,1:naux)**2*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
@@ -433,7 +452,7 @@ contains
     ! Integrate over fe (trapped). Wj=vpsi^2/2-psi. So vpsi=sqrt(2(psi+Wj))
     ! Wj range 0 to -psi.
     complex :: Ftotal,exptb,cdvpsi,dob,dFdvpsig,resdenom,resdprev
-    complex :: dfweight
+    complex :: dfweight,anal,analcomp
     real :: dfperpdWperp,fperp,obi
     integer :: isigma
 
@@ -462,25 +481,27 @@ contains
 ! Calculate the force dFdvpsi for this vpsi and dvy element for one transit:
        call Fdirect(Wj,isigma,dFdvpsig,Fauxarray(1,1,i))
        omegabg(i)=2.*pig/(2.*taug(ngz))
-       call pathshiftg(i,obi)
-!       obi=obi*0.
-       omegabg(i)=omegabg(i)+sqm1g*obi
-       exptb=exp(sqm1g*omegag*pig/omegabg(i))   ! Half period
-       if(.not.abs(exptb).lt.1.e10)exptb=1.e10  ! Enable divide by infinity
-       resdenom=1.-exptb**2                        !Full period version
-!       resdenom=1.+exptb                        ! Half period version
-       if(i.eq.1)resdprev=resdenom
-       dob=omegabg(i)-omegabg(i-1)
-       cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
        ! Strictly to get dFdvpsi we need to multiply by the omega f' terms
        Fnonresg(i)=dFdvpsig*dfweight
        Fnonraux(1:naux,:,i)=Fauxarray(1:naux,:,i)*dfweight
+       if(.true.)then
+       call pathshiftg(i,obi)
+       omegabg(i)=omegabg(i)+sqm1g*obi
+       dob=omegabg(i)-omegabg(i-1)
+       cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
        ! and correct for the imaginary shift of omegabg:
-       Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))  &
-            /real(omegabg(i)-omegabg(i-1))*obi
+       Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))/dob*obi
        Fnonraux(1:naux,:,i)=Fnonraux(1:naux,:,i)+sqm1g&
-            &*real(Fnonraux(1:naux,:,i) -Fnonraux(1:naux,:,i-1)) &
-            &/real(omegabg(i)-omegabg(i-1)) *obi
+            &*real(Fnonraux(1:naux,:,i) -Fnonraux(1:naux,:,i-1))/dob*obi
+       else
+          obi=0.
+          cdvpsi=dvpsi
+       endif
+       exptb=exp(sqm1g*omegag*pig/omegabg(i))   ! Half period
+       if(.not.abs(exptb).lt.1.e10)exptb=1.e10  ! Enable divide by infinity
+       resdenom=1.-exptb**2                        !Full period version
+       if(i.eq.1)resdprev=resdenom    ! Why this? To avoid infinity.
+!       resdenom=1.+exptb                        ! Half period version
        if(taug(ngz)*imag(omegag).lt.-2.)then!Hack fix giant dFdvpsi problem
           write(*,*)'Drop giant taug*omegai',taug(ngz),imag(omegag),dFdvpsig
           Fnonresg(i)=0.
@@ -492,10 +513,18 @@ contains
        endif
 ! Then divide by the resonance denominator and sum 
        Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
-    ! Now Forcegr when multiplied by cdvpsi and summed over all ne positions
+    ! Now Forcegr when multiplied by cdvpsi and summed over all ne energies
     ! and multiplied by 2 gives the total force. 
        Fauxres(1:naux,:,i)=0.5*(Fnonraux(1:naux,:,i)/resdenom &
-                     + Fnonraux(1:naux,:,i-1)/resdprev) !*cdvpsi ! See below
+            + Fnonraux(1:naux,:,i-1)/resdprev)
+       if(lstepbench)then
+          if(i.eq.1)write(*,*)'i      W       t_b/2    Faux1/i.vpsi/resdenom',&
+               '     Analytic \int u Phi dt'
+          anal=(2.*tan(omegag*taug(ngz)/2.)/omegag-taug(ngz))&
+               /(sqm1g*omegag)
+          analcomp=Fauxarray(1,3,i)/(sqm1g*vpsi)/resdenom
+          write(*,'(i4,f8.4,7f12.3)')i,Wg,taug(ngz),analcomp,anal!,(anal-analcomp)/analcomp
+       endif
        if(.not.(abs(Forcegr(i)).ge.0))then
           write(*,*)'Forcegr NAN?',i
           write(*,*)Fnonresg(i),Forcegr(i)
@@ -508,7 +537,7 @@ contains
        endif
 ! Add to Ftotal integral (doubled later).
        Ftotal=Ftotal+Forcegr(i)*cdvpsi
-       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)  *cdvpsi
+       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+Fauxres(1:naux,:,i)*cdvpsi
        vpsiprev=vpsi
        resdprev=resdenom
        tbr(i)=taug(ngz)
@@ -681,6 +710,9 @@ contains
     T=tanh(x)
     if(iaux.eq.1)then   ! Discrete
        auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8
+    elseif(iaux.eq.3)then  ! Return the step benchmark mode
+       auxofz=sign(1.,zval)
+       if(zval.eq.0)auxofz=0.
     else
        p=4.*kpar
        p2=p**2

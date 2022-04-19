@@ -589,6 +589,7 @@ subroutine plotdent
   naux=2
 !  ldentaddp=.true.   ! dentadd movie
 !  ltrapaddp=.true.   ! trapped movie
+  lstepbench=.true.
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
@@ -641,12 +642,15 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex <4|n_t4 (trapped)=',F44t/f4norm
 !     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
+     if(lstepbench)write(*,*)'|2> is the step benchmark. analdiff=',analdiff
      write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-     write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp/f4norm
-     write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt/f4norm
-     write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa/f4norm
+     write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
+     write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm
+     write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
+     write(*,*)'Self-Forces        <2|V|2>       qq Not ready'
+     write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
      write(*,*)
      write(*,*)'Amplitude         w_2/w_4=',&
           Ftauxa(1,1)/f4norm/(kg**2+12/16.)
@@ -675,22 +679,23 @@ subroutine plotdent
      endif
 
      if(ltrapaddp)call pltend
-     
+
+! Antisymmetrize to get the total densities and plot     
      denstore=denttrap
      do i=-nzd,nzd
         denttrap(i)=denstore(i)-denstore(-i)
      enddo
      if(.true.)then
-     denstore=dentpass
+!     denstore=dentpass
      do i=-nzd,nzd
         denttrap(i)=denttrap(i)+dentpass(i)-dentpass(-i)
      enddo
      endif
-     denstore=dentqt     ! Trapped
+     denstore=dentqt     ! Trapped q
      do i=-nzd,nzd
         dentqt(i)=denstore(i)-denstore(-i)
      enddo
-     denstore=dentq      ! Passing
+     denstore=dentq      ! Passing q
      do i=-nzd,nzd
         dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
      enddo
