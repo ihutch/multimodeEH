@@ -585,16 +585,16 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor,dfweight=999,cdummy
-  complex :: F44t=0,F44p=0
+  complex :: F44t=0,F44p=0,w2byw4,wqbyw4
   naux=2
-  ldentaddp=.true.   ! dentadd movie
-  ltrapaddp=.true.   ! trapped movie
+!  ldentaddp=.true.   ! dentadd movie
+!  ltrapaddp=.true.   ! trapped movie
 !  lstepbench=.true.  ! Step function benchmark.
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
   omegag=complex(.01,.001)
-!  omegag=complex(.047,.00119)
+  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
@@ -616,7 +616,6 @@ subroutine plotdent
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
      dzd=zm/nzd
-     if(.true.)then   ! remesh
      do i=-nzd+1,nzd
         F44t=F44t-0.5*&
              (conjg(phipd(i))*(denttrap(i)-denttrap(-i))&
@@ -625,23 +624,12 @@ subroutine plotdent
              (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
              +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
      enddo
-     else             ! remesh2
-     do i=-nzd,nzd-1
-        F44t=F44t-&
-             (conjg(phipd(i))*(denttrap(i)-denttrap(-i)))*dzd
-        F44p=F44p-0.5*&
-             (conjg(phipd(i))*(dentpass(i)-dentpass(-i)))*dzd
-     enddo
-     endif
      write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
           ' applied to all forces.'
-     write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4>  =',Ftotalg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_4           =',(F44t+F44p)/f4norm
-     write(*,'(a,8f8.4)')'Complex Ftotalpg <4|V|4> =',2.*Ftotalpg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_p4 (passing)=',F44p/f4norm
-     write(*,'(a,8f8.4)')'Complex Ftotalrg <4|V|4> =',2.*Ftotalrg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_t4 (trapped)=',F44t/f4norm
-!     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
+     write(*,*)'Force check:        Total             Passing          Trapped'
+     write(*,'(a,8f8.4)')'Complex <4|V|4>  =',Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex <4|n_4   =',(F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
+
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
      write(*,*)
      if(lstepbench)write(*,*)'|2> is the step benchmark.'
@@ -651,15 +639,16 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
-     write(*,*)' Self-Forces       <2|V|2>         <q|V|q>(not pass)' 
+     write(*,*)' Self-Forces       <2|V|2>         <q|V|q>' 
      write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
      write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
      write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
      write(*,*)
-     write(*,*)'Amplitude         w_2/w_4=',&
-          Ftauxa(1,1)/f4norm/(kg**2+12/16.)
-     write(*,*)'Amplitude \int w_q dq/w_4=',&
-          -sqm1g*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
+     w2byw4=Ftauxa(1,1)/f4norm/(kg**2+12/16.)
+     write(*,*)'Amplitude         w_2/w_4=',w2byw4
+     wqbyw4=-sqm1g*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
+     write(*,*)'Amplitude \int w_q dq/w_4=',wqbyw4          
+     write(*,*)'         Coefficient magnitudes'
      write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
           ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
      write(*,'(2a)')'Size of q term relative to 4 term,'
@@ -670,8 +659,7 @@ subroutine plotdent
 !     write(*,*)Ftauxa(1,1),Ftauxa(1,2),Ftotalg
      if(.true.)then
      write(*,*)
-     write(*,*)'########  Relative sizes of <q|V-Vw|q> and <q|V|4>'
-     write(*,*)'                        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
+     write(*,*)'    Cancelation:        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
      write(*,'(a,7f9.4)')'Complex qq external:',Fextqq*2,Fextqw*2&
           ,Fextqq*2-Fextqw*2
      write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2&
@@ -681,31 +669,48 @@ subroutine plotdent
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,(Fextqq&
           &+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
      endif
-
-     if(ltrapaddp)call pltend
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
 
+     if(ltrapaddp)then
+        call pltend
+
 ! Antisymmetrize to get the total densities and plot     
-     denstore=denttrap
-     do i=-nzd,nzd
-        denttrap(i)=denstore(i)-denstore(-i)
-     enddo
-     if(.true.)then
+        denstore=denttrap
+        do i=-nzd,nzd
+           denttrap(i)=denstore(i)-denstore(-i)
+        enddo
+        if(.true.)then
 !     denstore=dentpass
-     do i=-nzd,nzd
-        denttrap(i)=denttrap(i)+dentpass(i)-dentpass(-i)
-     enddo
+           do i=-nzd,nzd
+              denttrap(i)=denttrap(i)+dentpass(i)-dentpass(-i)
+           enddo
+        endif
+        denstore=dentqt     ! Trapped q
+        do i=-nzd,nzd
+           dentqt(i)=denstore(i)-denstore(-i)
+        enddo
+        denstore=dentq      ! Passing q
+        do i=-nzd,nzd
+           dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
+        enddo
+        call dentaddtrapplot(dfweight,cdummy)
+        call pltend
      endif
-     denstore=dentqt     ! Trapped q
-     do i=-nzd,nzd
-        dentqt(i)=denstore(i)-denstore(-i)
-     enddo
-     denstore=dentq      ! Passing q
-     do i=-nzd,nzd
-        dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
-     enddo
-     call dentaddtrapplot(dfweight,cdummy)
+
+     Wg=0.001
+     call makezg(1)
+     call autoplot(zg,-phigprime/f4norm,2*ngz)
+     call color(1)
+     call polyline(zg,real(w2byw4*auxmodes(:,1)),2*ngz)
+     call color(2)
+     call polyline(zg,real(wqbyw4*auxmodes(:,2)),2*ngz)
+     call dashset(2)
+     call color(1)
+     call polyline(zg,imag(w2byw4*auxmodes(:,1)),2*ngz)
+     call color(2)
+     call polyline(zg,imag(wqbyw4*auxmodes(:,2)),2*ngz)
+!     call polyline(zg,real(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
      call pltend
      
   endif

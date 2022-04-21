@@ -32,9 +32,8 @@ Two main phenomena have been observed in transverse instability
 simulations that are not represented by the shift mode analysis. They
 are (1) narrowing of the unstable mode structure relative to the shift
 mode, when near marginal oscillatory stability; (2) generation of long
-parallel length streaks or waves, often called ``whistlers'', that are
-magnetized Langmuir waves during oscillatory instability at high
-magnetic field.
+parallel length streaks or waves on the whistler branch, during
+oscillatory instability at high magnetic field.
 
 A relatively compact approach to managing a generalization of the
 unstable mode of a Vlasov-Poisson problem [] is to represent the
@@ -80,7 +79,9 @@ apply it [] have been of limited utility either because of perturbing
 about the wrong eigenmode, or, more fundamentally because of adopting
 inappropriate approximations to the solution of the Vlasov equation,
 which constitutes the complementary (and more difficult) part of the
-Poisson-Vlasov system: the non-adiabatic perturbation.
+Poisson-Vlasov system: the non-adiabatic perturbation. The present
+work instead solves the Vlasov problem by numerical integration over
+the prior orbit.
 
 
 \section{Eigenmode Expansion}
@@ -285,7 +286,7 @@ but also for $s\not=4$
 
 
 The well known approach of time-independent perturbation theory in
-elementary quantum mechanics (e.g. Dirac Section 43) regards $\tilde{V}$ as
+elementary quantum mechanics (e.g.[] Dirac Section 43) regards $\tilde{V}$ as
 systematically small, and takes $w_s$ for $s\not=4$ also to be first
 order small relative to $w_4$. The first order approximation of eq.\
 \ref{eq:10} then drops the final sum term, giving
@@ -324,7 +325,7 @@ into a non-adiabatic density perturbation $\tilde n$, both of which
 are complex functions of $z$. It does so by solving the linearized
 time-dependent Vlasov equation for the non-adiabatic distribution
 function perturbation $\tilde f(x,v)$ and integrating it:
-$\tilde n =\int \tilde f dv$. The solution can be written in terms of
+$\tilde n =\int \tilde f dv$. The solution can be written[] in terms of
 an integral over past time along the unperturbed orbit which is
 \begin{equation}
   \label{eq:phim}
@@ -333,11 +334,11 @@ an integral over past time along the unperturbed orbit which is
 \end{equation}
 where $\phi_1(y,z,t)=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ is
 the potential perturbation, and $z(\tau)$ is the parallel position of
-the past unperturbed orbit having velocity $v$ at $(z,t)$. When a
+the past unperturbed orbit that has velocity $v$ at $(z,t)$. When a
 uniform magnetic field in the $z$-direction is present with cyclotron
 frequency $\Omega$, the perturbation has transverse wavenumber
 $k_\perp$, and the background perpendicular velocity distribution is
-Maxwellian, then the distribution function perturbation is[] the
+Maxwellian, then the distribution function perturbation is the
 following sum over cyclotron harmonics
 \begin{equation}\label{eq:ftmagnetic}
   \begin{split}
@@ -513,14 +514,7 @@ included to lowest order in $\xi_t^2$. The resulting analytic form is
   k_\perp^2 {T_\perp/T_\parallel\over\omega^2-\Omega^2}.
 \end{equation}
 The crucial point is that $(\tilde{V}-\tilde{V}_{w})\ket{q}$ is
-localized, tending to zero in the region beyond $z_l$.  We determine
-$k_\parallel$ from eq.\ (\ref{eq:15}), the same for all harmonics. And
-our numerical implementation ensures good cancelation by evaluating
-$\Phi_m$ for passing orbits as $\ket{q}/i(k_\parallel v -\omega_m)$,
-integrating the resulting $\tilde f_m$ $dv$ and summing over harmonics
-$m$ to get $\tilde V_w\ket{q}$ externally. However, internally such an
-treatment does not apply to trapped orbits, so instead we use
-eq.\ (\ref{eq:24}) multiplying $\ket{q}$.
+localized, tending to zero in the region beyond $z_l$.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
@@ -679,10 +673,11 @@ becomes
   \label{eigcon}
   {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
     \over
-    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}=
+    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}\iffalse
+  =
   {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
     \over
-    k_\parallel(1/\omega^2-1)\bra{4}\ket{4}C}.
+    k_\parallel(1/\omega^2-1)\bra{4}\ket{4}C}\fi.
 \end{equation}
 And the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \begin{equation}
@@ -698,7 +693,9 @@ And the total eigenvalue equation, dropping symmetric discrete modes, becomes
 \end{equation}
 When $\ket{4}$ and $\ket{2}$ are normalized as well as the
 continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
-course.
+course. Note that $q_0$ depends on $k_\perp$ which is
+$\sqrt{\lambda_\perp}$, so both the last two terms depend on
+$\lambda_\perp$.
 
 Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
 cyclotron harmonics to determine $q_{0}.$ That is justified by
@@ -714,9 +711,62 @@ resultant frequency spread exceeds $\sim\omega$ for the whistler mode
 (for which $\omega < \Omega$) implying that high harmonic
 (perpendicular Landau) damping is strong. The continuum mode
 contribution itself is then suppressed, and it is reasonable to ignore
-coupling to the continuum modes, which we do when
-$\xi_t\gtrsim 1/2$.
+coupling to the continuum modes.
 
+\subsection{Numerical evaluation}
+
+The terms in the dispersion relation (\ref{eigtotal}) contain inner
+products of the form $\bra{s}|\tilde V\ket{u}$ that must be evaluated
+by numerical integration. Those involving only $\ket{4}$ or $\ket{2}$
+are performed using the same approach as has been described elsewhere
+[]. They require spatial integrals over only the limited hole region where
+those modes are non-negligible. However, the continuum mode remains
+finite to large $z$; so $\bra{q_{0}}|\tilde{V}\ket{4}$ (and
+$\bra{q_{0}}|\tilde{V}\ket{q_0}$ needed for the coefficient $C$)
+require a much wider integration range, out to where the density
+perturbation $\tilde{V}\ket{4}$ becomes negligible. These issues are
+illustrated in Fig \ref{externfig}.
+\begin{figure}
+  \includegraphics[width=0.8\hsize]{extern1} (a)\\
+  \includegraphics[width=0.8\hsize]{extern2} (b)
+  \caption{Illustrating the process of calculating the inner products
+    involving $\ket{4}$ and $\ket{q_0}$. Passing density contributions
+    (a) partially integrated to a low energy, (b) integrated over all
+    relevant energies. The square point locates the edge of the inner hole
+    region, chosen as $z=20$. The scaled $\Phi$ shown is for the last
+    included energy $W$.\label{externfig}}
+\end{figure}
+Part way through the energy (parallel velocity) integration: (a), the
+partial densities $\tilde n_q$ and $\tilde n_4$ extend considerably
+into the external region, a distance proportional to $v/\omega$. The
+wave partial density $\tilde n_w$ (partial $\tilde V_w\ket{q_0}$)
+differs from $\tilde n_q$ mostly in its spatial oscillations. When the
+energy integration is complete: (b), the oscillations have mostly been
+washed out by integration, but there remain differences between
+$\tilde n_q$ and $\tilde n_w$ close to the hole region that rapidly
+decrease further away so that $\tilde n_q-\tilde n_w$ is limited in
+spatial extent. Plot (b) includes the curve $V_w\ket{q}/2$, which
+represents the simple multiplication of $\ket{q}$ by equation
+\ref{eq:24}. It differs from $\tilde n_w$ because $\tilde n_w$
+represents only outward velocity orbits, and so the first-order term
+of eq.\ \ref{eq:17} is not cancelled out in $\tilde n_w$. The result
+is not exactly antisymmetric and does not exactly equal $V_w\ket{q}/2$
+as given by \ref{eq:24}. This difference illustrates physics, not an
+error. A related feature is that $\tilde n_q$ and $\tilde n_w$ require
+the value of $\Phi$ to be prescribed at the left-hand edge of the
+inner region ($z=-20$). This value is supplied by eq.\ \ref{eq:16} for
+inward-propagating orbits: $\ket{q_0}/i(-k_\parallel v -\omega)$.
+
+For finite $\Omega$, where the sum over harmonics is essential, we
+determine $k_\parallel$ from eq.\ (\ref{eq:15}), the same for all
+harmonics. And our numerical implementation ensures good cancelation
+by evaluating $\Phi_m$ for passing orbits as
+$\ket{q}/i(k_\parallel v -\omega_m)$, integrating the resulting
+$\tilde f_m$ $dv$ and summing over harmonics $m$ to get
+$\tilde V_w\ket{q}$ externally. However, such a treatment does not
+apply to trapped orbits, so instead we use eq.\ (\ref{eq:24})
+multiplying $\ket{q}$. That excludes any resonances between bounce
+frequency and higher-$m$ cyclotron harmonics
 
 \end{document}
 

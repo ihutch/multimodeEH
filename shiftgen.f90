@@ -860,9 +860,10 @@ end function dfdWptrap
 
     if(printwait)write(*,'(a,f7.4,'' ''$)')'Wg',Wg
 
-    if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
+!    if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
     if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
-
+    if(Wg.eq.Wgarray(nge))call pfset(3)
+    
     call multiframe(2,1,0)
     call dcharsize(.019,.019)
 
@@ -950,7 +951,7 @@ end function dfdWptrap
     if(ik.eq.ichar('d'))call noeye3d(0)
     if(ik.eq.ichar('f'))call noeye3d(9999)
     
-    call prtend('')
+    if(Wg.ne.Wgarray(nge))call prtend('')
     call pfget(isw)
     if(isw.ne.0)then
        call pfset(0)
