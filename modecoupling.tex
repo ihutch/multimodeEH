@@ -504,7 +504,7 @@ $\Omega\gg \omega_{pe}$, and gives a dispersion relation
 $k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
 than the full cold plasma expression for finite $\Omega/\omega$: eq.\
 (\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
-the harmonic sum for the electrostatic dispersion
+the harmonic sum for the kinetic electrostatic dispersion
 relation\footnote{See, e.g., Swanson (1989) section 4.4.} are also
 included to lowest order in $\xi_t^2$. The resulting analytic form is
 \begin{equation}
@@ -512,14 +512,15 @@ included to lowest order in $\xi_t^2$. The resulting analytic form is
   \tilde V_w= 1 + \left(k_\parallel\over\omega\right)^2 +
   k_\perp^2 {T_\perp/T_\parallel\over\omega^2-\Omega^2}.
 \end{equation}
-But we use the analytic form only to determine $k_\parallel$ from eq.\
-(\ref{eq:15}), the same for all harmonics. Our numerical
-implementation actually evaluates $\Phi_m$ as
-$\ket{q}/i(k_\parallel v -\omega_m)$, integrates the resulting
-$\tilde f_m$ $dv$ and sums over harmonics $m$ to get
-$\tilde V_w\ket{q}$.  The crucial point is that
-$(\tilde{V}-\tilde{V}_{w})\ket{q}$ is localized, tending to zero in
-the region beyond $z_l$.
+The crucial point is that $(\tilde{V}-\tilde{V}_{w})\ket{q}$ is
+localized, tending to zero in the region beyond $z_l$.  We determine
+$k_\parallel$ from eq.\ (\ref{eq:15}), the same for all harmonics. And
+our numerical implementation ensures good cancelation by evaluating
+$\Phi_m$ for passing orbits as $\ket{q}/i(k_\parallel v -\omega_m)$,
+integrating the resulting $\tilde f_m$ $dv$ and summing over harmonics
+$m$ to get $\tilde V_w\ket{q}$ externally. However, internally such an
+treatment does not apply to trapped orbits, so instead we use
+eq.\ (\ref{eq:24}) multiplying $\ket{q}$.
 
 \subsection{Reducing the integral over the continuum}
 \label{reducing}
@@ -592,8 +593,8 @@ where
   \Bigg/\sqrt{{1\over\omega^2}-1}.
 \end{equation}
 The denominator is zero when $q^2=q_0^2$ which is the approximate
-dispersion relation of the wave in a uniform plasma, equal to the cold
-plasma expression when $T_\perp/T_\parallel=1$.
+dispersion relation of the wave in a uniform plasma. It is equal to the cold
+plasma expression (\ref{eq:15}) when $T_\perp/T_\parallel=1$.
 
 In view of the resonant form of the expression for $w_q$, we can regard the
 integral over this resonance $\int w_q dq$ as quantifying the total

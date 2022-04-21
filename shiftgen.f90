@@ -46,7 +46,7 @@
 
 module shiftgen
   complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
-  complex :: omegadiff,omegaonly
+  complex :: omegadiff,omegaonly,Vw
   real :: psig=.1,Wg,zm=19.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
   real :: vshift=0.,vrshift=0.  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.,f4norm
@@ -64,13 +64,13 @@ module shiftgen
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
-  complex, dimension(-nzd:nzd) :: ft4d,phipd,denstore
+  complex, dimension(-nzd:nzd) :: ft4d,phipd,denstore,denqwintd
   complex :: dfwtprev=0.
   complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real :: kpar
-!  real :: zextfac=3.5
+!  real :: zextfac=3.5  ! Much too small.
   real :: zextfac=20.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
@@ -86,7 +86,7 @@ module shiftgen
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
-  complex :: Fexti,Fextqq,Fextqw,Fintqq,Fintqw
+  complex :: Fexti,Fextqqi,Fextqwi,Fextqq,Fextqw,Fintqq,Fintqw
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
@@ -109,6 +109,8 @@ contains
 ! Calculate the zg mesh, and on it phig, vg, phigprime for an incoming
 ! orbit from z=isigma*zm (v sign -isigma) or trapped orbit from its
 ! isigma end.
+    integer :: ncalls=0
+    ncalls=ncalls+1
     z0=0.
     zmfac=1.
 ! Make sure we don't miss a shallow trapped orbit
@@ -137,10 +139,13 @@ contains
        write(*,*)'ERROR makezg. psig is zero or worse',psig
        stop
    endif
-    omegar=real(omegag)
+    omegar=real(omegaonly)
     if(naux.ge.2)then   ! Set the kpar of the continuum auxmode.
-       if(omegar.le.1.)then
-          kpar=kg*omegar/sqrt(1.-omegar)
+       if(omegar.le.1.and.Omegacg.gt.omegar)then
+          kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
+               ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
+          Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
+          if(ncalls.eq.1)  write(*,'(a,2f8.4)')' Vw=',Vw
        else
           write(*,*)'ERROR omegar >=1 is not allowed',omegar
           stop
@@ -354,12 +359,12 @@ contains
     Ftp=0.
     Fextqq=0.
     Fextqw=0.
-    Fexti=0.
     dentpass=0.
     dentext=0.
     denqext=0.
     denqw=0.
     denqwint=0.
+    Ftauxp=0.
     
     vinfprior=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
     Wnext=max(psig,0.)+Emaxg*(1./float(nge))**ippow
@@ -459,7 +464,6 @@ contains
     omegadiff=omegag-omegaonly
     dentqt=0.
     denqwint=0.
-
     Ftotal=0.
     Ftotalmode=0.
     vpsiprev=sqrt(-2.*psig)
@@ -485,14 +489,14 @@ contains
        Fnonresg(i)=dFdvpsig*dfweight
        Fnonraux(1:naux,:,i)=Fauxarray(1:naux,:,i)*dfweight
        if(.true.)then
-       call pathshiftg(i,obi)
-       omegabg(i)=omegabg(i)+sqm1g*obi
-       dob=omegabg(i)-omegabg(i-1)
-       cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
+          call pathshiftg(i,obi)
+          omegabg(i)=omegabg(i)+sqm1g*obi
+          dob=omegabg(i)-omegabg(i-1)
+          cdvpsi=dvpsi*(1.+sqm1g*imag(dob)/real(dob))
        ! and correct for the imaginary shift of omegabg:
-       Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))/dob*obi
-       Fnonraux(1:naux,:,i)=Fnonraux(1:naux,:,i)+sqm1g&
-            &*real(Fnonraux(1:naux,:,i) -Fnonraux(1:naux,:,i-1))/dob*obi
+          Fnonresg(i)=Fnonresg(i)+sqm1g*real(Fnonresg(i)-Fnonresg(i-1))/dob*obi
+          Fnonraux(1:naux,:,i)=Fnonraux(1:naux,:,i)+sqm1g&
+               &*real(Fnonraux(1:naux,:,i) -Fnonraux(1:naux,:,i-1))/dob*obi
        else
           obi=0.
           cdvpsi=dvpsi
@@ -507,10 +511,7 @@ contains
           Fnonresg(i)=0.
           Fnonraux(:,:,i)=0.
        endif
-       if(naux.ge.2.and.zdent(nzd).ne.0)then
-!          resdenhalf=1+exptb
-          call dentaddtrap(dfweight,cdvpsi)
-       endif
+
 ! Then divide by the resonance denominator and sum 
        Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
     ! Now Forcegr when multiplied by cdvpsi and summed over all ne energies
@@ -541,6 +542,9 @@ contains
        vpsiprev=vpsi
        resdprev=resdenom
        tbr(i)=taug(ngz)
+       if(naux.ge.2.and.zdent(nzd).ne.0)then
+          call dentaddtrap(dfweight,cdvpsi)
+       endif
     enddo
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
@@ -559,13 +563,16 @@ contains
 ! region. ndir=1, q-> naux=2, and get the external ~n_4 dentext. 
 ! Also add to <q|~V|q> (Fextqq and denqext), and <q|Vw|q> Fextqw, denqw.
     real :: Wgi
-    complex :: CP,CPprior,CPfactor,dfweight
+    complex :: CP,CPprior,CPfactor,dfweight,temp
     complex :: CQ,CQprior,CW,CWprior,dvdfw
     call makezext
     vi=sqrt(2.*Wgi)
     dze=abs(zext(1)-zext(0))
     dvdfw=dvinf*dfweight*sqm1g
     Fexti=0.         ! Accumulate <q|~V|4> for just this v_||, so zero.
+!   Should Fextqq and Fextqw  be zeroed? No. Only the i-internal-versions.
+    Fextqwi=0.
+    Fextqqi=0.
     CPprior=CapPhig(ngz)
     CapPext(0)=CPprior      ! External |4> outgoing.
     dentext(0)=dentext(0)+CPprior*dvdfw
@@ -590,18 +597,21 @@ contains
             +0.5*(auxext(i)+auxext(i-1))*(1.-CPfactor)*sqm1g/omegag
        CapQext(i)=CQ
        denqext(i)=denqext(i)+CQ*dvdfw
-       Fextqq=Fextqq+0.5*(conjg(auxext(i-1))*CQprior&
-            +conjg(auxext(i))*CQ)*dze*dvdfw
+       temp=0.5*(conjg(auxext(i-1))*CQprior+conjg(auxext(i))*CQ)*dze*dvdfw
+       Fextqq=Fextqq+temp
+       Fextqqi=Fextqqi+temp
        CQprior=CQ
 
        CW=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
        CapQw(i)=CW
        denqw(i)=denqw(i)+dvdfw*CW
-       Fextqw=Fextqw+0.5*(conjg(auxext(i-1))*CWprior&
-            +conjg(auxext(i))*CW)*dze*dvdfw
+       temp=0.5*(conjg(auxext(i-1))*CWprior+conjg(auxext(i))*CW)*dze*dvdfw
+       Fextqw=Fextqw+temp
+       Fextqwi=Fextqwi+temp
        CWprior=CW
     enddo
     Ftauxp(2,1)=Ftauxp(2,1)+Fexti
+    Ftauxp(2,3)=Ftauxp(2,3)+Fextqqi
   end subroutine Fextern
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -838,7 +848,6 @@ end function dfdWptrap
 ! And the wave-generated internal passing density V_w|q>.
     denqwint=denqwint+dvinf*sqm1g*dfweight*(auxzd/&
          (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vinfbyv
-!    write(*,*)auxzd(-1:1)
     
     if(ldentaddp)call dentaddplot(dfweight)
 
@@ -854,7 +863,7 @@ end function dfdWptrap
     if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
     if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
 
-    call multiframe(3,1,0)
+    call multiframe(2,1,0)
     call dcharsize(.019,.019)
 
     call minmax(dentq,4*nzd+2,dmin,dmax)
@@ -874,7 +883,6 @@ end function dfdWptrap
     call polyline(zdmid(-nzd:nzd),imag(dentq(-nzd:nzd)),2*nzd)
     call polymark(zdmid(nzd),imag(dentq(nzd)),1,1)
     call polyline(zext,imag(denqext),nzext)
-    call color(4)
     call color(6)
     call polyline(zext,imag(denqw),nzext)
     call polyline(zdmid,imag(denqwint),2*nzd)
@@ -883,7 +891,16 @@ end function dfdWptrap
     call axlabels('','              !p!o~!o!qn!dw!d')
     call polyline(zext,real(denqw),nzext)
     call polyline(zdmid,real(denqwint),2*nzd)
-    call color(4)
+    if(Wg.eq.Wgarray(nge))then
+       call color(3)
+       call legendline(.3,.9,0,' V!dw!d|q>/2')
+       call polyline(zdmid,real(Vw*auxzd/2.),2*nzd)
+       call polyline(zext,real(Vw*auxext/2.),nzext)
+       call dashset(2)
+       call polyline(zdmid,imag(Vw*auxzd/2.),2*nzd)
+       call polyline(zext,imag(Vw*auxext/2.),nzext)
+       call dashset(0)
+    endif
     call color(15)
 
     call minmax(dentpass,4*nzd+2,dmin,dmax)
@@ -892,10 +909,12 @@ end function dfdWptrap
     call pltinit(zg(-ngz),zext(nzext),dmin,dmax)
     call axis; call axis2
     call axlabels('','!p!o~!o!qn!d4!d')
+    call legendline(.7,.2,0,'real')
     call polyline(zext,real(dentext/f4norm),nzext)
 !    call polymark(zdmid(nzd),real(dentpass(nzd)),1,1)
     call polyline(zdmid(-nzd:nzd),real(dentpass(-nzd:nzd)),2*nzd)
     call dashset(2)
+    call legendline(.7,.1,0,'imag')
     call polyline(zdmid(-nzd:nzd),imag(dentpass(-nzd:nzd)),2*nzd)
     call polyline(zext,imag(dentext/f4norm),nzext)
     if(dfweight.ne.0)then
@@ -908,6 +927,7 @@ end function dfdWptrap
     call dashset(0)
     call color(15)
 
+    if(.false.)then
     call pltinit(zg(-ngz),zext(nzext),-0.42,0.42)
     call axis; call axis2
     call polyline(zext,real(auxext),nzext)
@@ -919,6 +939,8 @@ end function dfdWptrap
     call polyline(zg(-ngz:ngz),imag(auxmodes(-ngz:ngz,2)),2*ngz+1)
     call legendline(.7,.8,0,'imag')
     call dashset(0)
+ endif
+ 
     call multiframe(0,0,0)
     if(printwait)call usleep(20000)
     call accisflush
@@ -936,7 +958,7 @@ end function dfdWptrap
   end subroutine dentaddplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentaddtrap(dfweight,cdvinf)
-! Make dentpass equal to the weighted average of \Phi over the zg
+! Make denttrap equal to the weighted average of \Phi over the zg
 ! points that reside in each of its (equally spaced) intervals.
 ! dfweight is omegag*dfe etc. ftilde is i*dfweight*\Phi (summed over
 ! the perpendicular harmonics). But \Phi is not exactly CapPhig for
@@ -959,10 +981,11 @@ end function dfdWptrap
     enddo    
     denttrap=denttrap+cdvinf*ft4d *vpsibyv
     dentqt=dentqt+cdvinf*ftrauxd(:,2) *vpsibyv
-! And the wave-generated internal density V_w|q>?
-    denqwint=denqwint+cdvinf*dfweight*(auxzd/&
-         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vpsibyv
-
+! It makes no sense to use the following for trapped orbits. 
+!    denqwint=denqwint+cdvinf*dfweight*(auxzd/&
+!         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vpsibyv
+! Instead we should just use Vw*auxzd for the total. 
+    
     if(ltrapaddp)call dentaddtrapplot(dfweight,cdvinf)
     
   end subroutine dentaddtrap
@@ -1033,6 +1056,16 @@ end function dfdWptrap
     endif
     call axis
     call polyline(zdmid(-nzd:nzd),real(dentqt(-nzd:nzd)),2*nzd)
+    if(real(dfweight).eq.999)then
+    call color(3)
+    call dashset(2)
+    call polyline(zdmid,imag(Vw*auxzd),2*nzd)
+    call dashset(0)
+    call axlabels('','              !p!o~!o!qn!dw!d')
+    call polyline(zdmid,real(Vw*auxzd),2*nzd)
+    endif
+    call color(15)
+
     call axlabels('z','!p!o~!o!qn!dq!d')
     call dashset(2)
     call polyline(zdmid(-nzd:nzd),imag(dentqt(-nzd:nzd)),2*nzd)
@@ -1096,13 +1129,13 @@ end function dfdWptrap
 ! hole region -zm to zm.
     dz=zm/nzd
     Fintqq=-conjg(auxzd(-nzd))*dentq(-nzd)*dz/2.
-    Fintqw=-conjg(auxzd(-nzd))*denqwint(-nzd)*dz/2.
+    Fintqw=-conjg(auxzd(-nzd))*Vw*auxzd(-nzd)/2.*dz/2.
     do i=-nzd,nzd
        Fintqq=Fintqq+conjg(auxzd(i))*dentq(i)*dz
-       Fintqw=Fintqw+conjg(auxzd(i))*denqwint(i)*dz
+       Fintqw=Fintqw+conjg(auxzd(i))*Vw*auxzd(i)/2.*dz
     enddo
     Fintqq=Fintqq-conjg(auxzd(nzd))*dentq(nzd)*dz/2.
-    Fintqw=Fintqw-conjg(auxzd(nzd))*denqwint(nzd)*dz/2.
+    Fintqw=Fintqw-conjg(auxzd(nzd))*Vw*auxzd(nzd)/2.*dz/2.
   end subroutine qdenqint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

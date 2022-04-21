@@ -587,14 +587,14 @@ subroutine plotdent
   complex :: Ftotalg,Cfactor,dfweight=999,cdummy
   complex :: F44t=0,F44p=0
   naux=2
-!  ldentaddp=.true.   ! dentadd movie
-!  ltrapaddp=.true.   ! trapped movie
-  lstepbench=.true.
+  ldentaddp=.true.   ! dentadd movie
+  ltrapaddp=.true.   ! trapped movie
+!  lstepbench=.true.  ! Step function benchmark.
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20.
-  omegag=complex(.02,.001)
-  omegag=complex(.047,.00119)
+  omegag=complex(.01,.001)
+!  omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
   dentpass=0.
@@ -609,6 +609,7 @@ subroutine plotdent
   call FgEint(Ftotalg,isigma)
   call qdenqint
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
+  ! These are total forces integrated dW.
   Cfactor=1.+sqm1g*3.1415926*(Fintqq+Fextqq-Fintqw-Fextqw)/ &
        (qresdenom*4)
   if(naux.ge.2)then
@@ -642,15 +643,18 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Complex <4|n_t4 (trapped)=',F44t/f4norm
 !     write(*,'(a,8f8.4)')'Complex <4|n_4up=',F44upass/f4norm
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
-     if(lstepbench)write(*,*)'|2> is the step benchmark. analdiff=',analdiff
-     write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+     write(*,*)
+     if(lstepbench)write(*,*)'|2> is the step benchmark.'
+     write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
      write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
-     write(*,*)'Self-Forces        <2|V|2>       qq Not ready'
+     write(*,*)' Self-Forces       <2|V|2>         <q|V|q>(not pass)' 
      write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
+     write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
+     write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
      write(*,*)
      write(*,*)'Amplitude         w_2/w_4=',&
           Ftauxa(1,1)/f4norm/(kg**2+12/16.)
@@ -658,27 +662,29 @@ subroutine plotdent
           -sqm1g*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
      write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
           ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
-     write(*,'(2a)')'Size of q term relative to 4 term,',&
-          ' -i.4\pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C)='
-     write(*,*)-sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor)/Ftotalg
+     write(*,'(2a)')'Size of q term relative to 4 term,'
+     write(*,*)'-i.4\pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C)=',&
+     -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor)/Ftotalg
      write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
      write(*,*)Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/(kg**2+12/16.)
 !     write(*,*)Ftauxa(1,1),Ftauxa(1,2),Ftotalg
-     if(.false.)then
+     if(.true.)then
      write(*,*)
      write(*,*)'########  Relative sizes of <q|V-Vw|q> and <q|V|4>'
      write(*,*)'                        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
-     write(*,'(a,7f9.4)')'Complex qq external:',Fextqq,Fextqw&
-          ,Fextqq-Fextqw
-     write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq,Fintqw&
-          ,Fintqq-Fintqw
-     write(*,'(a,7f9.4)')'Complex qq total   :',Fintqq+Fextqq,Fintqw+Fextqw&
-          ,Fintqq+Fextqq-Fintqw-Fextqw
-     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>='&
-          ,(Fextqq+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
+     write(*,'(a,7f9.4)')'Complex qq external:',Fextqq*2,Fextqw*2&
+          ,Fextqq*2-Fextqw*2
+     write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2&
+          ,Fintqq*2-Fintqw*2
+     write(*,'(a,7f9.4)')'Complex qq total   :',(Fintqq+Fextqq)*2&
+          &,(Fintqw+Fextqw)*2,(Fintqq+Fextqq-Fintqw-Fextqw)*2
+     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,(Fextqq&
+          &+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
      endif
 
      if(ltrapaddp)call pltend
+     write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
+       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
 
 ! Antisymmetrize to get the total densities and plot     
      denstore=denttrap
