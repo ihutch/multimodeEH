@@ -111,7 +111,7 @@
        call dcharsize(.025,.025)
     endif
     call FgEint(Ftotalg,isigma)  ! Generic call is the same.
-    if(isw.eq.2)then
+    if(isw.eq.2.and..false.)then
        write(*,'(a,3f8.5)')'     W               tb/2       for  psi=',-psig
        write(*,'(i4,g12.4,f12.4)')(i,Wgarrayr(i),tbr(i),i=1,nge)
     endif
@@ -119,8 +119,9 @@
 !    call fvinfplot
     psi=-psig                     ! psi is the positive depth
     omegac=10.
+    write(*,*)'omega=',omegag
     write(*,*)'Ftotalg        ',Ftotalg
-    write(*,*)'R(Ftotalg)/psi^2  ',real(Ftotalg)/psig**2,-.14776,-0.5*.14776
+    write(*,*)'R(Ftotalg)/psi^2  ',real(Ftotalg)/psig**2,-.14776!,-0.5*.14776
     call multiframe(1,2,0)
     call minmax(Forcegp,2*nge,pmin,pmax)
     call minmax(Forcegr,2*nge,rmin,rmax)

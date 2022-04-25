@@ -48,7 +48,7 @@ module shiftgen
   complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
   complex :: omegadiff,omegaonly,Vw
   real :: psig=.1,Wg,zm=19.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
-  real :: vshift=0.,vrshift=0.  ! The shape of ion distribution.
+  real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.,f4norm
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
@@ -307,7 +307,7 @@ contains
 ! because phigprime is minus the |4> mode.
        enddo
     enddo
-    if(Wg.lt.0)then     ! Trapped orbit. Add resonant term. 
+    if(Wg.lt.0.)then     ! Trapped orbit. Add resonant term. 
        exptbb2=exp(sqm1g*omegag*taug(ngz))
        vpsig=abs(vg(0))
 ! This form is to be divided later by (1-exptb) full resonant denominator.
@@ -451,6 +451,7 @@ contains
  ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
+
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
@@ -739,6 +740,7 @@ contains
 ! Return the energy derivative and the parallel distribution function
 ! This simple version ignores charge contribution from repelled species.
     real, parameter :: ri=1.4
+    logical :: lfirst=.true.
     sqWj=sqrt(-Wj)
     fe=((2./pig)*sqWj+(15./16.)*Wj/sqrt(-psig)+experfcc(sqWj)&
        /sqrt(pig))/sqrt(2.)        ! New exact sech^4 hole form.
@@ -746,6 +748,10 @@ contains
 ! This is the approximate correction for ion charge applied only when
 ! we are evaluating an attracted species.
     if(lioncorrect.and.vrshift.ne.9999)then
+       if(lfirst)then
+          write(*,*)'WARNING ############ lioncorrect is TRUE ions are active.'
+          lfirst=.false.
+       endif
        vsx=1.3+0.2*psig
        vsa=vrshift     ! The vshift of the reflected species.
        denem1=(-1.+(vsa/vsx)**ri) /(1.+0.25*psig+vsa**2*(vsa/(vsx +(3.3&
