@@ -333,13 +333,14 @@ an integral over past time along the unperturbed orbit which is
   \int_{-\infty}^t \hat\phi(z(\tau)){\rm e}^{-i\omega_m(\tau-t)}d\tau,
 \end{equation}
 where $\phi_1(y,z,t)=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ is
-the potential perturbation, and $z(\tau)$ is the parallel position of
-the past unperturbed orbit that has velocity $v$ at $(z,t)$. When a
-uniform magnetic field in the $z$-direction is present with cyclotron
-frequency $\Omega$, the perturbation has transverse wavenumber
-$k_\perp$, and the background perpendicular velocity distribution is
-Maxwellian, then the distribution function perturbation is the
-following sum over cyclotron harmonics
+the potential perturbation ($\ket{\hat\phi(z)}$ giving its parallel
+dependence), its transverse wavenumber is $k_\perp$, and $z(\tau)$ is
+the parallel position of the past unperturbed orbit that has velocity
+$v$ at $(z,t)$. When a uniform magnetic field in the $z$-direction is
+present with cyclotron frequency $\Omega$ and the background
+perpendicular velocity distribution is Maxwellian, then the
+distribution function perturbation is the following sum over cyclotron
+harmonics[]
 \begin{equation}\label{eq:ftmagnetic}
   \begin{split}
     \tilde f(z,y,v,t) &=  {\rm e}^{i(k_\perp y-\omega t)}
@@ -724,49 +725,96 @@ those modes are non-negligible. However, the continuum mode remains
 finite to large $z$; so $\bra{q_{0}}|\tilde{V}\ket{4}$ (and
 $\bra{q_{0}}|\tilde{V}\ket{q_0}$ needed for the coefficient $C$)
 require a much wider integration range, out to where the density
-perturbation $\tilde{V}\ket{4}$ becomes negligible. These issues are
+perturbation generated within the hole becomes negligible. These issues are
 illustrated in Fig \ref{externfig}.
 \begin{figure}
   \includegraphics[width=0.8\hsize]{extern1} (a)\\
   \includegraphics[width=0.8\hsize]{extern2} (b)
   \caption{Illustrating the process of calculating the inner products
     involving $\ket{4}$ and $\ket{q_0}$. Passing density contributions
-    (a) partially integrated to a low energy, (b) integrated over all
-    relevant energies. The square point locates the edge of the inner hole
-    region, chosen as $z=20$. The scaled $\Phi$ shown is for the last
-    included energy $W$.\label{externfig}}
+    from positive velocity orbits (a) partially integrated to a low
+    energy, (b) integrated over all relevant energies. The square
+    point locates the edge of the inner hole region, chosen as
+    $z=20$. The scaled $\Phi$ shown is for the last included energy
+    $W$.\label{externfig}}
 \end{figure}
-Part way through the energy (parallel velocity) integration: (a), the
-partial densities $\tilde n_q$ and $\tilde n_4$ extend considerably
-into the external region, a distance proportional to $v/\omega$. The
-wave partial density $\tilde n_w$ (partial $\tilde V_w\ket{q_0}$)
-differs from $\tilde n_q$ mostly in its spatial oscillations. When the
-energy integration is complete: (b), the oscillations have mostly been
-washed out by integration, but there remain differences between
-$\tilde n_q$ and $\tilde n_w$ close to the hole region that rapidly
-decrease further away so that $\tilde n_q-\tilde n_w$ is limited in
-spatial extent. Plot (b) includes the curve $V_w\ket{q}/2$, which
-represents the simple multiplication of $\ket{q}$ by equation
-\ref{eq:24}. It differs from $\tilde n_w$ because $\tilde n_w$
-represents only outward velocity orbits, and so the first-order term
-of eq.\ \ref{eq:17} is not cancelled out in $\tilde n_w$. The result
-is not exactly antisymmetric and does not exactly equal $V_w\ket{q}/2$
-as given by \ref{eq:24}. This difference illustrates physics, not an
+Part way through the energy (positive parallel velocity) integration:
+\ref{externfig}(a), the partial densities $\tilde n_q$ and
+$\tilde n_4$ extend considerably into the external region, a distance
+proportional to $v/\omega$. The eigenmode partial density $\tilde n_q$
+differs mostly in its spatial oscillations from the wave partial
+density $\tilde n_w$, which is the partial integral of
+$\ket{q_0}/i(k_\parallel v -\omega)$. The $\tilde n_4$ density from
+$\tilde V\ket{4}$ also has some oscillations arising from the
+oscillation of its $\Phi$, of which the value at the maximum energy is
+plotted (arbitrarily scaled). When the energy integration is complete:
+\ref{externfig}(b), the oscillations have mostly been washed out by
+integration, but there remain differences between $\tilde n_q$ and
+$\tilde n_w$ close to the hole region that rapidly decrease further
+away so that $\tilde n_q-\tilde n_w$ is limited in spatial
+extent. Plot (b) includes the curve $V_w\ket{q_0}/2$, which represents
+the simple multiplication of $\ket{q_0}$ by equation \ref{eq:24}. It
+differs from $\tilde n_w$ because $\tilde n_w$ represents here only
+outward velocity orbits, and so the first-order term of eq.\
+\ref{eq:17} is not cancelled out in $\tilde n_w$. The result is not
+exactly antisymmetric and does not exactly equal $V_w\ket{q_0}/2$ as
+given by \ref{eq:24}. This difference illustrates physics, not an
 error. A related feature is that $\tilde n_q$ and $\tilde n_w$ require
-the value of $\Phi$ to be prescribed at the left-hand edge of the
-inner region ($z=-20$). This value is supplied by eq.\ \ref{eq:16} for
-inward-propagating orbits: $\ket{q_0}/i(-k_\parallel v -\omega)$.
+a non-zero value of the prior time integral $\Phi_m$ (e.q.\
+\ref{eq:phim}) to be prescribed at the left-hand edge of the inner
+region ($z=-z_m=-20$ in this illustration) representing the integral
+along the past orbit from $z=-\infty$ to $-z_m$. This value is supplied
+by eq.\ \ref{eq:16} for inward-propagating orbits:
+$\ket{q_0}/i(-k_\parallel v -\omega)$ and is not exactly antisymmetric
+with the outward moving values at $+z_m=20$. Denoting pedantically for
+a moment the plotted densities, which use only positive velocities, as
+$\tilde n_+$, the densities including the total velocity distribution
+(positive and negative) are given by the antisymmetrizing sum
+$\tilde n_{total}(z)=\tilde n_+(z)-\tilde n_+(-z)$. The external
+values of $\tilde n_+$ at $|z|>z_m$ are not needed for inner products
+with discrete modes such as $\bra{4}|\tilde V\ket{q_0}$ because they
+($\bra{j}|$) are zero there. The antisymmetry of $\bra{j}|$ then means
+we can simply double the inner products found using only
+positive-velocity orbits to obtain the total.
+
+Inner products with continuum modes $\bra{q_0}|$, however, require
+integration for the external region $z_m<|z|$ (up to $\sim 450$ in
+Fig.\ \ref{externfig}). Discrete mode external density, e.g.\
+$\tilde V \ket{4}$, arises only from outgoing orbits, not incoming, so
+the outgoing calculation for $\bra{q_0}|\tilde V\ket{4}$ need not be
+doubled to account for both velocity signs, only to represent the
+positive and negative $z$-ranges, since we integrate only over
+$z>+z_m$. Incoming velocity density for continuum modes is not
+negligible, but can accurately be taken as the wave value evaluated
+with incoming sign (${\rm sign}(k_\parallel v)=-1$) in the factor
+$(k_\parallel v-\omega)$.  \iffalse Thus, incoming density in the
+outer region is equal to outgoing times the factor
+$R=\int_0^\infty (k_\parallel v-\omega)/(-k_\parallel v-\omega)\;
+f_\infty(v)dv$, and the total external contribution to
+$\bra{q_0}|\tilde V\ket{q_0}$ is $1+R$ times the outgoing.  \fi For
+present purposes, we really only need the difference
+$\bra{q_0}|\tilde V-\tilde V_w\ket{q_0}$, and the two operators cancel
+exactly for external incoming orbits, provided both are expressed in
+terms of $(k_\parallel v-\omega)$ with incoming $v$-sign.  That is why
+we calculate the outward going external density for both $\tilde V$
+and $\tilde V_w$ using the outward $(k_\parallel v-\omega)$ factor,
+rather than eq.\ (\ref{eq:24}). We double their
+$\bra{q_0}|\tilde V\ket{q_0}$ values to account for positive and
+negative $z$.
+
+
 
 For finite $\Omega$, where the sum over harmonics is essential, we
 determine $k_\parallel$ from eq.\ (\ref{eq:15}), the same for all
-harmonics. And our numerical implementation ensures good cancelation
-by evaluating $\Phi_m$ for passing orbits as
-$\ket{q}/i(k_\parallel v -\omega_m)$, integrating the resulting
-$\tilde f_m$ $dv$ and summing over harmonics $m$ to get
-$\tilde V_w\ket{q}$ externally. However, such a treatment does not
-apply to trapped orbits, so instead we use eq.\ (\ref{eq:24})
-multiplying $\ket{q}$. That excludes any resonances between bounce
-frequency and higher-$m$ cyclotron harmonics
+harmonics. Then for external passing orbits evaluating $\Phi_m$ as
+$\ket{q_0}/i(k_\parallel v -\omega_m)$, integrating the resulting
+$\tilde f_m$ $dv$ and summing over harmonics $m$ we get
+$\tilde V_w\ket{q_0}$ externally. Such a treatment does not
+apply to internal orbits, so instead we use for $\tilde V_w$ internally
+eq.\ (\ref{eq:24}) multiplying $\ket{q_0}$. That excludes any resonances
+between bounce frequency and higher-$m$ cyclotron harmonics. The other
+$\tilde V\ket{4}$, $\tilde V\ket{2}$, $\tilde V\ket{q_0}$, calculations
+simply substitute $\omega_m$ for $\omega$.
 
 \end{document}
 

@@ -47,7 +47,7 @@
 module shiftgen
   complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
   complex :: omegadiff,omegaonly,Vw
-  real :: psig=.1,Wg,zm=19.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
+  real :: psig=.1,Wg,zm=29.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
   real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.,f4norm
 ! Tinf is really the reference (attracted). 
@@ -733,6 +733,8 @@ contains
 ! complex version, antisymmetric
        auxofz=(T*Pk+sign(1.,x)*complex(0.,p)*Qk)&
             *exp(complex(0.,p*abs(x)))/fnorm
+!       if(abs(x).lt.0.2)write(*,*)'x,auxofz',x,auxofz,Pk,Qk
+       if(x.eq.0)auxofz=0.
     endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

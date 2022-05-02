@@ -97,8 +97,10 @@
 
     write(*,*)'testAttract'
     lioncorrect=.false.
+    naux=2
     if(real(omegag).eq.0)omegag=(.1,0.001000)
     omegaonly=omegag
+    kg=real(omegag)
     if(psig.ge.0)psig=-.5
     isigma=-1    
     if(vshift.ne.0.)write(*,*)'WARNING testAttract with vshift=',vshift
@@ -180,15 +182,17 @@
     endif
 
     if(naux.ge.1)then  ! Plot of auxforces.
-    write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
-    write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-    write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp
-    write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt
-    write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa
-    write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
-    write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
-    kpar=0.1
-    write(*,*)'q0(1/omega^2-1)/pi='&
+       write(*,*)'f4norm=',f4norm,' kpar=',kpar
+       write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
+       write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+       write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp(:,1:2)/f4norm
+       write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt(:,1:2)/f4norm
+       write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa(:,1:2)/f4norm
+       write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
+          abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
+       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
+       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
+       write(*,*)'q0(1/omega^2-1)/pi='&
          ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
           do j=1,ndir
        do i=1,naux
@@ -535,21 +539,24 @@ end subroutine testdenem
 subroutine plotmodes
   use shiftgen
 !  kpar=0.01
+  omegag=complex(.05,.001)
   call tsparse(ormax,oi,nvs,isw,vs,ps)
-  omegag=complex(ormax,oi)
-  kg=.01
+  kg=.1
+  Omegacg=20
   naux=2
   zm=25
   psig=-.1
   isigma=-1
   Wg=.1*abs(psig)
+  omegaonly=omegag   ! Needed for evaluation of kpar
   call makezg(isigma)
+  write(*,'(i3,4f10.5)')(i,zg(i),auxmodes(i,2),i=-2,2)
   write(*,*)'kpar=',kpar,'omegag=',omegag
   dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
   do i=-ngz+1,ngz
      dot0=dot0+(phigprime(i-1)**2+phigprime(i)**2)*(zg(i)-zg(i-1))/2
      ! Fix the z/x normalization by dividing by 2*4
-     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/8
+     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
      dot2=dot2+(abs(auxmodes(i-1,2))**2+abs(auxmodes(i,2))**2)*(zg(i)-zg(i-1))/8
      dot12=dot12+real(auxmodes(i-1,1)*auxmodes(i-1,2)&
           +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/8
@@ -587,7 +594,10 @@ subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor,dfweight=999,cdummy
   complex :: F44t=0,F44p=0,w2byw4,wqbyw4
+  character*10 string
+  character(len=20), external :: ffwrite
   naux=2
+  lioncorrect=.false.
 !  ldentaddp=.true.   ! dentadd movie
 !  ltrapaddp=.true.   ! trapped movie
 !  lstepbench=.true.  ! Step function benchmark.
@@ -611,8 +621,7 @@ subroutine plotdent
   call qdenqint
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
-  Cfactor=1.+sqm1g*3.1415926*(Fintqq+Fextqq-Fintqw-Fextqw)/ &
-       (qresdenom*4)
+  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
   if(naux.ge.2)then
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
@@ -647,17 +656,17 @@ subroutine plotdent
      write(*,*)
      w2byw4=Ftauxa(1,1)/f4norm/(kg**2+12/16.)
      write(*,*)'Amplitude         w_2/w_4=',w2byw4
-     wqbyw4=-sqm1g*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
+     wqbyw4=-sqm1g*16*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
      write(*,*)'Amplitude \int w_q dq/w_4=',wqbyw4          
      write(*,*)'         Coefficient magnitudes'
      write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
           ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
-     write(*,'(2a)')'Size of q term relative to 4 term,'
-     write(*,*)'-i.4\pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C)=',&
-     -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor)/Ftotalg
      write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
      write(*,*)Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/(kg**2+12/16.)
-!     write(*,*)Ftauxa(1,1),Ftauxa(1,2),Ftotalg
+     write(*,'(2a)')'Size of q term relative to 4 term,'
+     write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom/4*C)=',&
+          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom/4*Cfactor)&
+          /Ftotalg
      if(.true.)then
      write(*,*)
      write(*,*)'    Cancelation:        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
@@ -667,7 +676,7 @@ subroutine plotdent
           ,Fintqq*2-Fintqw*2
      write(*,'(a,7f9.4)')'Complex qq total   :',(Fintqq+Fextqq)*2&
           &,(Fintqw+Fextqw)*2,(Fintqq+Fextqq-Fintqw-Fextqw)*2
-     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,(Fextqq&
+     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*(Fextqq&
           &+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
      endif
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
@@ -699,26 +708,68 @@ subroutine plotdent
         call pltend
      endif
 
-     Wg=0.001
-     call makezg(1)
+     zm=12
+     Wg=0.01
+     call pfset(3)
+     call makezg(isigma)
+! |4>=-TS^4=+dphi/dz with psi=+1.
+! Code says phigprimeofz=-psig*sinh(zval/4.)/cosh(zval/4.)**5 (psig -ve)
+! so phigprime is -psi*dphi/dz and |4> is -phigprime/f4norm.     
+     call multiframe(2,1,0)
+     call dcharsize(.018,.018)
      call autoplot(zg,-phigprime/f4norm,2*ngz)
-     call color(1)
-     call polyline(zg,real(w2byw4*auxmodes(:,1)),2*ngz)
+     call axis2
+     call axlabels('','Perturbation Modes')
+     ind2=int(ngz/9.)
+     call jdrwstr(wx2nx(zg(ind2)),wy2ny(-phigprime(ind2)/f4norm),'4',0.)
+     call dashset(5)
+     call polyline(zg,-phigprime/f4norm+real(w2byw4*auxmodes(:,1)+wqbyw4*auxmodes(:,2)),2*ngz)
+     call legendline(.7,.3,0,' real(total)')
+     call dashset(0)
      call color(2)
+     call polyline(zg,real(w2byw4*auxmodes(:,1)),2*ngz)
+     call color(1)
      call polyline(zg,real(wqbyw4*auxmodes(:,2)),2*ngz)
      call dashset(2)
-     call color(1)
-     call polyline(zg,imag(w2byw4*auxmodes(:,1)),2*ngz)
      call color(2)
+     call polyline(zg,imag(w2byw4*auxmodes(:,1)),2*ngz)
+     call jdrwstr(wx2nx(zg(ind2)),wy2ny(imag(w2byw4*auxmodes(ind2,1))),'2',0.)
+     call color(1)
+     indq=int(ngz*.9)
      call polyline(zg,imag(wqbyw4*auxmodes(:,2)),2*ngz)
+     call jdrwstr(wx2nx(zg(indq)),wy2ny(real(wqbyw4*auxmodes(indq,2))),'q',0.)
 !     call polyline(zg,real(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
-     call pltend
-     
+     call color(15)
+     call legendline(.7,.1,0,' imag')
+     call dashset(0)
+     call legendline(.7,.2,0,' real')
+     call color(4)
+! These combinations are irrelevant because the real is unperturbed
+! and the imaginary comes almost entirely from |2>.
+!     call polyline(zg,real(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
+     call dashset(2)
+!     call polyline(zg,imag(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
+     call dashset(0)
+     call color(15)
+     xi=.02
+     call autoplot(zg,-phig+xi*(-phigprime/f4norm+real(wqbyw4*auxmodes(:,2))&
+     +real(w2byw4*auxmodes(:,1))),2*ngz)
+     call axis2
+     call fwrite(xi,iwidth,2,string)
+!     write(*,*)trim(ffwrite(xi,iwidth,2)),'%'
+     call axlabels('z','!AR!@(!Af!@) for amplitude w!d4!d='//string(1:iwidth))
+     call legendline(.7,.8,0,'!Af!@!d0!d+!p!u~!u!q!af!@')
+     call dashset(4)
+     call polyline(zg,-phig,2*ngz)
+     call legendline(.7,.7,0,'!Af!@!d0!d')
+     call pltend     
   endif
 
-
-  
 end subroutine plotdent
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+character(len=20) function ffwrite(x,iwidth,ipoint)
+  call fwrite(x,iwidth,ipoint,ffwrite)
+end function ffwrite
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use shiftgen
 integer :: nvs=1,isw=3
