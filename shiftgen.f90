@@ -53,7 +53,7 @@ module shiftgen
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
   integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=200
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
   integer :: iwpowg=3,ippow=3,nharmonicsg
   real,parameter :: pig=3.1415926
   integer, parameter :: nauxmax=2,ndir=3
@@ -71,7 +71,7 @@ module shiftgen
   complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real :: kpar
 !  real :: zextfac=3.5  ! Much too small.
-  real :: zextfac=20.
+  real :: zextfac=30.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
   complex, dimension(0:nzext) :: CapQw,denqw
@@ -86,7 +86,7 @@ module shiftgen
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
-  complex :: Fexti,Fextqqi,Fextqwi,Fextqq,Fextqw,Fintqq,Fintqw
+  complex :: Fextqq,Fextqw,Fintqq,Fintqw
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
@@ -145,7 +145,7 @@ contains
           kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
                ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
           Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
-          if(ncalls.eq.1)  write(*,'(a,2f8.4)')' Vw=',Vw
+          if(ncalls.eq.1)  write(*,'(a,f8.5,a,2f8.4)')' kpar=',kpar,' Vw=',Vw
        else
           write(*,*)'ERROR omegar >=1 is not allowed',omegar
           stop
@@ -448,7 +448,11 @@ contains
     endif
     
     call FgTrappedEint(Ftotalrg,-1/Tperpg,1.,isigma)
- ! Hacked dfperpdWperp, fperp, because only Maxwellian perp distrib.    
+ ! Specifies dfperp, fperp, for Maxwellian perp distrib.    
+    if(naux.ge.2)then
+       call qwint                         ! Find internal wave force.
+       if(zdent(nzd).ne.0) call qdenqint  ! And densities when needed.
+    endif
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
 
@@ -566,6 +570,7 @@ contains
     real :: Wgi
     complex :: CP,CPprior,CPfactor,dfweight,temp
     complex :: CQ,CQprior,CW,CWprior,dvdfw
+    complex :: Fexti,Fextqqi,Fextqwi
     call makezext
     vi=sqrt(2.*Wgi)
     dze=abs(zext(1)-zext(0))
@@ -573,7 +578,7 @@ contains
     Fexti=0.         ! Accumulate <q|~V|4> for just this v_||, so zero.
 !   Should Fextqq and Fextqw  be zeroed? No. Only the i-internal-versions.
     Fextqwi=0.
-    Fextqqi=0.
+    Fextqqi=0.         ! Only used in this routine.
     CPprior=CapPhig(ngz)
     CapPext(0)=CPprior      ! External |4> outgoing.
     dentext(0)=dentext(0)+CPprior*dvdfw
@@ -1138,15 +1143,21 @@ end function dfdWptrap
 ! hole region -zm to zm.
     dz=zm/nzd
     Fintqq=-conjg(auxzd(-nzd))*dentq(-nzd)*dz/2.
-    Fintqw=-conjg(auxzd(-nzd))*Vw*auxzd(-nzd)/2.*dz/2.
     do i=-nzd,nzd
        Fintqq=Fintqq+conjg(auxzd(i))*dentq(i)*dz
-       Fintqw=Fintqw+conjg(auxzd(i))*Vw*auxzd(i)/2.*dz
     enddo
     Fintqq=Fintqq-conjg(auxzd(nzd))*dentq(nzd)*dz/2.
-    Fintqw=Fintqw-conjg(auxzd(nzd))*Vw*auxzd(nzd)/2.*dz/2.
   end subroutine qdenqint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine qwint
+! Integrate the wave mode force in the hole region.
+    dz=zm/nzd
+    Fintqw=-conjg(auxzd(-nzd))*Vw*auxzd(-nzd)/2.*dz/2.
+    do i=-nzd,nzd
+       Fintqw=Fintqw+conjg(auxzd(i))*Vw*auxzd(i)/2.*dz
+    enddo
+    Fintqw=Fintqw-conjg(auxzd(nzd))*Vw*auxzd(nzd)/2.*dz/2.
+  end subroutine qwint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end module shiftgen
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1246,7 +1257,8 @@ subroutine makezext
   do i=0,nzext
      zext(i)=zm+(zemax-zm)*i**izext/nzext**izext
      auxext(i)=auxofz(zext(i),2,kpar)
-  enddo     
+!     auxext(i)=auxofz(zext(i),3,kpar) ! Test of making external the step
+  enddo   
 end subroutine makezext
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!! Routines not dependent on shiftgen.

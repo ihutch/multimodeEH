@@ -612,13 +612,14 @@ subroutine plotdent
   kg=real(omegag)
 !  kg=.03
   kg=.143
-  kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
-  
+!  kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
+  kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
+       ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
+
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
-       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
+       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg
   call makezdent
   call FgEint(Ftotalg,isigma)
-  call qdenqint
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
@@ -637,10 +638,12 @@ subroutine plotdent
      write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
           ' applied to all forces.'
      write(*,*)'Force check:        Total             Passing          Trapped'
-     write(*,'(a,8f8.4)')'Complex <4|V|4>  =',Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_4   =',(F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
-
-     write(*,'(a,2f8.4)')'Force nt4 verification ratio',f4norm*F44t/(2.*Ftotalrg)
+     write(*,'(a,8f8.4)')'Complex <4|V|4>  =',&
+          Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
+     write(*,'(a,8f8.4)')'Complex <4|n_4   =',&
+          (F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
+     write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
+          f4norm*F44t/(2.*Ftotalrg)
      write(*,*)
      if(lstepbench)write(*,*)'|2> is the step benchmark.'
      write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
@@ -669,7 +672,7 @@ subroutine plotdent
           /Ftotalg
      if(.true.)then
      write(*,*)
-     write(*,*)'    Cancelation:        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
+     write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
      write(*,'(a,7f9.4)')'Complex qq external:',Fextqq*2,Fextqw*2&
           ,Fextqq*2-Fextqw*2
      write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2&
@@ -680,7 +683,8 @@ subroutine plotdent
           &+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
      endif
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
-       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
+          ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
+     write(*,'(a,f8.2)')'zextmax=',zext(nzext)
 
      if(ltrapaddp)then
         call pltend
