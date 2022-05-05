@@ -603,7 +603,7 @@ subroutine plotdent
 !  lstepbench=.true.  ! Step function benchmark.
   psidef=-.1
   if(psig.ge.0)psig=psidef
-  omegacg=20.
+  omegacg=100
   omegag=complex(.01,.001)
   omegag=complex(.047,.00119)
   omegaonly=omegag
@@ -616,13 +616,26 @@ subroutine plotdent
   kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
        ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
 
-  write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
+  write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg
   call makezdent
-  call FgEint(Ftotalg,isigma)
+!  call FgEint(Ftotalg,isigma)
+  call SumHarmonicsg(isigma)
+  Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
+
+  if(nharmonicsg.gt.0)then
+     write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
+     write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
+     write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
+     write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
+     write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      Difference' 
+     write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg,Ftauxsum(2,3)-FVwsumg
+!     call exit
+  endif
+
   if(naux.ge.2)then
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
@@ -635,6 +648,8 @@ subroutine plotdent
              (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
              +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
      enddo
+     write(*,*)
+     write(*,*)'Details from just the m=0 contribution:'
      write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
           ' applied to all forces.'
      write(*,*)'Force check:        Total             Passing          Trapped'

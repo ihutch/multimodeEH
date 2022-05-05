@@ -91,7 +91,7 @@ module shiftgen
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
   complex :: Ftotalmode
-  complex :: Ftotalrg,Ftotalpg,Ftotalsumg
+  complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
 !   Total auxiliary forces 
 !   Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nauxmax,ndir) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
@@ -469,6 +469,7 @@ contains
     omegadiff=omegag-omegaonly
     dentqt=0.
     denqwint=0.
+    denttrap=0.
     Ftotal=0.
     Ftotalmode=0.
     vpsiprev=sqrt(-2.*psig)
@@ -640,11 +641,11 @@ contains
 !    nharmonicsg=min(nhmax,int(hnum*(1.+3./(hnum+1.)))) ! Inadequate.
 ! Require the linear approx to Immin to be less than small.
     nharmonicsg=nint(max(hnum,min(4.,alog(.01)/alog(xit/2.+1.e-12))))
-    if(nharmonicsg.gt.nhmax)then
-       write(*,'(a,2f8.4,i3,4f7.3)')'kg,vymax,nharm,Oceff,Oc&
-            &,xit,psig',kg ,vymax,nharmonicsg,Oceff,Omegacg,xit,psig
-       stop 'Incorrect nharmonics exceeds nhmax'
-    endif
+!    if(nharmonicsg.gt.nhmax)then
+!       write(*,'(a,2f8.4,i3,4f7.3)')'kg,vymax,nharm,Oceff,Oc&
+!            &,xit,psig',kg ,vymax,nharmonicsg,Oceff,Omegacg,xit,psig
+!       stop 'Incorrect nharmonics exceeds nhmax'
+!    endif
 ! Calculate the Integer[0.] exp*I[2] Bessel functions 0 to nharmonicsg
     ncalc=0
     call RIBESL(xit**2,0.,nharmonicsg+1,2,EIm,ncalc)
@@ -660,13 +661,9 @@ contains
 ! m=0 always used.! fy is Maxwellian.
 ! But the fywy,fy need to be fixed in inner routines.
     omegaonly=omegag
-    call FgEint(Fpg(0),isigma)
-!    write(*,*)'SumHarmonicsg: Oceff,nharmonicsg=',Oceff,nharmonicsg !,hnum
-    if(lbess.and.nharmonicsg.gt.0)write(*,'(a,e11.4,''('',2e12.4&
-         &,'')'',i4,f8.4)') ' EI(0),Ftt(0)  =',EIm(0),Fpg(0)&
-         &,nharmonicsg,Oceff
-    Ftotalsumg=Fpg(0)*EIm(0)
-    Ftauxsum(1:naux,:)=Ftauxa(1:naux,:)*EIm(0)
+    Ftotalsumg=0.
+    Ftauxsum(1:naux,:)=0.
+    FVwsumg=0.
     do m=1,nharmonicsg
        omegag=omegaonly+m*Oceff
        if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5 ! Prevent zero.
@@ -674,19 +671,31 @@ contains
        if(real(omegaonly).eq.0)then   !Short cut.
           Ftotalsumg=Ftotalsumg+2*real(Fpg(m))*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+2*real(Ftauxa(1:naux,:))*EIm(m)
+          FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        else      ! Full sum over plus and minus m.
           Ftotalsumg=Ftotalsumg+Fpg(m)*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
+          FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
           omegag=omegaonly-m*Oceff
           if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5
           call FgEint(Fpg(-m),isigma)
           Ftotalsumg=Ftotalsumg+Fpg(-m)*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
+          FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        endif
        if(lbess)write(*,'(a,i2,a,e11.4,''('',2e12.4,'')('',2e12.4,'')'')')&
             ' EI(',m,'),Fpg(+-m)=',EIm(m),Fpg(m),Fpg(-m)
     enddo
     omegag=omegaonly
+    call FgEint(Fpg(0),isigma)
+    if(lbess.and.nharmonicsg.gt.0)write(*,'(a,e11.4,''('',2e12.4&
+         &,'')'',i4,f8.4)') ' EI(0),Ftt(0)  =',EIm(0),Fpg(0)&
+         &,nharmonicsg,Oceff
+    Ftotalsumg=Ftotalsumg+Fpg(0)*EIm(0)
+    Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(0)
+    FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(0)
+!    write(*,*)Ftotalsumg,f4norm
+!    write(*,'(a,8f8.4)')'In Sum=',Ftauxa(1:naux,1:2)/f4norm
   end subroutine SumHarmonicsg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1252,7 +1261,7 @@ end subroutine makezdent
 subroutine makezext
 ! Initialize the uniform zext and |q> for external integration.
   use shiftgen
-  zemax=zextfac/real(omegag)+zm
+  zemax=zextfac/real(omegaonly)+zm
   izext=2
   do i=0,nzext
      zext(i)=zm+(zemax-zm)*i**izext/nzext**izext
