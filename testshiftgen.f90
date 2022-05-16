@@ -593,7 +593,7 @@ end subroutine plotmodes
 subroutine plotdent
   use shiftgen
   complex :: Ftotalg,Cfactor,dfweight=999,cdummy
-  complex :: F44t=0,F44p=0,w2byw4,wqbyw4
+  complex :: F44t=0,F44p=0,w2byw4,wqbyw4,Fqqdiffext
   character*10 string
   character(len=20), external :: ffwrite
   naux=2
@@ -603,8 +603,8 @@ subroutine plotdent
 !  lstepbench=.true.  ! Step function benchmark.
   psidef=-.1
   if(psig.ge.0)psig=psidef
-  omegacg=100
-  omegag=complex(.01,.001)
+  omegacg=20
+!  omegag=complex(.01,.001)
   omegag=complex(.047,.00119)
   omegaonly=omegag
   isigma=-1
@@ -619,24 +619,24 @@ subroutine plotdent
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg
   call makezdent
-!  call FgEint(Ftotalg,isigma)
-  call SumHarmonicsg(isigma)
-  Ftotalg=Fpg(0)
+  call FgEint(Ftotalg,isigma)
+!  call SumHarmonicsg(isigma)
+!  Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
-  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
-
-  if(nharmonicsg.gt.0)then
-     write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
-     write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
-     write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
-     write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
-     write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      Difference' 
-     write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg,Ftauxsum(2,3)-FVwsumg
-!     call exit
-  endif
+!  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
+  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
 
   if(naux.ge.2)then
+     if(nharmonicsg.gt.0)then
+        write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
+        write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
+        write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
+        write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
+        write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      <q|V-Vw|q>' 
+        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg,Ftauxsum(2,3)-FVwsumg
+!     call exit
+  endif
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
      dzd=zm/nzd
@@ -682,20 +682,30 @@ subroutine plotdent
      write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
      write(*,*)Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/(kg**2+12/16.)
      write(*,'(2a)')'Size of q term relative to 4 term,'
-     write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom/4*C)=',&
-          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom/4*Cfactor)&
+     write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
+          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor/4)&
           /Ftotalg
      if(.true.)then
      write(*,*)
-     write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>          <q|V-Vw|q>'
-     write(*,'(a,7f9.4)')'Complex qq external:',Fextqq*2,Fextqw*2&
-          ,Fextqq*2-Fextqw*2
-     write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2&
-          ,Fintqq*2-Fintqw*2
-     write(*,'(a,7f9.4)')'Complex qq total   :',(Fintqq+Fextqq)*2&
-          &,(Fintqw+Fextqw)*2,(Fintqq+Fextqq-Fintqw-Fextqw)*2
-     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*(Fextqq&
-          &+Fintqq-Fextqw-Fintqw)/(Ftauxa(2,1)/f4norm)
+     write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
+          &       <q|V-Vw|q>'
+     Fqqdiffext=Fextqq-Fextqw
+     if(Fqqdiffext.eq.0.)then
+        Fqqdiffext=Fextqqwanal
+        write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2 &
+             &,Fintqq*2-Fintqw*2
+     else
+        write(*,'(a,7f9.4)')'Complex qq external:',Fextqq&
+             &*2,Fextqw*2 ,Fqqdiffext*2
+        write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2 &
+             &,Fintqq*2-Fintqw*2
+        write(*,'(a,7f9.4)')'Complex qq total   :' ,(Fintqq+Fextqq)*2 &
+             &,(Fintqw+Fextqw)*2,(Fintqq-Fintqw +Fqqdiffext)*2
+     endif
+     write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
+          ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
+     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
+          (Fintqq-Fintqw+Fqqdiffext)/(Ftauxa(2,1)/f4norm)
      endif
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
           ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar

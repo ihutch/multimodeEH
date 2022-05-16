@@ -10,13 +10,15 @@
 \def\bra#1{\langle#1}
 \def\sech{{\,\rm sech}}
 \def\etothe#1{{\rm e}^{#1}}
-%\def\Real{{\rm Re}}\def\Imag{{\rm Im}}
+\def\a{{\bf a}}
+\def\M{{\bf M}}
+% \def\Real{{\rm Re}}\def\Imag{{\rm Im}}
 
 \begin{document}
 
 \section{Introduction}
 
-The stability of electron holes has recently been extensively studied
+The stability of plasma electron holes has recently been extensively studied
 assuming that the most unstable perturbation is a parallel shift of
 the hole position []. The eigenvalue, which determines the complex
 frequency $\omega$, has previously been evaluated using a ``Rayleigh
@@ -87,7 +89,7 @@ the prior orbit.
 \section{Eigenmode Expansion}
 Let us adopt a minimalist bra-ket notation for the eigenmodes in which
 we expand: $\ket{e}$, where the label $e$ being either real
-$p,q,r,\dots$, or integer, $j,l,m,\dots$, will denote respectively
+$p,q,\dots$, or integer, $j,l,\dots$, will denote respectively
 continuum or discrete eigenmodes. The inner product of any two
 Hilbert-space vectors (complex potential functions of $z$) denotes an
 overlap integral over (parallel) spatial coordinate
@@ -99,10 +101,11 @@ whereas for discrete modes $\delta_{jl}$ is the Kronecker delta.
 
 \subsection{Adiabatic Response Eigenmodes}
 In scaled units Poisson's equation is $d^2\phi/dz^2=n-1$. The
-equilibrium analyzed is of the form $\phi_0=\psi\sech^4(z/4)$.  The linearized
-equilibrium (``adiabatic'') Poisson operator for a hole potential
-(writing for brevity $S=\sech(z/4)$ and $T=\tanh(z/4)$ and denoting
-the $z$-derivative by prime) can then be written
+equilibrium analyzed is chosen to be of the form
+$\phi_0=\psi\sech^4(z/4)$. Writing for brevity
+$S=\sech(z/4)$ and $T=\tanh(z/4)$ and denoting the $z$-derivative by
+prime, the linearized equilibrium (``adiabatic'')
+Poisson operator for this hole potential can then be written
 \begin{equation}
   \label{eq:1}
   V_a = \left[{d^2\over dz^2} - {dn\over d\phi_0}\right]
@@ -197,10 +200,10 @@ equation becomes
 in which it is convenient to regard $k_\perp^2\equiv\lambda_\perp$ as the
 full eigenvalue. 
 We suppose its solution can be expanded as a sum of scalar
-weights $w_u$ times the eigenmodes of $V_a$, $\ket{u}$:
+amplitudes $a_u$ times the eigenmodes of $V_a$, $\ket{u}$:
 \begin{equation}
   \label{eq:6}
-  \ket{\hat\phi}=\sum_u w_u \ket{u},
+  \ket{\hat\phi}=\sum_u a_u \ket{u},
 \end{equation}
 where the summation notation also includes an integral over the
 continuum modes.
@@ -212,14 +215,14 @@ adiabatic eigenmodes and form the inner product
   \bra{s}|(%-16k_\perp^2+
   V_a+\tilde{V})\ket{\hat\phi}
   = %-16k_\perp^2+
-  \lambda_s\bra{s}\ket{s}w_s+\sum_u\bra{s}|\tilde{V}\ket{u}w_u,
+  \lambda_s\bra{s}\ket{s}a_s+\sum_u\bra{s}|\tilde{V}\ket{u}a_u,
 \end{equation}
-which must be equal to $\lambda_\perp\bra{s}\ket{s}w_s$ to satisfy eq.\ \ref{eq:5}.
+which must be equal to $\lambda_\perp\bra{s}\ket{s}a_s$ to satisfy eq.\ \ref{eq:5}.
 In particular, choosing the predominant mode $\bra{4}|$ for
 $\bra{s}|$, for which $\lambda_4=0$, we get an eigenvalue equation
-$0=(\lambda_4-\lambda_\perp)\bra{4}\ket{4}w_4+\sum_u\bra{4}|\tilde{V}\ket{u}w_u$.
+$0=(\lambda_4-\lambda_\perp)\bra{4}\ket{4}a_4+\sum_u\bra{4}|\tilde{V}\ket{u}a_u$.
 
-If all the weights $w_u$ for $u\not=4$ are negligible, then
+If all the amplitudes $a_u$ for $u\not=4$ are negligible, then
 $\tilde{V}$ contributes a correction ($\lambda_{4}^{(1)}$) to the eigenvalue
 \begin{equation}
   \label{eq:8}
@@ -244,7 +247,7 @@ determines the stability of the hole. This approximation has been
 extensively pursued in recent publications[] and yielded stability results
 that are in reasonable (but not perfect) agreement with simulation.
 The question at hand is whether analysis can determine approximately
-the magnitude of the other coefficients $w_u$ for $u\not=4$, and
+the magnitude of the other coefficients $a_u$ for $u\not=4$, and
 therefore give a more accurate perturbation structure $\ket{\hat\phi}$
 and $\omega$.
 
@@ -252,14 +255,14 @@ If instead of the approximation (\ref{eq:8}), we are able to evaluate all the
 matrix coefficients $\bra{s}|\tilde{V}\ket{u}$ then in principle we can regard eq.\
 (\ref{eq:7}) instead of (\ref{eq:8}), as a matrix eigen-system we must
 solve to find the $\omega$ that permits a non-zero solution for the
-vector $w_u$. The off-diagonal matrix entries $s\not=u$ are the
+vector $a_u$. The off-diagonal matrix entries $s\not=u$ are the
 coupling of the potential modes by the non-adiabatic Vlasov operator
 $\tilde{V}$.  The condition for the existence of a solution is that the
 determinant of the matrix
 $[(-\lambda_\perp+\lambda_s)\bra{s}\ket{s}\delta_{su}+\bra{s}|\tilde{V}\ket{u}]$ should
 be zero. A possible iterative scheme might consist of finding its
 eigenvalues, and adjusting $\omega$ until the eigenvalue for which
-$w_4$ is predominant over the other coefficients becomes zero.
+$a_4$ is predominant over the other coefficients becomes zero.
 
 Such a program faces formidable practical challenges, however, because
 each evaluation of $\tilde{V}\ket{u}$, requires a computation involving
@@ -271,28 +274,28 @@ we require this number to be reduced! Also, continuum modes $\ket{p}$
 extend to $|z|=\infty$: an integration range that for computation
 needs to be reduced.
 
-Formally, any mode for which $\tilde{V}\ket{u}w_u$ is not small
+Formally, any mode for which $\tilde{V}\ket{u}a_u$ is not negligible
 must be retained in the sum of $\bra{s}|\tilde{V}\ket{u}$ in eq.\
 \ref{eq:7}, giving for the dominant mode
 \begin{equation}
   \label{eq:9}
-  0=(\lambda_4-\lambda_\perp)\bra{4}\ket{4}w_4+\bra{4}|\tilde{V}\ket{4}w_4+\sum_{u\not=4}\bra{4}|\tilde{V}\ket{u}w_u,
+  0=(\lambda_4-\lambda_\perp)\bra{4}\ket{4}a_4+\bra{4}|\tilde{V}\ket{4}a_4+\sum_{u\not=4}\bra{4}|\tilde{V}\ket{u}a_u,
 \end{equation}
 but also for $s\not=4$
 \begin{equation}
   \label{eq:10}
- 0=(\lambda_s-\lambda_\perp)\bra{s}\ket{s}w_s+\bra{s}|\tilde{V}\ket{4}w_4+\sum_{u\not=4}\bra{s}|\tilde{V}\ket{u}w_s.
+ 0=(\lambda_s-\lambda_\perp)\bra{s}\ket{s}a_s+\bra{s}|\tilde{V}\ket{4}a_4+\sum_{u\not=4}\bra{s}|\tilde{V}\ket{u}a_s.
 \end{equation}
 
 
 The well known approach of time-independent perturbation theory in
 elementary quantum mechanics (e.g.[] Dirac Section 43) regards $\tilde{V}$ as
-systematically small, and takes $w_s$ for $s\not=4$ also to be first
-order small relative to $w_4$. The first order approximation of eq.\
+systematically small, and takes $a_s$ for $s\not=4$ also to be first
+order small relative to $a_4$. The first order approximation of eq.\
 \ref{eq:10} then drops the final sum term, giving
 \begin{equation}
   \label{eq:11}
-  w_s = {\bra{s}|\tilde{V}\ket{4}w_4\over (\lambda_\perp-\lambda_s)\bra{s}\ket{s}}.
+  a_s = {\bra{s}|\tilde{V}\ket{4}a_4\over (\lambda_\perp-\lambda_s)\bra{s}\ket{s}}.
 \end{equation}
 Substituting back (with $s\to u$) into eq.\ \ref{eq:9}, the
 eigenvalue to second order is
@@ -310,11 +313,13 @@ $\lambda_\perp$ to be given and $\omega$ to be changed to achieve
 equality in this equation.
 
 Equations (\ref{eq:11}) and (\ref{eq:12}) apply fully for coupled
-discrete modes $\ket{j}$, giving the first order mode amplitude and
-second order eigenvalue correction from them.  However, in our case,
-for the continuum modes, $\tilde{V}$ is not systematically small
-everywhere, and an altered approach appropriate to the actual form of
-$\tilde{V}$ must be adopted.
+discrete modes $\ket{j}$ when the amplitudes $a_u\bra{u}\ket{u}$
+for $u\not=4$ are small compared with $a_4\bra{4}\ket{4}$. Those
+equations give the first order mode amplitude and second order
+eigenvalue correction from them.  However, in our case, for the
+continuum modes, $\tilde{V}$ is not systematically small everywhere,
+and an altered approach appropriate to the actual form of $\tilde{V}$
+must be adopted.
 
 
 \section{Calculating the Eigenmode coefficients}
@@ -359,8 +364,8 @@ $\tilde n_m(z)=\int \tilde f_m dv$. Eliding the $t$ and $y$-dependence
 as implicit, we have
 \begin{equation}
   \label{eq:13}
-\tilde  n_m=\tilde{V}_{m}\ket{\hat\phi}=\tilde{V}_{m}\sum_u w_u\ket{u}=\int \sum_u w_u
-  \tilde f_{um} dv=\sum_u w_u \tilde n_{um},
+\tilde  n_m=\tilde{V}_{m}\ket{\hat\phi}=\tilde{V}_{m}\sum_u a_u\ket{u}=\int \sum_u a_u
+  \tilde f_{um} dv=\sum_u a_u \tilde n_{um},
 \end{equation}
 where $\tilde f_{um}$ denotes $\tilde f_m$ with
 $\ket{\hat\phi}=\ket{u}$ substituted in eq. (\ref{eq:ftmagnetic}), and
@@ -383,7 +388,7 @@ normalized continuum modes (taking them to be antisymmetrically
 outward propagating) are
 \begin{equation}
   \label{eq:14}
- \ket{w_p}= \ket{p}=A\etothe{ip|z/4|}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
+ \ket{a_p}= \ket{p}=A\etothe{ip|z/4|}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
       [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|z/4|},
 \end{equation}
 where $\sigma_z={\rm sign}(z)$. Thus they are purely sinusoidal
@@ -442,8 +447,8 @@ $(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
   z/v}\etothe{-v^2/2}dv$.  It has its first $z$-zero near
 $\omega_m z=1$. Thus, the density influence of the localized hole
 perturbation extends approximately a normalized distance
-$z_l\simeq 1/\omega_m$ (dimensionally
-$z_l\simeq \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
+$z_l\sim 1/\omega_m$ (dimensionally
+$z_l\sim \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
 attenuated further away. At $z>z_l$, moreover, the outward going
 contribution to $\tilde n$ is increasingly contributed by the spatial
 range $[z-z_l,z]$, and merges into being given by the same integral as
@@ -452,7 +457,7 @@ outward going velocities are given approximately by integrating $dv$
 the same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite
 sign.
 
-The importance of the non-adiabatic response in the wave region can be
+The magnitude of the non-adiabatic response in the wave region can be
 understood intuitively by recognizing that the criterion for ignoring
 Landau (or cyclotron) damping, $\omega_m/k\gg v_{te}$, is equivalent
 to saying that the explicit \emph{time} dependence at the particle
@@ -478,16 +483,17 @@ quantity $k_\parallel v/\omega_m$ and substituting into eq.\
     \left({k_\parallel v\over\omega_m}\right)^2+\dots\right]
   \Big/(-i\omega_m).
 \end{equation}
-Setting aside the complexities of the cyclotron harmonic expansion
-for the moment, if $m=0$ is all we need, the first (constant) term in
-the expansion exactly cancels the adiabatic term
-$q_eA{\partial f_{\parallel0}/\partial W_\parallel}$. The next
-term (first-order) integrates to zero over the parallel velocity
+Setting aside the complexities of the cyclotron harmonic expansion for
+the moment, if $m=0$ is all we need, the first (constant) term in the
+expansion exactly cancels the adiabatic term
+$q_eA{\partial f_{\parallel0}/\partial W_\parallel}$. The next term
+(first-order) integrates to zero over the parallel velocity
 distribution because of its velocity parity. The density change
 associated with the magnetized Langmuir wave arises from the
-\emph{second order} term in the Taylor expansion. The total Vlasov term
-$\tilde{V}\ket{p}$ is the same magnitude as the adiabatic term $V_a\ket{p}$
-outside the hole, and cannot be ordered as ignorable there.
+\emph{second order} term in the Taylor expansion. The total
+non-adiabatic Vlasov term $\tilde{V}\ket{p}$ has the same magnitude as
+the adiabatic term $V_a\ket{p}$ outside the hole, and cannot be
+ordered as ignorable there.
 
 Instead though, the non-adiabatic density in the wave-like external region
 becomes the potential there ($\ket{p}$) multiplied by a function of
@@ -523,52 +529,52 @@ Now we discuss mathematically how the concepts just introduced
 intuitively are implemented.  Using $s\to q$ to observe our notation
 for continuum modes, and supposing them to be normalized
 ($\bra{q}\ket{p}=\delta_{qp}$), we write eq.\ \ref{eq:10} explicitly
-as an integral $w_pdp$ over a weight distribution function $w_p$
+as an integral $a_pdp$ over an amplitude distribution function $a_p$
 rather than a sum:
 \begin{equation}
   \label{continw}
-  0=(\lambda_q-\lambda_\perp)w_q+\bra{q}|\tilde{V}\ket{4}w_4
-  +\int\bra{q}|\tilde{V}\ket{p}w_pdp.
+  0=(\lambda_q-\lambda_\perp)a_q+\bra{q}|\tilde{V}\ket{4}a_4
+  +\int\bra{q}|\tilde{V}\ket{p}a_pdp.
 \end{equation}
 The adiabatic term is the first, which for normalized modes is
 \begin{equation}
   \label{eq:contadiab}
-  \int\bra{q}|V_a-\lambda_\perp\ket{p}w_pdp = \int
-  (\lambda_p-\lambda_\perp)\delta_{qp}w_pdp = (\lambda_q-\lambda_\perp)w_q.
+  \int\bra{q}|V_a-\lambda_\perp\ket{p}a_pdp = \int
+  (\lambda_p-\lambda_\perp)\delta_{qp}a_pdp = (\lambda_q-\lambda_\perp)a_q.
 \end{equation}
-The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}w_4$ plus the
+The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}a_4$ plus the
 continuum integral
 \begin{equation}
   \label{eq:18}
-  \int \bra{q}|\tilde{V}\ket{p}w_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp
-  =\tilde{V}_{w}w_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp.
+  \int \bra{q}|\tilde{V}\ket{p}a_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp
+  =\tilde{V}_{w}a_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp.
 \end{equation}
 As can be seen in Fig. \ref{modeplots}, the form of the continuum
 modes in the inner region is almost independent of $p$. Actually for
 small $p$, which is our interest here, the differences are even
 smaller than that figure shows. Therefore, to that degree of
 approximation, we can replace $\ket{p}$ with $\ket{q}$ in the final
-term giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}w_pdp\simeq
-\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int w_pdp$, and yielding the
+term giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp\simeq
+\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp$, and yielding the
 equation
 \begin{equation}
   \label{eq:21}
-  (\lambda_\perp-\lambda_q-\tilde V_w)w_q= \bra{q}|\tilde{V}\ket{4}w_4
-  +\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int w_pdp.
+  (\lambda_\perp-\lambda_q-\tilde V_w)a_q= \bra{q}|\tilde{V}\ket{4}a_4
+  +\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp.
 \end{equation}
-If $\int w_pdp$ is sufficiently small compared with $w_4$, the final
+If $\int a_pdp$ is sufficiently small compared with $a_4$, the final
 term can be ignored.  If, however, the term cannot be dropped, it has
 weak dependence on $q$ locally, depending only on the integral
-$\int w_pdp$. Let us for brevity denote it in eq.\ (\ref{eq:21}) as
-$G$. The value of $w_q$ by contrast has resonant dependence on $q$
+$\int a_pdp$. Let us for brevity denote it in eq.\ (\ref{eq:21}) as
+$G$. The value of $a_q$ by contrast has resonant dependence on $q$
 (i.e.\ on $k_\parallel$),
 giving
 \begin{equation}
   \label{eq:resonance}
-  w_q = {\bra{q}|\tilde{V}\ket{4}w_4+G\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
-  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over
+  a_q = {\bra{q}|\tilde{V}\ket{4}a_4+G\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
+  ={\bra{q}|\tilde{V}\ket{4}a_4+G\over
     (k_\perp^2+k_\parallel^2+1-\tilde V_w) },
-%  ={\bra{q}|\tilde{V}\ket{4}w_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
+%  ={\bra{q}|\tilde{V}\ket{4}a_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
 \end{equation}
 using eq.\ (\ref{eq:3}) $\lambda_q=-q^2/16-1=-k_\parallel^2-1$ and
 $\lambda_\perp=k_\perp^2$.
@@ -591,10 +597,10 @@ The denominator is zero when $q^2=q_0^2$ which is the approximate
 dispersion relation of the wave in a uniform plasma. It is equal to the cold
 plasma expression (\ref{eq:15}) when $T_\perp/T_\parallel=1$.
 
-In view of the resonant form of the expression for $w_q$, we can regard the
-integral over this resonance $\int w_q dq$ as quantifying the total
-continuum perturbation.  The integral $dq$ of the expression for $w_q$
-just found (\ref{eq:resonance}) encounters the two poles of $w_q$ at
+In view of the resonant form of the expression for $a_q$, we can regard the
+integral over this resonance $\int a_q dq$ as quantifying the total
+continuum perturbation.  The integral $dq$ of the expression for $a_q$
+just found (\ref{eq:resonance}) encounters the two poles of $a_q$ at
 $q=\pm q_0$.
 % =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
 Near them the real part of the denominator becomes small. Its
@@ -609,8 +615,8 @@ plane ($\Im(q)$ positive) where the eigenmode tends
 to zero. Its value is then just $2\pi i$ times the residue at the positive $q_0$ pole.
 \begin{equation}
   \label{poles}
-  \int w_q dq 
-  ={2\pi i(\bra{q_0}|\tilde{V}\ket{4}w_4+G)
+  \int a_q dq 
+  ={2\pi i(\bra{q_0}|\tilde{V}\ket{4}a_4+G)
     \over
     -2q_{0}(1/\omega^2-1)/4^2}.
 \end{equation}
@@ -635,12 +641,12 @@ along $+i\infty$ and setting the closed contour integral equal to
 $2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
 \begin{equation}
   \label{poles}
-  \int w_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
-    +\bra{-q_{0r}}|\tilde{V}\ket{4})w_4+2G
+  \int a_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
+    +\bra{-q_{0r}}|\tilde{V}\ket{4})a_4+2G
     \over
     2q_{0r}(1/\omega^2-1)/4^2
   }
-  =\sum_{q=\pm q_{0r}}{-i4\pi(\bra{q}|\tilde{V}\ket{4}w_4+G)
+  =\sum_{q=\pm q_{0r}}{-i4\pi(\bra{q}|\tilde{V}\ket{4}a_4+G)
     \over
     2q_{0r}(1/\omega^2-1)/4^2}.
 \end{equation}
@@ -649,8 +655,8 @@ Taking the $G$ term to the left hand side and reinserting its definition, we get
 \begin{equation}
   \label{eq:22}
   \left(1+{i2\pi \bra{q_{0}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0}}\over
-      2q_{0}(1/\omega^2-1)/4^2}\right)\int w_pdp
-  ={-i2\pi\bra{q_0}|\tilde{V}\ket{4}w_4
+      2q_{0}(1/\omega^2-1)/4^2}\right)\int a_pdp
+  ={-i2\pi\bra{q_0}|\tilde{V}\ket{4}a_4
     \over
     2q_{0}(1/\omega^2-1)/4^2}.
 \end{equation}
@@ -666,7 +672,7 @@ be written
 This analysis thus shows that the entire influence of the continuum
 can (for given $\omega$ and $k_\perp$) be approximated by a single
 parallel wavenumber $k_\parallel= q_{0}/4$ continuum mode, having an
-amplitude $\int w_p dp$ given by eq.\ (\ref{eq:22}).
+amplitude $\int a_p dp$ given by eq.\ (\ref{eq:22}).
 
 The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
 becomes
@@ -714,7 +720,7 @@ resultant frequency spread exceeds $\sim\omega$ for the whistler mode
 contribution itself is then suppressed, and it is reasonable to ignore
 coupling to the continuum modes.
 
-\subsection{Numerical evaluation}
+\subsection{Numerical evaluation Probably Obsolete}
 
 The terms in the dispersion relation (\ref{eigtotal}) contain inner
 products of the form $\bra{s}|\tilde V\ket{u}$ that must be evaluated
@@ -762,29 +768,29 @@ given by \ref{eq:24}. This difference illustrates physics, not an
 error. A related feature is that $\tilde n_q$ and $\tilde n_w$ require
 a non-zero value of the prior time integral $\Phi_m$ (e.q.\
 \ref{eq:phim}) to be prescribed at the left-hand edge of the inner
-region ($z=-z_m=-20$ in this illustration) representing the integral
-along the past orbit from $z=-\infty$ to $-z_m$. This value is supplied
+region ($z=-z_j=-20$ in this illustration) representing the integral
+along the past orbit from $z=-\infty$ to $-z_j$. This value is supplied
 by eq.\ \ref{eq:16} for inward-propagating orbits:
 $\ket{q_0}/i(-k_\parallel v -\omega)$ and is not exactly antisymmetric
-with the outward moving values at $+z_m=20$. Denoting pedantically for
+with the outward moving values at $+z_j=20$. Denoting pedantically for
 a moment the plotted densities, which use only positive velocities, as
 $\tilde n_+$, the densities including the total velocity distribution
 (positive and negative) are given by the antisymmetrizing sum
 $\tilde n_{total}(z)=\tilde n_+(z)-\tilde n_+(-z)$. The external
-values of $\tilde n_+$ at $|z|>z_m$ are not needed for inner products
+values of $\tilde n_+$ at $|z|>z_j$ are not needed for inner products
 with discrete modes such as $\bra{4}|\tilde V\ket{q_0}$ because they
 ($\bra{j}|$) are zero there. The antisymmetry of $\bra{j}|$ then means
 we can simply double the inner products found using only
 positive-velocity orbits to obtain the total.
 
 Inner products with continuum modes $\bra{q_0}|$, however, require
-integration for the external region $z_m<|z|$ (up to $\sim 450$ in
+integration for the external region $z_j<|z|$ (shown up to $\sim 450$ in
 Fig.\ \ref{externfig}). Discrete mode external density, e.g.\
 $\tilde V \ket{4}$, arises only from outgoing orbits, not incoming, so
 the outgoing calculation for $\bra{q_0}|\tilde V\ket{4}$ need not be
 doubled to account for both velocity signs, only to represent the
 positive and negative $z$-ranges, since we integrate only over
-$z>+z_m$. Incoming velocity density for continuum modes is not
+$z>+z_j$. Incoming velocity orbits' density for continuum modes is not
 negligible, but can accurately be taken as the wave value evaluated
 with incoming sign (${\rm sign}(k_\parallel v)=-1$) in the factor
 $(k_\parallel v-\omega)$.  \iffalse Thus, incoming density in the
@@ -815,6 +821,161 @@ eq.\ (\ref{eq:24}) multiplying $\ket{q_0}$. That excludes any resonances
 between bounce frequency and higher-$m$ cyclotron harmonics. The other
 $\tilde V\ket{4}$, $\tilde V\ket{2}$, $\tilde V\ket{q_0}$, calculations
 simply substitute $\omega_m$ for $\omega$.
+
+\subsection{External Analytic Integration}
+
+In the external region $|z|>z_j$, the prior integral $\Phi$ giving
+$\tilde f$ for modes $\ket{4}$ and $\ket{q_0}$ is non-zero for outward
+moving orbits. We focus for definiteness on $z>z_j$ and positive $v$.
+For inward moving orbits, by contrast, $\tilde f$ is zero externally for the
+operations $\tilde V\ket{4}$ and $(\tilde V -\tilde
+V_w)\ket{q_0}$. Consequently, the external contribution to the forces
+$\bra{q_0}|\tilde V \ket{4}$ and $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$
+arises from the external integration $\int_{z_j}^\infty q_0^*(z) \Phi(z)
+dz$ for outward orbits only.
+
+In the external region, the velocity is constant; so for $\ket{4}$,
+which has zero perturbed potential there, $\Phi$ is a simple time
+delay factor times its value at the join between internal and external
+regions $\Phi(z_j)$:
+\begin{equation}
+  \label{phi4}
+  \Phi_{\ket{4}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{4}}(z_j).
+\end{equation}
+The corresponding expression for the continuum mode, which has
+non-zero external potential, may be
+found by substituting the wave expression \ref{eq:14} for  $\ket{q_0}$
+which can be integrated analytically to give an extra term, arriving
+at 
+\begin{equation}
+  \label{phiq}
+  \Phi_{\ket{q_0}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{q_0}}(z_j)
+  +{A\etothe{ik_\parallel z_j}\over i(k_\parallel v-\omega_m)}[\etothe{ik_\parallel(z-z_j)}
+  -\etothe{i\omega_m(z-z_j)/v}].
+\end{equation}
+Recalling that the wave operator is simply constant, its external
+contribution to $\Phi_{\ket{w}}$ for a particular positive velocity is
+${A\etothe{ik_\parallel z}\over i(k_\parallel v-\omega_m)}$, which
+exactly cancels the first term in the square bracket of
+$\Phi_{\ket{q_0}}(z)$. Such cancellation is essential to produce a
+finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence, for
+$(\tilde V -\tilde V_w)\ket{q_0}$,
+\begin{equation}
+  \label{phidiff}
+  \Phi_{\ket{q_0-w}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{q_0}}(z_j)
+  %-\Phi_{w}(z_j)]
+  -{A\etothe{ik_\parallel z_j}\over i(k_\parallel v-\omega_m)}
+  \etothe{i\omega_m(z-z_j)/v}.
+\end{equation}
+To obtain the total external force we can carry out the inner product
+$z$-integration analytically as
+\begin{equation}
+  \label{extforce}
+  \int_{z_j}^\infty q_0^*(z) \Phi_u(z)  dz =
+  {A^*\Phi_u(z_j)\etothe{-ik_\parallel z_j}\over i(k_\parallel  v-\omega_m)}
+  \left[+ {|A|^2v\over (k_\parallel v-\omega_m)^2}\right],
+\end{equation}
+where $\Phi_u$ refers to the ``ket'' mode (4 or $q_0-w$ or for that
+matter 2) and the $|A|^2$ term is present only if we are constructing
+$\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$. This force quantity is
+multiplied by the extra weighting factors in equation
+(\ref{eq:ftmagnetic}) and integrated (numerically) over parallel
+velocity so as to produce the total inner product. Because the
+integration is carried out only for positive $z$, the result must be
+doubled to account for force exerted at negative $z$ (assuming
+velocity symmetry of $f_0(v)$). The sum over relevant cyclotron
+harmonics must also be carried out.
+
+\section{Complete matrix formulation (Optional)}
+
+Proceeding with no assumption about the size of cross coupling of secondary
+modes, the eigenmode equation inner product with mode $\bra{s}|$ gives
+\begin{equation}
+  \label{eigengen}
+  0=(\lambda_s-\lambda_\perp)\bra{s}\ket{s}a_s+\sum_j\bra{s}|\tilde{V}\ket{j}a_j
++\int\bra{s}|\tilde{V}\ket{p}a_pdp.
+\end{equation}
+We apply this equation for the three modes $s=4,2,q$. First for the
+continuum mode ($\bra{s}|=\bra{q}|$) in the form,
+\begin{equation}
+  \label{eigq}
+  (-\lambda_q+\lambda_\perp-V_w)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
++\bra{q}|\tilde V-\tilde V_w\ket{q}\int a_pdp,
+\end{equation}
+which we integrate $dq$, recognizing the approximate independence of
+the the right hand side of $q$ to find
+\begin{equation}
+  \label{eigqint}
+  \int a_q dq =\int {dq\over \lambda_\perp-\lambda_q-V_w}
+  \left(\sum_j\bra{q}|\tilde{V}\ket{j}a_j
++\bra{q}|\tilde V-\tilde V_w\ket{q}\int a_pdp \right).
+\end{equation}
+Thus, writing the resonant integral
+$\int {dq\over \lambda_\perp-\lambda_q-V_w}=1/K$, where
+$K\simeq-(1/\omega^2-1)q_0/(16\pi i) $, and substituting elsewhere the
+value $q=q_0$ at the integrand's pole, we have
+\begin{equation}
+  \label{eigqint2}
+  (K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})\int a_pdp = \sum_j\bra{q_0}|\tilde{V}\ket{j}a_j.
+\end{equation}
+Using again the approximation that over the resonance
+$\bra{j}|\tilde V\ket{p}$ can be regarded as independent of $p$, the
+discrete modes then satisfy, for $l=4,2$,
+\begin{equation}
+  \label{eigenl}
+  (\lambda_\perp-\lambda_l)a_l=\sum_j\bra{l}|\tilde{V}\ket{j}a_j
+  +\int\bra{l}|\tilde{V}\ket{p}a_pdp
+  =\sum_j\bra{l}|\tilde{V}\ket{j}a_j
+  +\bra{l}|\tilde{V}\ket{q_0}\int a_pdp.
+\end{equation}
+Regarding the coefficients of the three modes 4,2,$q_0$ as composing a
+column 3-vector whose transpose is
+\begin{equation}
+  \label{avector}
+  \a^T=(a_4,a_2,\int a_pdp),
+\end{equation}
+the three relations in \ref{eigqint2} and \ref{eigenl} can be
+considered a matrix equation $\M\a=0$, where
+\begin{equation}
+  \label{aveq}
+  \M=\left[
+  \begin{array}{ccc}
+    \lambda_4-\lambda_\perp+\bra{4}|\tilde V\ket{4}
+    &\bra{4}|\tilde V\ket{2}&\bra{4}|\tilde V\ket{q_0}\\
+    \bra{2}|\tilde V\ket{4}
+    &\lambda_2-\lambda_\perp+\bra{2}|\tilde
+      V\ket{2}&\bra{2}|\tilde V\ket{q_0}\\
+    \bra{q_0}|\tilde V\ket{4}
+    &\bra{q_0}|\tilde V\ket{2}&-(K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})
+  \end{array}\right]
+\iffalse
+\left[
+  \begin{array}{c}
+    a_4\\
+    a_2\\
+    \int a_pdp
+  \end{array}\right]=0.
+\fi.
+\end{equation}
+The complex determinant $||\M||$ must be zero for a non-trivial
+solution, and if $\omega$ is iterated until $||\M||=0$, the value
+found will be the corresponding mode frequency, and the mode structure
+will be given by the solution of $\M\a=0$. It is likely there are
+multiple solutions, and one would like to ensure the correct one is
+found. A possible approach might be to start at the $\omega$ that
+satisfies the equation of a single $\ket{4}$ mode, namely that the top
+left coefficient is zero:
+$\lambda_4-\lambda_\perp+\bra{4}|\tilde V\ket{4}=0$.  The approach of
+contouring the real and imaginary parts of the force
+$\bra{4}|\tilde V\ket{4}-\lambda_\perp$ in the parameter ranges of
+interest could also be adopted, except that for the full system one
+should contour $||\M||$.
+
+The ordered perturbative approximations found in prior sections correspond,
+in this formulation, to neglecting $\bra{2}|\tilde V\ket{q_0}$,
+$\bra{q_0}|\tilde V\ket{2}$ and $\bra{2}|\tilde V\ket{2}$; then
+determining $a_2/a_4$ from the second row, and $\int a_pdp/a_4$ from the third
+row.
 
 \end{document}
 

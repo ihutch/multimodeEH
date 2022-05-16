@@ -86,7 +86,7 @@ module shiftgen
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fnonraux,Fauxres
-  complex :: Fextqq,Fextqw,Fintqq,Fintqw
+  complex :: Fextqq,Fextqw,Fintqq,Fintqw,Fextqqwanal
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
 ! Total forces
@@ -359,6 +359,7 @@ contains
     Ftp=0.
     Fextqq=0.
     Fextqw=0.
+    Fextqqwanal=0.
     dentpass=0.
     dentext=0.
     denqext=0.
@@ -440,7 +441,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgAttractEint(Ftotalg,isigma)
     complex Ftotalg
-    Emaxg=4.*Tinf+vshift**2
+    Emaxg=6.*Tinf+vshift**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
     if(naux.ge.2.and.zdent(nzd).ne.0.and.ldentaddp)then
        call pltend
@@ -572,6 +573,7 @@ contains
     complex :: CP,CPprior,CPfactor,dfweight,temp
     complex :: CQ,CQprior,CW,CWprior,dvdfw
     complex :: Fexti,Fextqqi,Fextqwi
+    complex :: Fextanal,Fextqanal,Amp
     call makezext
     vi=sqrt(2.*Wgi)
     dze=abs(zext(1)-zext(0))
@@ -609,17 +611,61 @@ contains
        Fextqqi=Fextqqi+temp
        CQprior=CQ
 
-       CW=auxext(i)/(sqm1g*(kpar*vg(ngz)-omegag))
+       CW=auxext(i)/(sqm1g*(kpar*vi-omegag))
        CapQw(i)=CW
-       denqw(i)=denqw(i)+dvdfw*CW
+       denqw(i)=denqw(i)+CW*dvdfw
        temp=0.5*(conjg(auxext(i-1))*CWprior+conjg(auxext(i))*CW)*dze*dvdfw
        Fextqw=Fextqw+temp
        Fextqwi=Fextqwi+temp
        CWprior=CW
     enddo
+! Analytic comparison:
+    p=4.*kpar
+    p2=p**2
+    fn=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
+    Pk= -15*(p2**2 - 15*p2 + 8)
+    Qk= p2**2 - 85*p2 + 274
+    Amp=(Pk+complex(0.,p)*Qk)/fn
+    Fextanal=conjg(Amp)*CapPext(0)*dvdfw*exp(-sqm1g*kpar*zext(0))&
+         /(sqm1g*(kpar-omegag/vi))
+    Fextqanal=conjg(Amp)*CapQext(0)*dvdfw*exp(-sqm1g*kpar*zext(0))&
+         /(sqm1g*(kpar-omegag/vi))&
+         +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
+!    write(*,'(f8.4,6g12.4)')Wgi,Fexti,Fextanal,(Fexti/Fextanal)
+!    write(*,'(f8.4,6g12.4)')Wgi,abs(Fexti),abs(Fextanal),(Fexti/Fextanal)
+!    write(*,'(f8.4,6g12.4)')Wgi,Fextqqi-Fextqwi,Fextqanal&
+!         ,(Fextqqi-Fextqwi)/Fextqanal
+    Fextqqwanal=Fextqqwanal+Fextqanal
     Ftauxp(2,1)=Ftauxp(2,1)+Fexti
     Ftauxp(2,3)=Ftauxp(2,3)+Fextqqi
   end subroutine Fextern
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine Fextern2(Wgi,isigma,dvinf,dfweight)
+! Revised Fextern that calculates analytically the external forces
+    real :: Wgi
+!    complex :: CP,CPprior,CPfactor,dfweight,temp
+!    complex :: CQ,CQprior,CW,CWprior,dvdfw
+!    complex :: Fexti,Fextqqi,Fextqwi
+    complex :: Fextanal,Fextqanal,Amp,dvdfw,dfweight
+
+    vi=sqrt(2.*Wgi)
+    dvdfw=dvinf*dfweight*sqm1g
+    p=4.*kpar
+    p2=p**2
+    fn=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
+    Pk= -15*(p2**2 - 15*p2 + 8)
+    Qk= p2**2 - 85*p2 + 274
+    Amp=(Pk+complex(0.,p)*Qk)/fn
+    Fextanal=conjg(Amp)*CapPhig(ngz)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+         /(sqm1g*(kpar-omegag/vi))
+    Fextqanal=conjg(Amp)*CapPaux(ngz,2)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+         /(sqm1g*(kpar-omegag/vi))&
+         +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
+    Fextqqwanal=Fextqqwanal+Fextqanal
+    Ftauxp(2,1)=Ftauxp(2,1)+Fextanal
+    Ftauxp(2,3)=Ftauxp(2,3)+Fextqanal
+
+  end subroutine Fextern2    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine SumHarmonicsg(isigma)
