@@ -528,13 +528,24 @@ subroutine testdenem
   do i=1,nvs
      vrshift=i*vsmax/nvs
      vs(i)=vrshift
-     call dfefac(denem(i))
+     call dfefac(denem(i),psig,vrshift)
   enddo
   call autoplot(vs,denem,nvs)
   call axlabels('vshift','fefac')
   write(*,'(''Factor by which dfe trapped is multiplied for psi='',f8.3)')psig
   call pltend
 end subroutine testdenem
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine dfefac(dfeval,psig,vrshift)  ! Testing only. Inline in module.
+! Correct the dfedW value approximately for the alteration of trapped
+! equilibrium distribution caused by ion density perturbation.
+    real, parameter :: ri=1.4
+    vsx=1.3+0.2*psig
+    vsa=vrshift
+    denem1=(-1.+(vsa/vsx)**ri) /(1.+0.25*psig+vsa**2*(vsa/(vsx +(3.3&
+         &/vsa)**1.5))**ri)
+    dfeval=dfeval*(1-denem1)
+  end subroutine dfefac
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine plotmodes
   use shiftgen

@@ -43,19 +43,22 @@
 ! naux (1 or 2) determines the number of auxiliary modes used.
 ! 1 gives just the other discrete mode, and 2 adds the continuum.
 ! Inner products should be only for Fattract (presumably electrons). 
+! shift3mode version started 16 May 2022.
 
 module shiftgen
-  complex :: omegag=(1.,0.),sqm1g=(0.,1.),Ftot,dFordirect
+  complex :: omegag=(1.,0.),Ftot
   complex :: omegadiff,omegaonly,Vw
-  real :: psig=.1,Wg,zm=29.9,v0,z0,z1,z2,zR,kg=0.,Omegacg=5.
+  real :: psig=.1,Wg,zm=29.9,Omegacg=5.,kg=0.
   real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
-  real :: Tinf=1.,Tperpg=1.,Torepel=1.,f4norm
+  real :: Tinf=1.,Tperpg=1.,Torepel=1.
 ! Tinf is really the reference (attracted). 
 ! Torepel the other/repelled species tempr.
-  integer :: ivs,iws
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
-  integer :: iwpowg=3,ippow=3,nharmonicsg
+  real :: v0,z0,z1,z2,zR,f4norm
+  real :: rmime=1836. ! Ratio of mass of ion to mass of electron
   real,parameter :: pig=3.1415926
+  complex, parameter :: sqm1g=(0.,1.)
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
+  integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
   integer, parameter :: nauxmax=2,ndir=3
   integer :: naux=0
 ! Spatial Arrays
@@ -70,18 +73,16 @@ module shiftgen
   complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
   complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real :: kpar
-!  real :: zextfac=3.5  ! Much too small.
   real :: zextfac=30.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
   complex, dimension(0:nzext) :: CapQw,denqw
   complex :: qqext
 ! Parallel energy arrays
-  complex, dimension(0:nge) :: omegabg
+  complex, dimension(0:nge) :: omegabg, Fnonresg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
-  complex, dimension(0:nge):: Fnonresg
 !   Auxiliary Forces as a function of parallel energy/velocity.
   complex, dimension(nauxmax,ndir,nge) :: Fauxarray,Fauxp
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
@@ -92,16 +93,12 @@ module shiftgen
 ! Total forces
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
-!   Total auxiliary forces 
-!   Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
+! Aux Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nauxmax,ndir) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
-! Ratio of mass of ion to mass of electron
-  real :: rmime=1836.
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
   logical :: ldentaddp=.false.,ltrapaddp=.false.
   logical :: lstepbench=.false.
-  real :: analdiff 
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)
@@ -556,6 +553,33 @@ contains
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine pathshiftg(i,obi)
+! Calculate the required shift of the omegabg path below the real axis
+! for this ith energy mesh value, assuming the previous omegabg(i-1)
+! is known.
+    real :: obi
+    integer :: el,ielsign
+    real :: doel,doel2,dob
+!    real,parameter :: Sc=4,Rc=2./Sc
+    real,parameter :: Sc=2,Rc=2./Sc   ! Slightly better.
+
+    ! Select the closest odd resonance such that el*omegabg=omegar
+    ielsign=int(sign(1.,real(omegag)))
+    el=(2*int( (abs(real(omegag))/real(omegabg(i))-1)/2. )+1)*ielsign
+    doel=real(omegabg(i))-real(omegag)/el
+    doel2=real(omegabg(i))-real(omegag)/(el+2*ielsign)
+    if(abs(doel2).lt.abs(doel))then
+       el=el+2*ielsign
+       doel=doel2
+    endif
+! Calculate the required omegabg imaginary part, which is that el*obi 
+! must be at least |el|dob/Rc below imag(omegag) if omegabg is closer to
+! the real resonance than Sc times the omegabg step size.
+    dob=real(omegabg(i)-omegabg(i-1))
+    obi=-ielsign*max(0.,dob/Rc-imag(omegag)/abs(el)) &
+         *max(0.,1.-(doel/(Sc*dob))**2)
+  end subroutine pathshiftg
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine FgEint(Ftotalg,isigma)
     complex :: Ftotalg
     if(psig.gt.0)then
@@ -744,6 +768,7 @@ contains
 !    write(*,'(a,8f8.4)')'In Sum=',Ftauxa(1:naux,1:2)/f4norm
   end subroutine SumHarmonicsg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Distribution functions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWpar(vinf,fvinf)
 ! The derivative of the distant distribution func wrt energy W at 
@@ -761,6 +786,8 @@ contains
     dfdWpar=0.5*(-e1*(vinf-vshift)-e2*(vinf+vshift)) &
          &/sign(max(abs(vinf*Tp),1.e-6),vinf)/sqrt(2.*3.1415926*Tp)
   end function dfdWpar
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Hole potential form and trapped distribution
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! If some different form of phi is required. Replace these functions,
 ! e.g. with forms that call functions outside the module. 
@@ -774,8 +801,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   complex function auxofz(zval,iaux,kpar)
     real kpar,p2
-! Auxiliary eigenmodes of the potential, assumed to be sech^4(z/4)
-! z or x normalization?          
+! Eigenmodes of the potential, assumed to be sech^4(z/4) (z-normalized)
     x=zval/4.
     S=1./cosh(x)
     T=tanh(x)
@@ -800,7 +826,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWptrap(Wj,fe)
 ! Return the energy derivative and the parallel distribution function
-! This simple version ignores charge contribution from repelled species.
+! Possibly including contribution from repelled species.
     real, parameter :: ri=1.4
     logical :: lfirst=.true.
     sqWj=sqrt(-Wj)
@@ -846,54 +872,7 @@ end function dfdWptrap
     call pltend
   end subroutine fvinfplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine pathshiftg(i,obi)
-! Calculate the required shift of the omegabg path below the real axis
-! for this ith energy mesh value, assuming the previous omegabg(i-1)
-! is known.
-    real :: obi
-    integer :: el,ielsign
-    real :: doel,doel2,dob
-!    real,parameter :: Sc=4,Rc=2./Sc
-    real,parameter :: Sc=2,Rc=2./Sc   ! Slightly better.
-
-    ! Select the closest odd resonance such that el*omegabg=omegar
-    ielsign=int(sign(1.,real(omegag)))
-    el=(2*int( (abs(real(omegag))/real(omegabg(i))-1)/2. )+1)*ielsign
-    doel=real(omegabg(i))-real(omegag)/el
-    doel2=real(omegabg(i))-real(omegag)/(el+2*ielsign)
-    if(abs(doel2).lt.abs(doel))then
-       el=el+2*ielsign
-       doel=doel2
-    endif
-! Calculate the required omegabg imaginary part, which is that el*obi 
-! must be at least |el|dob/Rc below imag(omegag) if omegabg is closer to
-! the real resonance than Sc times the omegabg step size.
-    dob=real(omegabg(i)-omegabg(i-1))
-    obi=-ielsign*max(0.,dob/Rc-imag(omegag)/abs(el)) &
-         *max(0.,1.-(doel/(Sc*dob))**2)
-  end subroutine pathshiftg
-!****************************************************************
-! This is exp(X^2)*erfc(X)
-  FUNCTION expERFCC(X)
-    Z=ABS(X)      
-    T=1./(1.+0.5*Z)
-    expERFCC=T*EXP(-1.26551223+T*(1.00002368+T*(.37409196+                  &
-         &    T*(.09678418+T*(-.18628806+T*(.27886807+T*(-1.13520398+       &
-         &    T*(1.48851587+T*(-.82215223+T*.17087277)))))))))
-    IF (X.LT.0.) expERFCC=2.*exp(z**2)-expERFCC
-  END FUNCTION expERFCC
-!********************************************************************
-  subroutine dfefac(dfeval)  ! Testing only. Inline above.
-! Correct the dfedW value approximately for the alteration of trapped
-! equilibrium distribution caused by ion density perturbation.
-    real, parameter :: ri=1.4
-    vsx=1.3+0.2*psig
-    vsa=vrshift
-    denem1=(-1.+(vsa/vsx)**ri) /(1.+0.25*psig+vsa**2*(vsa/(vsx +(3.3&
-         &/vsa)**1.5))**ri)
-    dfeval=dfeval*(1-denem1)
-  end subroutine dfefac
+! Routines for density calculation for diagnostics
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentadd(dfweight,dvinf)
     complex :: dfweight
@@ -1317,3 +1296,15 @@ subroutine makezext
 end subroutine makezext
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!! Routines not dependent on shiftgen.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+!****************************************************************
+! This is exp(X^2)*erfc(X)
+  FUNCTION expERFCC(X)
+    Z=ABS(X)      
+    T=1./(1.+0.5*Z)
+    expERFCC=T*EXP(-1.26551223+T*(1.00002368+T*(.37409196+                  &
+         &    T*(.09678418+T*(-.18628806+T*(.27886807+T*(-1.13520398+       &
+         &    T*(1.48851587+T*(-.82215223+T*.17087277)))))))))
+    IF (X.LT.0.) expERFCC=2.*exp(z**2)-expERFCC
+  END FUNCTION expERFCC
+!********************************************************************
