@@ -611,7 +611,6 @@ subroutine plotdent
   lioncorrect=.false.
 !  ldentaddp=.true.   ! dentadd movie
 !  ltrapaddp=.true.   ! trapped movie
-!  lstepbench=.true.  ! Step function benchmark.
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20
@@ -671,7 +670,6 @@ subroutine plotdent
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
           f4norm*F44t/(2.*Ftotalrg)
      write(*,*)
-     if(lstepbench)write(*,*)'|2> is the step benchmark.'
      write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
      write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
      write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm

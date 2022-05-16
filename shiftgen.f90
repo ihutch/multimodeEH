@@ -51,33 +51,28 @@ module shiftgen
   real :: psig=.1,Wg,zm=29.9,Omegacg=5.,kg=0.
   real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.
-! Tinf is really the reference (attracted). 
-! Torepel the other/repelled species tempr.
-  real :: v0,z0,z1,z2,zR,f4norm
+! Tinf is really the reference (attracted). Torepel the repelled species tempr.
+  real :: f4norm
+  real :: zR ! reflection position if any
   real :: rmime=1836. ! Ratio of mass of ion to mass of electron
   real,parameter :: pig=3.1415926
   complex, parameter :: sqm1g=(0.,1.)
   integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
-  integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
   integer, parameter :: nauxmax=2,ndir=3
-  integer :: naux=0
+  integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws, naux=0
+  real :: kpar,zextfac=30.
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
   complex, dimension(-ngz:ngz) :: CapPhig,ft4
+  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux,CapPaux
+  complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
   complex, dimension(-nzd:nzd) :: ft4d,phipd,denstore,denqwintd
-  complex :: dfwtprev=0.
-  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
-  complex, dimension(-ngz:ngz,nauxmax) :: CapPaux
-  complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
-  real :: kpar
-  real :: zextfac=30.
   real, dimension(0:nzext) :: zext
   complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
   complex, dimension(0:nzext) :: CapQw,denqw
-  complex :: qqext
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg, Fnonresg
   complex, dimension(nge) :: Forcegarray,Forcegp,Forcegt,Forcegr
@@ -95,14 +90,20 @@ module shiftgen
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
 ! Aux Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nauxmax,ndir) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt,Ftauxh
+! Mode matrices
+  integer, parameter :: nmdmax=3
+  integer :: nmd=3 ! Default
+  complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
+  complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
+  complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdnonr,Fmdp,FmdofW,FmdpofW  
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
   logical :: ldentaddp=.false.,ltrapaddp=.false.
-  logical :: lstepbench=.false.
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)
     integer :: isigma
+  real :: z0,z1,z2
 ! Calculate the zg mesh, and on it phig, vg, phigprime for an incoming
 ! orbit from z=isigma*zm (v sign -isigma) or trapped orbit from its
 ! isigma end.
@@ -148,46 +149,26 @@ contains
           stop
        endif
     endif
-    do i=0,ngz
+! Construct the modes
+    zg(0)=0.; phig(0)=psig; vg(0)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(0)))
+    do i=1,ngz
        zi=float(i)/ngz
        zg(i)=ivs*(z1+z2*((2.*gK+zi)*zi)/(1.+2.*gK))
-       phig(i)=phigofz(zg(i))
+       zg(-i)=ivs*zg(i)
        vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
-       phigprime(i)=phigprimeofz(zg(i))
-       if(lstepbench)then
-          auxmodes(i,1)=auxofz(zg(i),3,kpar)
-          auxmodes(i,2)=auxofz(zg(i),2,kpar)
-       else
-          do j=1,naux
-             auxmodes(i,j)=auxofz(zg(i),j,kpar)
-          enddo
-       endif
-       if(i.gt.0)then
-          zg(-i)=ivs*zg(i)
-          phig(-i)=phig(i)
-          vg(-i)=-ivs*vg(i)
-          phigprime(-i)=ivs*phigprime(i)
-          do j=1,naux
-             auxmodes(-i,j)=ivs*auxmodes(i,j)
-             if(.not.abs(auxmodes(i,j)).lt.1.e20)then
-                write(*,*)'auxmodes NAN',i,j,auxmodes(i,j)
-                stop
-             endif
-          enddo
-       endif
-       if(.not.phigprime(i).lt.1.e20)then
-          write(*,*)'phigprime NAN',i,phigprime(i),zg(i),z1,z2,zi,zR,&
-               gK,Wg,isigma
-          stop
-       endif
+       vg(-i)=-ivs*vg(i)
+       phig(i)=phigofz(zg(i))
+       phig(-i)=phig(i)
+!       phigprime(i)=phigprimeofz(zg(i))
+!       phigprime(-i)=ivs*phigprime(i)
+       do j=1,nmd
+          pmds(i,j)=mdofz(zg(i),j,kpar)
+          pmds(-i,j)=ivs*pmds(i,j)
+       enddo
     enddo
-    if(lstepbench.and..false.)then
-       call autoplot(zg,real(auxmodes(:,1)),2*ngz+1)
-       call polyline(zg,real(auxmodes(:,2)),2*ngz+1)
-       call accisflush
-       call usleep(20000)
-!       call pltend
-    endif
+    auxmodes(:,1:naux)=pmds(:,2:naux+1)
+    f4norm=abs(16.*psig/(3.*sqrt(70.)))
+    phigprime(:)=-real(pmds(:,1)*f4norm)
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
@@ -276,7 +257,7 @@ contains
        endif
        if(.not.dtau.lt.1e6)then           ! Test for NAN error
           write(*,*)'In Fdirect dtau error',Wg
-          write(*,*)i,'dtau=',dtau,v0,vg(i-1),vg(i),zR,Wg,phig(i-1)
+          write(*,*)i,'dtau=',dtau,vg(i-1),vg(i),zR,Wg,phig(i-1)
           !,vpsig,phigp
           stop
        endif
@@ -460,7 +441,7 @@ contains
     ! Integrate over fe (trapped). Wj=vpsi^2/2-psi. So vpsi=sqrt(2(psi+Wj))
     ! Wj range 0 to -psi.
     complex :: Ftotal,exptb,cdvpsi,dob,dFdvpsig,resdenom,resdprev
-    complex :: dfweight,anal,analcomp
+    complex :: dfweight!,anal,analcomp
     real :: dfperpdWperp,fperp,obi
     integer :: isigma
 
@@ -522,14 +503,6 @@ contains
     ! and multiplied by 2 gives the total force. 
        Fauxres(1:naux,:,i)=0.5*(Fnonraux(1:naux,:,i)/resdenom &
             + Fnonraux(1:naux,:,i-1)/resdprev)
-       if(lstepbench)then
-          if(i.eq.1)write(*,*)'i      W       t_b/2    Faux1/i.vpsi/resdenom',&
-               '     Analytic \int u Phi dt'
-          anal=(2.*tan(omegag*taug(ngz)/2.)/omegag-taug(ngz))&
-               /(sqm1g*omegag)
-          analcomp=Fauxarray(1,3,i)/(sqm1g*vpsi)/resdenom
-          write(*,'(i4,f8.4,7f12.3)')i,Wg,taug(ngz),analcomp,anal!,(anal-analcomp)/analcomp
-       endif
        if(.not.(abs(Forcegr(i)).ge.0))then
           write(*,*)'Forcegr NAN?',i
           write(*,*)Fnonresg(i),Forcegr(i)
@@ -824,6 +797,33 @@ contains
     endif
   end function auxofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  complex function mdofz(zval,imd,kpar)
+! Eigenmodes of the potential, assumed to be sech^4(z/4) (z-normalized)
+    real :: kpar,p2
+    x=zval/4.
+    S=1./cosh(x)
+    T=tanh(x)
+    if(imd.eq.1)then     ! 4
+       mdofz=-3.*T*S**4*sqrt(70.)/16.
+    elseif(imd.eq.2)then ! 2
+       mdofz=T*S**2*(3*S**2-2)*sqrt(105.)/8
+    elseif(imd.eq.3)then ! q
+       p=4.*kpar
+       p2=p**2
+       fnorm=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
+       Pk= -15*(p2**2 + (28*S**2 - 15)*p2 + 63*S**4 - 56*S**2 + 8)
+       Qk= p2**2 + (105*S**2 - 85)*p2 + 945*S**4 - 1155*S**2 + 274
+! complex version, antisymmetric
+       mdofz=(T*Pk+sign(1.,x)*complex(0.,p)*Qk)&
+            *exp(complex(0.,p*abs(x)))/fnorm
+       if(x.eq.0)mdofz=0.
+    else
+       mdofz=0.
+       write(*,*)'ERROR: Incorrect mode number',imd
+    endif
+    
+  end function mdofz
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWptrap(Wj,fe)
 ! Return the energy derivative and the parallel distribution function
 ! Possibly including contribution from repelled species.
@@ -1016,8 +1016,7 @@ end function dfdWptrap
     complex :: resfac
 ! Need to correct *vpsi/v. Limit how close to zero v can be.
     vpsibyv=sqrt((-psig+Wg)/max(-phi0d+Wg,2.e-5))
-! Maybe we need to add in the form including prior weighting?
-    dfwtprev=dfweight
+! Maybe we need to add in the form including prior weighting? dfwtprev=dfweight
     resfac=1+exp(sqm1g*omegag*taug(ngz)) ! Unshifted Half period version.
     ft4=sqm1g*dfweight*(CapPhig&
          -exp(sqm1g*omegag*taug)*CapPhig(ngz)/resfac)/f4norm
