@@ -634,8 +634,8 @@ subroutine plotdent
         write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
         write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
         write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      <q|V-Vw|q>' 
-        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg,Ftauxsum(2,3)-FVwsumg
-!     call exit
+        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg&
+             &,Ftauxsum(2,3)-FVwsumg
   endif
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
