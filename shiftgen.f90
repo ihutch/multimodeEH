@@ -64,7 +64,7 @@ module shiftgen
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
   complex, dimension(-ngz:ngz) :: CapPhig,ft4
-  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux,CapPaux
+  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
   complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
@@ -227,7 +227,7 @@ contains
     iws=0                     ! dtau algorithm switch index (plotting only)
     taug(-ngz)=0.
     CPmds(-ngz,1:nmd)=0.
-! Set the incoming CapPaux for continuum to be the wave solution.
+! Set the incoming CPmds for continuum to be the wave solution.
     if(Wg.ge.0)CPmds(-ngz,3)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
     Fmdaccum=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
@@ -258,7 +258,6 @@ contains
        CapPhig(i)=CPmds(i,1)*f4norm
     enddo
     dForceg=Fmdaccum(1,1)*f4norm**2  ! This is <4|~V|4>
-    CapPaux(:,1:naux)=CPmds(:,2:1+naux)
     dFaux(1:2,1)=Fmdaccum(2:3,1)*f4norm
     dFaux(1:2,2)=Fmdaccum(1,2:3)*f4norm
     dFaux(1,3)=Fmdaccum(2,2)
@@ -270,11 +269,11 @@ contains
        dForceg=dForceg*(1.-exptbb2**2) &
             + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig  ! Maybe abs(vpsig)?
        dFaux(1:naux,1)=dFaux(1:naux,1)*(1.-exptbb2**2) &
-            + sqm1g*CapPaux(ngz,1:naux)*CapPhig(ngz)*(1.-exptbb2)*vpsig
+            + sqm1g*CPmds(ngz,2:naux+1)*CapPhig(ngz)*(1.-exptbb2)*vpsig
        dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
-            + sqm1g*CapPhig(ngz)*CapPaux(ngz,1:naux)*(1.-exptbb2)*vpsig
+            + sqm1g*CapPhig(ngz)*CPmds(ngz,2:naux+1)*(1.-exptbb2)*vpsig
        dFaux(1:naux,3)=dFaux(1:naux,3)*(1.-exptbb2**2) &
-            + sqm1g*CapPaux(ngz,1:naux)**2*(1.-exptbb2)*vpsig
+            + sqm1g*CPmds(ngz,2:naux+1)**2*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
@@ -560,7 +559,7 @@ contains
     CPprior=CapPhig(ngz)
     CapPext(0)=CPprior      ! External |4> outgoing.
     dentext(0)=dentext(0)+CPprior*dvdfw
-    CQprior=CapPaux(ngz,2)
+    CQprior=CPmds(ngz,3)
     CapQext(0)=CQprior    ! External |q> outgoing.
     denqext(0)=denqext(0)+CQprior*dvdfw
 ! Outgoing to compare with \tilde V|q>, hence kv sign.
@@ -633,7 +632,7 @@ contains
     Amp=(Pk+complex(0.,p)*Qk)/fn
     Fextanal=conjg(Amp)*CapPhig(ngz)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))
-    Fextqanal=conjg(Amp)*CapPaux(ngz,2)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+    Fextqanal=conjg(Amp)*CPmds(ngz,3)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))&
          +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
     Fextqqwanal=Fextqqwanal+Fextqanal
@@ -870,7 +869,7 @@ end function dfdWptrap
 !    dentpass=dentpass+dvinf*dfweight*CapPhid
     dentpass=dentpass+dvinf*sqm1g*dfweight*CapPhid *vinfbyv
 ! Similarly for the ~V|q>  passing density.
-    call remesh(zg,CapPaux(:,2),2*ngz+1,zdent,CapQd,2*nzd+1)
+    call remesh(zg,CPmds(:,3),2*ngz+1,zdent,CapQd,2*nzd+1)
     dentq=dentq+dvinf*sqm1g*dfweight*CapQd *vinfbyv
 ! And the wave-generated internal passing density V_w|q>.
     denqwint=denqwint+dvinf*sqm1g*dfweight*(auxzd/&
@@ -1002,8 +1001,8 @@ end function dfdWptrap
          -exp(sqm1g*omegag*taug)*CapPhig(ngz)/resfac)/f4norm
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
     do j=1,naux ! Similarly for the auxmode trapped f
-       ftraux(:,j)=sqm1g*dfweight*(CapPaux(:,j)&
-            -exp(sqm1g*omegag*taug)*CapPaux(ngz,j)/resfac)
+       ftraux(:,j)=sqm1g*dfweight*(CPmds(:,j+1)&
+            -exp(sqm1g*omegag*taug)*CPmds(ngz,j+1)/resfac)
        call remesh(zg,ftraux(:,j),2*ngz+1,zdent,ftrauxd(:,j),2*nzd+1)
     enddo    
     denttrap=denttrap+cdvinf*ft4d *vpsibyv
