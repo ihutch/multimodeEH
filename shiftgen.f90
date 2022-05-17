@@ -78,7 +78,6 @@ module shiftgen
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
 !   Auxiliary Forces as a function of parallel energy/velocity.
-!  complex, dimension(nauxmax,ndir,nge) :: Fauxp  !Used by testshiftgen
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex, dimension(nauxmax,ndir,0:nge) :: Fauxres,Fauxp !Used by testshiftgen
   complex :: Fextqq,Fextqw,Fintqq,Fintqw,Fextqqwanal
@@ -245,6 +244,7 @@ contains
           write(*,*)'In Fdirect dtau error',Wg,' dtau=',dtau
           stop
        endif
+! And past time integrals
        taug(i)=taug(i-1)+dtau
        CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
        CPmds(i,1:nmd)=CPfactor*CPmds(i-1,1:nmd)+0.5*&
@@ -255,29 +255,27 @@ contains
                conjg(pmds(i-1,1:nmd))*CPmds(i-1,j))*abs(vpsig*dtau)
        enddo
     enddo
-    dForceg=Fmdaccum(1,1)*f4norm**2  ! This is <4|~V|4>
-    dFaux(1:2,1)=Fmdaccum(2:3,1)*f4norm
-    dFaux(1:2,2)=Fmdaccum(1,2:3)*f4norm
-    dFaux(1,3)=Fmdaccum(2,2)
-    dFaux(2,3)=Fmdaccum(3,3)
     if(Wg.lt.0.)then     ! Trapped orbit. Add resonant term. 
        CPngz=CPmds(ngz,1)*f4norm
        exptbb2=exp(sqm1g*omegag*taug(ngz))
        vpsig=abs(vg(0))
 ! This form is to be divided later by (1-exptb) full resonant denominator.
-       dForceg=dForceg*(1.-exptbb2**2) &
-            + sqm1g*CPngz**2*(1.-exptbb2)*vpsig
-       dFaux(1:naux,1)=dFaux(1:naux,1)*(1.-exptbb2**2) &
-            + sqm1g*CPmds(ngz,2:naux+1)*CPngz*(1.-exptbb2)*vpsig
-       dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
-            + sqm1g*CPngz*CPmds(ngz,2:naux+1)*(1.-exptbb2)*vpsig
-       dFaux(1:naux,3)=dFaux(1:naux,3)*(1.-exptbb2**2) &
-            + sqm1g*CPmds(ngz,2:naux+1)**2*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
 ! because it involves complicated negotiation of the resonance to
 ! preserve accuracy for trapped particles.
+       do j=1,nmd
+          do i=1,nmd
+             Fmdaccum(i,j)=Fmdaccum(i,j)*(1-exptbb2**2) &
+                  +sqm1g*CPmds(ngz,i)*CPmds(ngz,j)*(1-exptbb2)*vpsig
+          enddo
+       enddo
     endif
-! Each call to Fdirect leaves the CapPhi z-arrays for this energy,
+! Put values into the passed array arguments. 
+    dForceg=Fmdaccum(1,1)*f4norm**2  ! This is    <4V4>
+    dFaux(1:naux,1)=Fmdaccum(2:naux+1,1)*f4norm  !<uV4>
+    dFaux(1:naux,2)=Fmdaccum(1,2:naux+1)*f4norm  !<4Vu>
+    dFaux(1,3)=Fmdaccum(2,2)                     !<2V2>
+    dFaux(2,3)=Fmdaccum(3,3)                     !<qVq>
   end subroutine Fdirect
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
