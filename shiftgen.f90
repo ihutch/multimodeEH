@@ -63,7 +63,6 @@ module shiftgen
   real :: kpar,zextfac=30.
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
-  complex, dimension(-ngz:ngz) :: CapPhig,ft4
   complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
   complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
@@ -217,7 +216,7 @@ contains
 ! Inner integral is CapPhi=\int^t (-dphi/dz|_tau) exp(-i omega(tau-t)) dtau 
 ! done as exp(-i omega(tau-t)) dtau = d[exp()]/(-i omega)
 ! The result needs to be multiplied by df/dWpar.
-    complex :: dForceg,CPfactor,exptbb2
+    complex :: dForceg,CPfactor,exptbb2,CPngz
     complex :: dFaux(nauxmax,ndir)
     Wg=Wgi
     call makezg(isigma) ! Sets various time array values.
@@ -255,7 +254,6 @@ contains
                sqm1g*0.5*(conjg(pmds(i,1:nmd))*CPmds(i,j)+&
                conjg(pmds(i-1,1:nmd))*CPmds(i-1,j))*abs(vpsig*dtau)
        enddo
-       CapPhig(i)=CPmds(i,1)*f4norm
     enddo
     dForceg=Fmdaccum(1,1)*f4norm**2  ! This is <4|~V|4>
     dFaux(1:2,1)=Fmdaccum(2:3,1)*f4norm
@@ -263,15 +261,16 @@ contains
     dFaux(1,3)=Fmdaccum(2,2)
     dFaux(2,3)=Fmdaccum(3,3)
     if(Wg.lt.0.)then     ! Trapped orbit. Add resonant term. 
+       CPngz=CPmds(ngz,1)*f4norm
        exptbb2=exp(sqm1g*omegag*taug(ngz))
        vpsig=abs(vg(0))
 ! This form is to be divided later by (1-exptb) full resonant denominator.
        dForceg=dForceg*(1.-exptbb2**2) &
-            + sqm1g*CapPhig(ngz)**2*(1.-exptbb2)*vpsig  ! Maybe abs(vpsig)?
+            + sqm1g*CPngz**2*(1.-exptbb2)*vpsig
        dFaux(1:naux,1)=dFaux(1:naux,1)*(1.-exptbb2**2) &
-            + sqm1g*CPmds(ngz,2:naux+1)*CapPhig(ngz)*(1.-exptbb2)*vpsig
+            + sqm1g*CPmds(ngz,2:naux+1)*CPngz*(1.-exptbb2)*vpsig
        dFaux(1:naux,2)=dFaux(1:naux,2)*(1.-exptbb2**2) &
-            + sqm1g*CapPhig(ngz)*CPmds(ngz,2:naux+1)*(1.-exptbb2)*vpsig
+            + sqm1g*CPngz*CPmds(ngz,2:naux+1)*(1.-exptbb2)*vpsig
        dFaux(1:naux,3)=dFaux(1:naux,3)*(1.-exptbb2**2) &
             + sqm1g*CPmds(ngz,2:naux+1)**2*(1.-exptbb2)*vpsig
 ! The division by the resonant denominator is done outside the routine
@@ -556,7 +555,7 @@ contains
 !   Should Fextqq and Fextqw  be zeroed? No. Only the i-internal-versions.
     Fextqwi=0.
     Fextqqi=0.         ! Only used in this routine.
-    CPprior=CapPhig(ngz)
+    CPprior=CPmds(ngz,1)*f4norm
     CapPext(0)=CPprior      ! External |4> outgoing.
     dentext(0)=dentext(0)+CPprior*dvdfw
     CQprior=CPmds(ngz,3)
@@ -630,7 +629,7 @@ contains
     Pk= -15*(p2**2 - 15*p2 + 8)
     Qk= p2**2 - 85*p2 + 274
     Amp=(Pk+complex(0.,p)*Qk)/fn
-    Fextanal=conjg(Amp)*CapPhig(ngz)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+    Fextanal=conjg(Amp)*CPmds(ngz,1)*f4norm*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))
     Fextqanal=conjg(Amp)*CPmds(ngz,3)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))&
@@ -855,7 +854,7 @@ end function dfdWptrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentadd(dfweight,dvinf)
     complex :: dfweight
-! Add to dentpass the weighted average of CapPhig over the zg
+! Add to dentpass the weighted average of CPmds over the zg
 ! points that reside in each of its (equally spaced) intervals.
 ! This is the ~V|4> density. When appropriately rescaled.
 ! Scaling is that using for |4> instead phigprime gives an unnormalized
@@ -865,8 +864,7 @@ end function dfdWptrap
 ! Need to correct *vinf/v.
     vinfbyv=sqrt((Wg)/(-phi0d+Wg))
 !    vinfbyv=1.
-    call remesh(zg,CapPhig/f4norm,2*ngz+1,zdent,CapPhid,2*nzd+1)
-!    dentpass=dentpass+dvinf*dfweight*CapPhid
+    call remesh(zg,CPmds(:,1)*f4norm,2*ngz+1,zdent,CapPhid,2*nzd+1)
     dentpass=dentpass+dvinf*sqm1g*dfweight*CapPhid *vinfbyv
 ! Similarly for the ~V|q>  passing density.
     call remesh(zg,CPmds(:,3),2*ngz+1,zdent,CapQd,2*nzd+1)
@@ -988,17 +986,17 @@ end function dfdWptrap
 ! Make denttrap equal to the weighted average of \Phi over the zg
 ! points that reside in each of its (equally spaced) intervals.
 ! dfweight is omegag*dfe etc. ftilde is i*dfweight*\Phi (summed over
-! the perpendicular harmonics). But \Phi is not exactly CapPhig for
-! trapped orbits.
+! the perpendicular harmonics). Correct for trapped resonance.
 ! The densities here accumulated are from normalized modes (including 4).
     complex :: dfweight,cdvinf
     complex :: resfac
+    complex, dimension(-ngz:ngz) :: ft4
 ! Need to correct *vpsi/v. Limit how close to zero v can be.
     vpsibyv=sqrt((-psig+Wg)/max(-phi0d+Wg,2.e-5))
 ! Maybe we need to add in the form including prior weighting? dfwtprev=dfweight
     resfac=1+exp(sqm1g*omegag*taug(ngz)) ! Unshifted Half period version.
-    ft4=sqm1g*dfweight*(CapPhig&
-         -exp(sqm1g*omegag*taug)*CapPhig(ngz)/resfac)/f4norm
+    ft4=sqm1g*dfweight*(CPmds(:,1)&
+         -exp(sqm1g*omegag*taug)*CPmds(ngz,1)/resfac)
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
     do j=1,naux ! Similarly for the auxmode trapped f
        ftraux(:,j)=sqm1g*dfweight*(CPmds(:,j+1)&
