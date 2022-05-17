@@ -159,17 +159,14 @@ contains
        phig(-i)=phig(i)
        vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
        vg(-i)=-ivs*vg(i)
-!      if(Wg.lt.0.and.vg(i).eq.vg(i-1))write(*,*)'dvg=0',i,zg(i),Wg,phig(i),vg(i)
-!       phigprime(i)=phigprimeofz(zg(i))
-!       phigprime(-i)=ivs*phigprime(i)
        do j=1,nmd
           pmds(i,j)=mdofz(zg(i),j,kpar)
           pmds(-i,j)=ivs*pmds(i,j)
        enddo
     enddo
-    auxmodes(:,1:naux)=pmds(:,2:naux+1)
     f4norm=abs(16.*psig/(3.*sqrt(70.)))
     phigprime(:)=-real(pmds(:,1)*f4norm)
+    auxmodes(:,1:naux)=pmds(:,2:naux+1)
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
@@ -232,13 +229,8 @@ contains
     CapPhig(-ngz)=0.
     CapPaux(-ngz,:)=0.
 ! Set the incoming CapPaux for continuum to be the wave solution.
-!    CapPaux(-ngz,2)=-auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
-   if(Wg.ge.0)CapPaux(-ngz,2)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
-! This explict treatment gives essentially the same answer.
-!    p=4.*kpar
-!    theta=atan2(p*(p**4-85*p**2+274),-15*p**4+225*p**2-120)
-!    CapPaux(-ngz,2)=exp(complex(0.,kpar*zm+theta))/sqrt(2.*3.1415926)&
-!         /(sqm1g*(-kpar*vg(-ngz)-omegag))
+!    if(Wg.ge.0)CapPaux(-ngz,2)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
+    if(Wg.ge.0)CPmds(-ngz,3)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
     dForceg=0.
     dFaux=0.
     Fmdaccum=0.
@@ -255,9 +247,7 @@ contains
           if(ips.le.0..or.zR.eq.0)iws=i   ! Attracted or unreflected
        endif
        if(.not.dtau.lt.1e6)then           ! Test for NAN error
-!       if(dtau.le.0.or. .not.dtau.lt.1e6)then  ! Test for zero or NAN error
           write(*,*)'In Fdirect dtau error',Wg,' dtau=',dtau
-          write(*,*)i,vg(i-1),vg(i),zR,phig(i-1)
           stop
        endif
        taug(i)=taug(i-1)+dtau
@@ -269,31 +259,9 @@ contains
                sqm1g*0.5*(conjg(pmds(i,1:nmd))*CPmds(i,j)+&
                conjg(pmds(i-1,1:nmd))*CPmds(i-1,j))*abs(vpsig*dtau)
        enddo
-!       CapPhig(i)=CPfactor*CapPhig(i-1)-phigp*(1.-CPfactor)*sqm1g/omegag
        CapPhig(i)=CPmds(i,1)*f4norm
-! This is <4|~V|4>
-       dForceg=dForceg-sqm1g*0.5*(CapPhig(i)*phigprime(i)&
-            +CapPhig(i-1)*phigprime(i-1))*abs(vpsig*dtau)
-       if(.false.)then   ! Legacy
-       do j=1,naux
-! CapPhi for auxmodes 
-          CapPaux(i,j)=CPfactor*CapPaux(i-1,j)+0.5* &
-               (auxmodes(i,j)+auxmodes(i-1,j))*(1.-CPfactor)*sqm1g/omegag
-! We want conjg(auxmodes)*CapPhig: <u|~V|4> -> Fauxarray(j,1)
-          dFaux(j,1)=dFaux(j,1)+sqm1g*0.5*(conjg(auxmodes(i,j))*CapPhig(i) &
-               &+conjg(auxmodes(i-1,j))*CapPhig(i-1))*abs(vpsig*dtau)
-! And    phigprime*CapPaux: <4|~V|u> -> Fauxarray(j,2)
-          dFaux(j,2)=dFaux(j,2)-sqm1g*0.5*(phigprime(i)&
-               &*CapPaux(i,j)+phigprime(i-1)*CapPaux(i-1,j))&
-               &*abs(vpsig*dtau)
-! Self-forces for auxmodes when needed. j=1: |2>, j=2: |q>
-          dFaux(j,3)=dFaux(j,3)+sqm1g*0.5*(conjg(auxmodes(i,j))*CapPaux(i,j) &
-               &+conjg(auxmodes(i-1,j))*CapPaux(i-1,j))*abs(vpsig*dtau)
-! Corrections 3Mar22 signs of auxmode additions must be opposite phigprime
-! because phigprime is minus the |4> mode.
-       enddo
-       endif
     enddo
+    dForceg=Fmdaccum(1,1)*f4norm**2  ! This is <4|~V|4>
     CapPaux(:,1:naux)=CPmds(:,2:1+naux)
     dFaux(1:2,1)=Fmdaccum(2:3,1)*f4norm
     dFaux(1:2,2)=Fmdaccum(1,2:3)*f4norm  ! Changes passing 4Vq.
