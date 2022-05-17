@@ -94,6 +94,7 @@ module shiftgen
   integer, parameter :: nmdmax=3
   integer :: nmd=3 ! Default
   complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
+  complex, dimension(nmdmax,nmdmax) :: Fmdaccum
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdnonr,Fmdp,FmdofW,FmdpofW  
 ! Whether to apply a correction to the trapped species
@@ -130,7 +131,7 @@ contains
 !          gK=-100.  ! Uniform hack 
           z2=isigma*zm
        else
-          z2=zR*(1.+1.e-4/ngz) ! Force trapped end vg to zero.
+          z2=zR*(1.+1.e-5/ngz) ! Force trapped end vg to zero.
        endif
        z1=0.
     else  
@@ -138,16 +139,15 @@ contains
        stop
    endif
     omegar=real(omegaonly)
-    if(naux.ge.2)then   ! Set the kpar of the continuum auxmode.
-       if(omegar.le.1.and.Omegacg.gt.omegar)then
-          kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
-               ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
-          Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
-          if(ncalls.eq.1)  write(*,'(a,f8.5,a,2f8.4)')' kpar=',kpar,' Vw=',Vw
-       else
-          write(*,*)'ERROR omegar >=1 is not allowed',omegar
-          stop
-       endif
+! Set the kpar of the continuum auxmode.
+    if(omegar.le.1.and.Omegacg.gt.omegar)then
+       kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
+            ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
+       Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
+       if(ncalls.eq.1)  write(*,'(a,f8.5,a,2f8.4)')' kpar=',kpar,' Vw=',Vw
+    else
+       write(*,*)'ERROR omegar >=1 is not allowed',omegar
+       stop
     endif
 ! Construct the modes
     zg(0)=0.; phig(0)=psig; vg(0)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(0)))
@@ -155,10 +155,11 @@ contains
        zi=float(i)/ngz
        zg(i)=ivs*(z1+z2*((2.*gK+zi)*zi)/(1.+2.*gK))
        zg(-i)=ivs*zg(i)
-       vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
-       vg(-i)=-ivs*vg(i)
        phig(i)=phigofz(zg(i))
        phig(-i)=phig(i)
+       vg(i)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(i)))
+       vg(-i)=-ivs*vg(i)
+!      if(Wg.lt.0.and.vg(i).eq.vg(i-1))write(*,*)'dvg=0',i,zg(i),Wg,phig(i),vg(i)
 !       phigprime(i)=phigprimeofz(zg(i))
 !       phigprime(-i)=ivs*phigprime(i)
        do j=1,nmd
@@ -181,13 +182,10 @@ contains
     z1=zL
     enrgy0=phigofz(z0)-Wj
     enrgy1=phigofz(z1)-Wj
-!    if(sign(1.,enrgy1).eq.sign(1.,enrgy0))then
     if(enrgy1*enrgy0.ge.0)then
-!       write(*,*)'orbitend energies do not bracket zero',enrgy0,enrgy1
-       return
+       return             ! Improper starting z values.
     endif
     do i=1,nbi
-!       write(*,*)i,z0,enrgy0,z1,enrgy1
        zm=(z1+z0)/2.
        enrgym=phigofz(zm)-Wj
 ! Which value to replace.
@@ -224,13 +222,13 @@ contains
     complex :: dForceg,CPfactor,exptbb2
     complex :: dFaux(nauxmax,ndir) ! Passed in for each energy of Fauxarray.
     Wg=Wgi
-    f4norm=abs(16.*psig/(3.*sqrt(70.)))
     call makezg(isigma) ! Sets various time array values.
     vpsig=vg(-ngz)            ! Untrapped default ...
     if(Wg.lt.0.)vpsig=vg(0)   ! Trapped particle f(v) reference.
     ips=int(sign(1.,psig))
     iws=0                     ! dtau algorithm switch index (plotting only)
     taug(-ngz)=0.
+    CPmds(-ngz,1:nmd)=0.
     CapPhig(-ngz)=0.
     CapPaux(-ngz,:)=0.
 ! Set the incoming CapPaux for continuum to be the wave solution.
@@ -243,6 +241,7 @@ contains
 !         /(sqm1g*(-kpar*vg(-ngz)-omegag))
     dForceg=0.
     dFaux=0.
+    Fmdaccum=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
        phigp=0.5*(phigprime(i)+phigprime(i-1))
@@ -256,17 +255,26 @@ contains
           if(ips.le.0..or.zR.eq.0)iws=i   ! Attracted or unreflected
        endif
        if(.not.dtau.lt.1e6)then           ! Test for NAN error
-          write(*,*)'In Fdirect dtau error',Wg
-          write(*,*)i,'dtau=',dtau,vg(i-1),vg(i),zR,Wg,phig(i-1)
-          !,vpsig,phigp
+!       if(dtau.le.0.or. .not.dtau.lt.1e6)then  ! Test for zero or NAN error
+          write(*,*)'In Fdirect dtau error',Wg,' dtau=',dtau
+          write(*,*)i,vg(i-1),vg(i),zR,phig(i-1)
           stop
        endif
        taug(i)=taug(i-1)+dtau
        CPfactor=exp(sqm1g*omegag*dtau) ! Current exponential
-       CapPhig(i)=CPfactor*CapPhig(i-1)-phigp*(1.-CPfactor)*sqm1g/omegag
+       CPmds(i,1:nmd)=CPfactor*CPmds(i-1,1:nmd)+0.5*&
+            (pmds(i,1:nmd)+pmds(i-1,1:nmd))*(1.-CPfactor)*sqm1g/omegag
+       do j=1,nmd
+          Fmdaccum(1:nmd,j)=Fmdaccum(1:nmd,j)+&
+               sqm1g*0.5*(conjg(pmds(i,1:nmd))*CPmds(i,j)+&
+               conjg(pmds(i-1,1:nmd))*CPmds(i-1,j))*abs(vpsig*dtau)
+       enddo
+!       CapPhig(i)=CPfactor*CapPhig(i-1)-phigp*(1.-CPfactor)*sqm1g/omegag
+       CapPhig(i)=CPmds(i,1)*f4norm
 ! This is <4|~V|4>
        dForceg=dForceg-sqm1g*0.5*(CapPhig(i)*phigprime(i)&
             +CapPhig(i-1)*phigprime(i-1))*abs(vpsig*dtau)
+       if(.false.)then   ! Legacy
        do j=1,naux
 ! CapPhi for auxmodes 
           CapPaux(i,j)=CPfactor*CapPaux(i-1,j)+0.5* &
@@ -284,7 +292,13 @@ contains
 ! Corrections 3Mar22 signs of auxmode additions must be opposite phigprime
 ! because phigprime is minus the |4> mode.
        enddo
+       endif
     enddo
+    CapPaux(:,1:naux)=CPmds(:,2:1+naux)
+    dFaux(1:2,1)=Fmdaccum(2:3,1)*f4norm
+    dFaux(1:2,2)=Fmdaccum(1,2:3)*f4norm  ! Changes passing 4Vq.
+    dFaux(1,3)=Fmdaccum(2,2)
+    dFaux(2,3)=Fmdaccum(3,3)
     if(Wg.lt.0.)then     ! Trapped orbit. Add resonant term. 
        exptbb2=exp(sqm1g*omegag*taug(ngz))
        vpsig=abs(vg(0))
@@ -765,7 +779,9 @@ contains
 ! If some different form of phi is required. Replace these functions,
 ! e.g. with forms that call functions outside the module. 
   real function phigofz(zval)
-    phigofz=psig/cosh(zval/4.)**4
+    doubleprecision :: zby4
+    zby4=zval/4.
+    phigofz=real(psig/cosh(zby4)**4)
   end function phigofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function phigprimeofz(zval)
