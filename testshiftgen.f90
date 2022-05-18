@@ -194,11 +194,16 @@
        write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
        write(*,*)'q0(1/omega^2-1)/pi='&
          ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
-          do j=1,ndir
-       do i=1,naux
+      do j=1,ndir
+         f4h=f4norm
+         if(j.eq.3)f4h=1.
+         do i=1,naux
+            k1=mod(j,2)*i+1
+            k2=min(j-1,1)*i+1
        call multiframe(1,2,0)
        call minmax(Fauxp(i,j,:),2*nge,pmin,pmax)
-       call minmax(Fauxres(i,j,:),2*nge,rmin,rmax)
+!       call minmax(Fauxres(i,j,:),2*nge,rmin,rmax)
+       call minmax(Fmdres(k1,k2,:)*f4h,2*nge,rmin,rmax)
        ratio=min(abs(rmax/pmax),abs(rmin/pmin))
        step=min(10,int(ratio))
        fpfac=max(step*int(ratio/step),1.)
@@ -218,11 +223,17 @@
 !    call polymark(vinfarrayr,(max(pmax,rmax)*.97+vinfarrayr*1.e-7),nge&
 !         &,ichar('|'))
        call color(1)
-       call polyline(vinfarrayr,real(Fauxres(i,j,:)),nge)
+!       call polyline(vinfarrayr,real(Fauxres(i,j,:)),nge)
+!       call color(12)
+       call polyline(vinfarrayr,real(Fmdres(k1,k2,:)*f4h),nge)
+!       call color(15)
        call legendline(.05,.1,0,' real')
        call color(2)
        call dashset(2)
-       call polyline(vinfarrayr,imag(Fauxres(i,j,:)),nge)
+!       call polyline(vinfarrayr,imag(Fauxres(i,j,:)),nge)
+!       call color(12)
+       call polyline(vinfarrayr,imag(Fmdres(k1,k2,:)*f4h),nge)
+!       call color(15)
        call legendline(.05,.05,0,' imag')
        call color(15)
        call dashset(0)
@@ -244,8 +255,8 @@
        call legendline(.4,.05,0,' imag*'//ffan(1:iwidth))
        call dashset(0)
        call pltend
-          enddo
        enddo
+      enddo
               
     endif
     
@@ -680,6 +691,8 @@ subroutine plotdent
      write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
      write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
      write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
+     write(*,*)' Trap  <4|             <2|              <q|'
+     write(*,'(6f8.4)')2.*Ftmdt
      write(*,*)
      w2byw4=Ftauxa(1,1)/f4norm/(kg**2+12/16.)
      write(*,*)'Amplitude         w_2/w_4=',w2byw4
