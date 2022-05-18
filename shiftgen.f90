@@ -79,7 +79,6 @@ module shiftgen
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
 !   Auxiliary Forces as a function of parallel energy/velocity.
   ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
-  complex, dimension(nauxmax,ndir,0:nge) :: Fauxp !Used by testshiftgen
   complex :: Fextqq,Fextqw,Fintqq,Fintqw,Fextqqwanal
 ! Perpendicular Harmonic force arrays.
   complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
@@ -338,7 +337,6 @@ contains
        enddo
        Ftmdp=Ftmdp+Fmdaccum*dvinf*dfweight ! Increment mode force
        Forcegp(i)=ForceOfW*dfweight
-       Fauxp(1:naux,:,i)=Fauxtemp(1:naux,:)*dfweight
        FmdpofW(:,:,i)=Fmdaccum*dfweight       ! Store contribution
        tbp(i)=taug(ngz)
        if(naux.ge.2)then

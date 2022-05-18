@@ -201,7 +201,7 @@
             k1=mod(j,2)*i+1
             k2=min(j-1,1)*i+1
        call multiframe(1,2,0)
-       call minmax(Fauxp(i,j,:),2*nge,pmin,pmax)
+       call minmax(FmdpofW(k1,k2,:)*f4h,2*nge,pmin,pmax)
        call minmax(Fmdres(k1,k2,:)*f4h,2*nge,rmin,rmax)
        ratio=min(abs(rmax/pmax),abs(rmin/pmin))
        step=min(10,int(ratio))
@@ -237,14 +237,12 @@
        write(cij,'(''('',2f8.4,'')'')')Ftauxp(i,j)
        call legendline(.35,.95,258,cij(1:lentrim(cij)))
        call winset(.true.)
-!    call polymark(vpsiarrayp,(max(pmax,rmax)*.97+vpsiarrayp*1.e-7),nge&
-!         &,ichar('|'))
        call color(3)
-       call polyline(vpsiarrayp,imag(Fauxp(i,j,:))*fpfac,nge)
+       call polyline(vpsiarrayp,imag(FmdpofW(k1,k2,:))*f4h*fpfac,nge)
        call legendline(.4,.1,0,' real*'//ffan(1:iwidth))
        call color(4)
        call dashset(2)
-       call polyline(vpsiarrayp,real(Fauxp(i,j,:))*fpfac,nge)
+       call polyline(vpsiarrayp,real(FmdpofW(k1,k2,:))*f4h*fpfac,nge)
        call legendline(.4,.05,0,' imag*'//ffan(1:iwidth))
        call dashset(0)
        call pltend
