@@ -552,81 +552,6 @@ contains
     endif
   end subroutine FgEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine Fextern(Wgi,isigma,dvinf,dfweight)
-! Add to the force <q|~V|4> arising from z-positions outside the hole
-! region. ndir=1, q-> naux=2, and get the external ~n_4 dentext. 
-! Also add to <q|~V|q> (Fextqq and denqext), and <q|Vw|q> Fextqw, denqw.
-    real :: Wgi
-    complex :: CP,CPprior,CPfactor,dfweight,temp
-    complex :: CQ,CQprior,CW,CWprior,dvdfw
-    complex :: Fexti,Fextqqi,Fextqwi
-    complex :: Fextanal,Fextqanal,Amp
-    call makezext
-    vi=sqrt(2.*Wgi)
-    dze=abs(zext(1)-zext(0))
-    dvdfw=dvinf*dfweight*sqm1g
-    Fexti=0.         ! Accumulate <q|~V|4> for just this v_||, so zero.
-!   Should Fextqq and Fextqw  be zeroed? No. Only the i-internal-versions.
-    Fextqwi=0.
-    Fextqqi=0.         ! Only used in this routine.
-    CPprior=CPmds(ngz,1)*f4norm
-    CapPext(0)=CPprior      ! External |4> outgoing.
-    dentext(0)=dentext(0)+CPprior*dvdfw
-    CQprior=CPmds(ngz,3)
-    CapQext(0)=CQprior    ! External |q> outgoing.
-    denqext(0)=denqext(0)+CQprior*dvdfw
-! Outgoing to compare with \tilde V|q>, hence kv sign.
-    CWprior=auxext(0)/(sqm1g*(kpar*vg(ngz)-omegag))
-    CapQw(0)=CWprior 
-    denqw(0)=denqw(0)+CWprior*dvdfw
-    do i=1,nzext        ! As we go, accumulate densities dentext etc.
-       dze=abs(zext(i)-zext(i-1))
-       CPfactor=exp(sqm1g*omegag*dze/vi) ! Current exponential
-       CP=CPprior*CPfactor  !Plus nothing because |4> is zero externally
-       CapPext(i)=CP
-       Fexti=Fexti+0.5*(conjg(auxext(i-1))*CPprior&
-            +conjg(auxext(i))*CP)*dze*dvdfw
-       dentext(i)=dentext(i)+CP*dvdfw
-       CPprior=CP
-
-       CQ=CPfactor*CQprior & ! Plus the current contribution
-            +0.5*(auxext(i)+auxext(i-1))*(1.-CPfactor)*sqm1g/omegag
-       CapQext(i)=CQ
-       denqext(i)=denqext(i)+CQ*dvdfw
-       temp=0.5*(conjg(auxext(i-1))*CQprior+conjg(auxext(i))*CQ)*dze*dvdfw
-       Fextqq=Fextqq+temp
-       Fextqqi=Fextqqi+temp
-       CQprior=CQ
-
-       CW=auxext(i)/(sqm1g*(kpar*vi-omegag))
-       CapQw(i)=CW
-       denqw(i)=denqw(i)+CW*dvdfw
-       temp=0.5*(conjg(auxext(i-1))*CWprior+conjg(auxext(i))*CW)*dze*dvdfw
-       Fextqw=Fextqw+temp
-       Fextqwi=Fextqwi+temp
-       CWprior=CW
-    enddo
-! Analytic comparison:
-    p=4.*kpar
-    p2=p**2
-    fn=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
-    Pk= -15*(p2**2 - 15*p2 + 8)
-    Qk= p2**2 - 85*p2 + 274
-    Amp=(Pk+complex(0.,p)*Qk)/fn
-    Fextanal=conjg(Amp)*CapPext(0)*dvdfw*exp(-sqm1g*kpar*zext(0))&
-         /(sqm1g*(kpar-omegag/vi))
-    Fextqanal=conjg(Amp)*CapQext(0)*dvdfw*exp(-sqm1g*kpar*zext(0))&
-         /(sqm1g*(kpar-omegag/vi))&
-         +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
-!    write(*,'(f8.4,6g12.4)')Wgi,Fexti,Fextanal,(Fexti/Fextanal)
-!    write(*,'(f8.4,6g12.4)')Wgi,abs(Fexti),abs(Fextanal),(Fexti/Fextanal)
-!    write(*,'(f8.4,6g12.4)')Wgi,Fextqqi-Fextqwi,Fextqanal&
-!         ,(Fextqqi-Fextqwi)/Fextqanal
-    Fextqqwanal=Fextqqwanal+Fextqanal
-    Ftauxp(2,1)=Ftauxp(2,1)+Fexti
-    Ftauxp(2,3)=Ftauxp(2,3)+Fextqqi
-  end subroutine Fextern
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine Fextern2(Wgi,isigma,dvinf,dfweight)
 ! Revised Fextern that calculates analytically the external forces
     real :: Wgi
@@ -639,13 +564,13 @@ contains
     Pk= -15*(p2**2 - 15*p2 + 8)
     Qk= p2**2 - 85*p2 + 274
     Amp=(Pk+complex(0.,p)*Qk)/fn
-    Fextanal=conjg(Amp)*CPmds(ngz,1)*f4norm*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+    Fextanal=conjg(Amp)*CPmds(ngz,1)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))
     Fextqanal=conjg(Amp)*CPmds(ngz,3)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))&
          +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
     Fextqqwanal=Fextqqwanal+Fextqanal
-    Ftauxp(2,1)=Ftauxp(2,1)+Fextanal
+    Ftauxp(2,1)=Ftauxp(2,1)+Fextanal*f4norm
     Ftauxp(2,3)=Ftauxp(2,3)+Fextqanal
   end subroutine Fextern2    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
