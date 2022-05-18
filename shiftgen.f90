@@ -86,7 +86,7 @@ module shiftgen
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
 ! Aux Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
-  complex, dimension(nauxmax,ndir) :: Ftauxr,Ftauxp,Ftauxsum,Ftauxa,Ftauxt
+  complex, dimension(nauxmax,ndir) :: Ftauxp,Ftauxsum,Ftauxa,Ftauxt
   complex, dimension(nauxmax,ndir) :: Fauxtemp
 ! Mode matrices
   integer, parameter :: nmdmax=3
@@ -366,13 +366,9 @@ contains
        if(i.eq.1)then
           dvinf=abs(vinfarrayr(i))-sqrt(2.*psig)
           Ftr=dvinf*ForceOfW*dfweight
-          Ftauxr(1:naux,:)=dvinf*Fauxtemp(1:naux,:) *dfweight
        else
           dvinf=abs(vinfarrayr(i)-vinfarrayr(i-1))
           Ftr=Ftr+dvinf*0.5* (ForceOfW*dfweight +FOfWprev*dfwprev)
-          Ftauxr(1:naux,:)=Ftauxr(1:naux,:)+dvinf*0.5*&
-               & (Fauxtemp(1:naux,:)*dfweight +Fauxtemprev(1:naux,:) &
-               &*dfwprev)
        endif
        Forcegr(i)=ForceOfW*dfweight
        Fauxtemprev=Fauxtemp
@@ -402,7 +398,8 @@ contains
     endif
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
     Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
-
+    Ftmda=(Ftmdp+Ftmdt)*2
+    
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)

@@ -184,16 +184,16 @@
     if(naux.ge.1)then  ! Plot of auxforces.
        write(*,*)'f4norm=',f4norm,' kpar=',kpar
        write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
-       write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-       write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp(:,1:2)/f4norm
-       write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt(:,1:2)/f4norm
-       write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa(:,1:2)/f4norm
+       ! write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+       ! write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp(:,1:2)/f4norm
+       ! write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt(:,1:2)/f4norm
+       ! write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa(:,1:2)/f4norm
        write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
-          abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
-       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
-       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
-       write(*,*)'q0(1/omega^2-1)/pi='&
-         ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
+          abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
+!       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
+!       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
+!       write(*,*)'q0(1/omega^2-1)/pi='&
+!         ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
       do j=1,ndir
          f4h=f4norm
          if(j.eq.3)f4h=1.
@@ -234,7 +234,7 @@
        call axis; call axis2 
        call axlabels('v!d!Ay!@!d','')
        call legendline(0.3,.9,258,'Passing')
-       write(cij,'(''('',2f8.4,'')'')')Ftauxp(i,j)
+       write(cij,'(''('',2f8.4,'')'')')Ftmdp(k1,k2)*f4h
        call legendline(.35,.95,258,cij(1:lentrim(cij)))
        call winset(.true.)
        call color(3)
@@ -672,31 +672,36 @@ subroutine plotdent
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
           f4norm*F44t/(2.*Ftotalrg)
      write(*,*)
-     write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-     write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
-     write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm
-     write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
-     write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
-          abs(Ftauxa(1,1)/Ftauxa(1,2)),abs(Ftauxa(2,1)/Ftauxa(2,2))
-     write(*,*)' Self-Forces       <2|V|2>         <q|V|q>' 
-     write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
-     write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
-     write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
-     write(*,*)' Trap  <4|             <2|              <q|'
+     ! write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
+     ! write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
+     ! write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm
+     ! write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
+     ! write(*,*)' Self-Forces       <2|V|2>         <q|V|q>' 
+     ! write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
+     ! write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
+     ! write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
+     write(*,*)'Passing <4|             <2|              <q|'
+     write(*,'(6f8.4)')2.*Ftmdp
+     write(*,*)'Trap    <4|             <2|              <q|'
      write(*,'(6f8.4)')2.*Ftmdt
+     write(*,*)'All     <4|             <2|              <q|'
+     write(*,'(6f8.4)')Ftmda
+     write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
+          abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
      write(*,*)
-     w2byw4=Ftauxa(1,1)/f4norm/(kg**2+12/16.)
+     w2byw4=Ftmda(2,1)/(kg**2+12/16.)
      write(*,*)'Amplitude         w_2/w_4=',w2byw4
-     wqbyw4=-sqm1g*16*3.1415926*Ftauxa(2,1)/f4norm/(qresdenom*Cfactor)
+     wqbyw4=-sqm1g*16*3.1415926*Ftmda(3,1)/(qresdenom*Cfactor)
      write(*,*)'Amplitude \int w_q dq/w_4=',wqbyw4          
      write(*,*)'         Coefficient magnitudes'
      write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
           ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
      write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
-     write(*,*)Ftauxa(1,1)*Ftauxa(1,2)/Ftotalg/(kg**2+12/16.)
+     write(*,*)Ftmda(2,1)*Ftmda(1,2)/Ftotalg/(kg**2+12/16.)
      write(*,'(2a)')'Size of q term relative to 4 term,'
      write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
-          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor/4)&
+          -sqm1g*4*3.1415926*Ftmda(3,1)*Ftmda(1,3)/(qresdenom*Cfactor/4)*f4norm**2&
+!          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor/4)&
           /Ftotalg
      write(*,*)
      write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
@@ -706,7 +711,7 @@ subroutine plotdent
      write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
           ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
-          (Fintqq-Fintqw+Fextqqwanal)/(Ftauxa(2,1)/f4norm)
+          (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
           ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
      write(*,'(a,f8.2)')'zextmax=',zext(nzext)
