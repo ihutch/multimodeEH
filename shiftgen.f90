@@ -617,6 +617,7 @@ contains
     omegaonly=omegag
     Ftotalsumg=0.
     Ftauxsum(1:naux,:)=0.
+    Ftmdsum=0.
     FVwsumg=0.
     do m=1,nharmonicsg
        omegag=omegaonly+m*Oceff
@@ -625,16 +626,19 @@ contains
        if(real(omegaonly).eq.0)then   !Short cut.
           Ftotalsumg=Ftotalsumg+2*real(Fpg(m))*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+2*real(Ftauxa(1:naux,:))*EIm(m)
+          Ftmdsum=Ftmdsum+2*Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        else      ! Full sum over plus and minus m.
           Ftotalsumg=Ftotalsumg+Fpg(m)*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
+          Ftmdsum=Ftmdsum+Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
           omegag=omegaonly-m*Oceff
           if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5
           call FgEint(Fpg(-m),isigma)
           Ftotalsumg=Ftotalsumg+Fpg(-m)*EIm(m)
           Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
+          Ftmdsum=Ftmdsum+Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        endif
        if(lbess)write(*,'(a,i2,a,e11.4,''('',2e12.4,'')('',2e12.4,'')'')')&
@@ -647,6 +651,7 @@ contains
          &,nharmonicsg,Oceff
     Ftotalsumg=Ftotalsumg+Fpg(0)*EIm(0)
     Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(0)
+    Ftmdsum=Ftmdsum+Ftmda*EIm(0)
     FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(0)
 !    write(*,*)Ftotalsumg,f4norm
 !    write(*,'(a,8f8.4)')'In Sum=',Ftauxa(1:naux,1:2)/f4norm

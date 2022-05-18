@@ -212,7 +212,7 @@
 !       write(cij,'(''i='',i1,'' j='',i1)')i,j
 !       call legendline(.1,.95,258,cij(1:lentrim(cij)))
        call legendline(.1,.95,258,modelabel(i,j))
-       write(cij,'(''('',2f8.4,'')'')')Ftauxt(i,j)
+       write(cij,'(''('',2f8.4,'')'')')Ftmdt(k1,k2)*f4h
        call legendline(.35,.95,258,cij(1:lentrim(cij)))
        call axis; call axis2
        call axlabels('v!d!Ay!@!d','dFaux/dv!d!Ay!@!d')
@@ -631,9 +631,9 @@ subroutine plotdent
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg
   call makezdent
-  call FgEint(Ftotalg,isigma)
-!  call SumHarmonicsg(isigma)
-!  Ftotalg=Fpg(0)
+!  call FgEint(Ftotalg,isigma)
+  call SumHarmonicsg(isigma)
+  Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
 !  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
@@ -643,11 +643,13 @@ subroutine plotdent
      if(nharmonicsg.gt.0)then
         write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
         write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
-        write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
-        write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
-        write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      <q|V-Vw|q>' 
-        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg&
-             &,Ftauxsum(2,3)-FVwsumg
+!        write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
+!        write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
+!        write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      <q|V-Vw|q>' 
+!        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg&
+!             &,Ftauxsum(2,3)-FVwsumg
+        write(*,*)'Harm Sum <4|             <2|              <q|'
+        write(*,'(6f8.4)')Ftmdsum
   endif
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
