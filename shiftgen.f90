@@ -85,14 +85,13 @@ module shiftgen
 ! Total forces
   complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
-! Aux Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
-  complex, dimension(nauxmax,ndir) :: Ftauxp,Ftauxsum,Ftauxa,Ftauxt
   complex, dimension(nauxmax,ndir) :: Fauxtemp
 ! Mode matrices
   integer, parameter :: nmdmax=3
   integer :: nmd=3 ! Default
   complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
   complex, dimension(nmdmax,nmdmax) :: Fmdaccum
+! Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
 ! Whether to apply a correction to the trapped species
@@ -297,7 +296,7 @@ contains
   subroutine FgPassingEint(Ftp,isigma,Emaxg)
     implicit none
     complex Ftp
-    integer :: isigma,i,k
+    integer :: isigma,i
     real :: Emaxg
     real :: dvinf,fvinf,dfe,dfeperp
     real :: Wnext,dvnow,dvnext,vinfprior,vinfnow,vinfnext
@@ -312,7 +311,6 @@ contains
     denqext=0.
     denqw=0.
     denqwint=0.
-    Ftauxp=0.
     
     vinfprior=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
     Wnext=max(psig,0.)+Emaxg*(1./float(nge))**ippow
@@ -332,9 +330,6 @@ contains
        dfweight=(omegag*dfe-omegadiff*dfeperp)
        dvinf=0.5*(dvnow+dvnext)
        Ftp=Ftp+ForceOfW*dvinf*dfweight
-       do k=1,naux
-          Ftauxp(k,:)=Ftauxp(k,:)+Fauxtemp(k,:)*dvinf*dfweight
-       enddo
        Ftmdp=Ftmdp+Fmdaccum*dvinf*dfweight ! Increment mode force
        Forcegp(i)=ForceOfW*dfweight
        FmdpofW(:,:,i)=Fmdaccum*dfweight       ! Store contribution
@@ -397,7 +392,6 @@ contains
        if(zdent(nzd).ne.0) call qdenqint  ! And densities when needed.
     endif
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
-    Ftauxa(1:naux,:)=(Ftauxp(1:naux,:) + Ftauxt(1:naux,:))*2
     Ftmda=(Ftmdp+Ftmdt)*2
     
   end subroutine FgAttractEint
@@ -409,8 +403,8 @@ contains
     complex :: Ftotal,exptb,cdvpsi,dob,dFdvpsig,resdenom,resdprev
     complex :: dfweight,Fnonraux(nauxmax,ndir),Fnonrprev(nauxmax,ndir)
     complex :: Fmdnr(1:nmdmax,1:nmdmax),Fmdnpr(1:nmdmax,1:nmdmax)
-    real :: dfperpdWperp,fe,fperp,obi,vpsi,dvpsi,vpsiprev,Wj,f4h
-    integer :: isigma,i,ia,ja,k1,k2
+    real :: dfperpdWperp,fe,fperp,obi,vpsi,dvpsi,vpsiprev,Wj
+    integer :: isigma,i
 
     omegadiff=omegag-omegaonly
     dentqt=0.
@@ -423,7 +417,6 @@ contains
     Fnonresg(0)=0.                !Don't add zero energy point.
     Fnonraux(1:naux,:)=0.
     Fnonrprev(1:naux,:)=0.
-    Ftauxt(1:naux,:)=0.
     Ftmdt=0.
     Fmdnpr=0.
     resdprev=1.
@@ -481,20 +474,6 @@ contains
        endif
 ! Add to Ftotal integral (doubled later).
        Ftotal=Ftotal+Forcegr(i)*cdvpsi
-       if(.true.)then  ! Replacement for Fauxres
-       do ja=1,ndir
-         f4h=f4norm
-         if(ja.eq.3)f4h=1.
-          do ia=1,naux
-             k1=mod(ja,2)*ia+1
-             k2=min(ja-1,1)*ia+1
-             Ftauxt(ia,ja)=Ftauxt(ia,ja)+Fmdres(k1,k2,i)*cdvpsi*f4h
-          enddo
-       enddo
-       else
-       Ftauxt(1:naux,:)=Ftauxt(1:naux,:)+(0.5*(Fnonraux(1:naux,:)/resdenom &
-            + Fnonrprev(1:naux,:)/resdprev))*cdvpsi
-       endif
        Ftmdt=Ftmdt+Fmdres(1:nmd,1:nmd,i)*cdvpsi
 ! Save previous values       
        vpsiprev=vpsi
@@ -506,8 +485,6 @@ contains
           call dentaddtrap(dfweight,cdvpsi)
        endif
     enddo
-!    write(*,'(a,6f8.4)')'Ftauxt',Ftauxt(1,1)/f4norm
-!    write(*,'(a,6f8.4)')'Ftmdt ',Ftmdt(2,1)
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -568,8 +545,6 @@ contains
          /(sqm1g*(kpar-omegag/vi))&
          +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
     Fextqqwanal=Fextqqwanal+Fextqanal ! Accumulated difference
-    Ftauxp(2,1)=Ftauxp(2,1)+Fextanal*f4norm
-    Ftauxp(2,3)=Ftauxp(2,3)+Fextqanal
     Ftmdp(3,1)=Ftmdp(3,1)+Fextanal
     Ftmdp(3,2)=Ftmdp(3,2)+Fext2anal
     Ftmdp(3,3)=Ftmdp(3,3)+Fextqanal
@@ -616,7 +591,6 @@ contains
 ! But the fywy,fy need to be fixed in inner routines.
     omegaonly=omegag
     Ftotalsumg=0.
-    Ftauxsum(1:naux,:)=0.
     Ftmdsum=0.
     FVwsumg=0.
     do m=1,nharmonicsg
@@ -625,19 +599,16 @@ contains
        call FgEint(Fpg(m),isigma)
        if(real(omegaonly).eq.0)then   !Short cut.
           Ftotalsumg=Ftotalsumg+2*real(Fpg(m))*EIm(m)
-          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+2*real(Ftauxa(1:naux,:))*EIm(m)
           Ftmdsum=Ftmdsum+2*Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        else      ! Full sum over plus and minus m.
           Ftotalsumg=Ftotalsumg+Fpg(m)*EIm(m)
-          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
           Ftmdsum=Ftmdsum+Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
           omegag=omegaonly-m*Oceff
           if(abs(omegag).lt.1.e-5)omegag=omegag+sqm1g*1.e-5
           call FgEint(Fpg(-m),isigma)
           Ftotalsumg=Ftotalsumg+Fpg(-m)*EIm(m)
-          Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(m)
           Ftmdsum=Ftmdsum+Ftmda*EIm(m)
           FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(m)
        endif
@@ -650,11 +621,8 @@ contains
          &,'')'',i4,f8.4)') ' EI(0),Ftt(0)  =',EIm(0),Fpg(0)&
          &,nharmonicsg,Oceff
     Ftotalsumg=Ftotalsumg+Fpg(0)*EIm(0)
-    Ftauxsum(1:naux,:)=Ftauxsum(1:naux,:)+Ftauxa(1:naux,:)*EIm(0)
     Ftmdsum=Ftmdsum+Ftmda*EIm(0)
     FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(0)
-!    write(*,*)Ftotalsumg,f4norm
-!    write(*,'(a,8f8.4)')'In Sum=',Ftauxa(1:naux,1:2)/f4norm
   end subroutine SumHarmonicsg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Distribution functions

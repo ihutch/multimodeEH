@@ -184,16 +184,8 @@
     if(naux.ge.1)then  ! Plot of auxforces.
        write(*,*)'f4norm=',f4norm,' kpar=',kpar
        write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
-       ! write(*,*)'                   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-       ! write(*,'(a,8f8.4)')'Complex FtAuxp=',Ftauxp(:,1:2)/f4norm
-       ! write(*,'(a,8f8.4)')'Complex FtAuxt=',Ftauxt(:,1:2)/f4norm
-       ! write(*,'(a,8f8.4)')'Complex FtAuxa=',Ftauxa(:,1:2)/f4norm
        write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
-!       write(*,*)'<2|V|4><4|V|2>/<4|V|4>/4=',Ftauxt(1,1)*Ftauxt(1,2)/Ftotalg/4
-!       write(*,*)'<q|V|4><4|V|q>/<4|V|4>/4=',Ftauxt(2,1)*Ftauxt(2,2)/Ftotalg/4
-!       write(*,*)'q0(1/omega^2-1)/pi='&
-!         ,4.*kpar/real(omegag)*sqrt(1.-real(omegag)**2)/3.1415926
       do j=1,ndir
          f4h=f4norm
          if(j.eq.3)f4h=1.
@@ -643,11 +635,6 @@ subroutine plotdent
      if(nharmonicsg.gt.0)then
         write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
         write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
-!        write(*,*)'Coupling forces  <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'     
-!        write(*,'(a,8f8.4)')'Ftauxsum   =',Ftauxsum(1:naux,1:2)/f4norm
-!        write(*,*)' Self-Forces     <2|V|2>         <q|V|q>        <q|Vw|q>      <q|V-Vw|q>' 
-!        write(*,'(a,8f8.4)')'            ',Ftauxsum(:,3),FVwsumg&
-!             &,Ftauxsum(2,3)-FVwsumg
         write(*,*)'Harm Sum <4|             <2|              <q|'
         write(*,'(6f8.4)')Ftmdsum
   endif
@@ -674,19 +661,11 @@ subroutine plotdent
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
           f4norm*F44t/(2.*Ftotalrg)
      write(*,*)
-     ! write(*,*)' Coupling forces   <2|V|4>         <q|V|4>         <4|V|2>       <4|V|q>'
-     ! write(*,'(a,8f8.4)')'Passing FtAux=',2*Ftauxp(:,1:2)/f4norm
-     ! write(*,'(a,8f8.4)')'Trapped FtAux=',2*Ftauxt(:,1:2)/f4norm
-     ! write(*,'(a,8f8.4)')'Total  FtAuxa=',Ftauxa(:,1:2)/f4norm
-     ! write(*,*)' Self-Forces       <2|V|2>         <q|V|q>' 
-     ! write(*,'(a,8f8.4)')'Trapped FtAux=',2.*Ftauxt(:,3)
-     ! write(*,'(a,8f8.4)')'Passing FtAux=',2.*Ftauxp(:,3)
-     ! write(*,'(a,8f8.4)')'Total   FtAux=',Ftauxa(:,3)
      write(*,*)'Passing <4|             <2|              <q|'
      write(*,'(6f8.4)')2.*Ftmdp
-     write(*,*)'Trap    <4|             <2|              <q|'
+     write(*,*)'Trapped <4|             <2|              <q|'
      write(*,'(6f8.4)')2.*Ftmdt
-     write(*,*)'All     <4|             <2|              <q|'
+     write(*,*)'Attract <4|             <2|              <q|'
      write(*,'(6f8.4)')Ftmda
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
@@ -703,7 +682,6 @@ subroutine plotdent
      write(*,'(2a)')'Size of q term relative to 4 term,'
      write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
           -sqm1g*4*3.1415926*Ftmda(3,1)*Ftmda(1,3)/(qresdenom*Cfactor/4)*f4norm**2&
-!          -sqm1g*4*3.1415926*Ftauxa(2,1)*Ftauxa(2,2)/(qresdenom*Cfactor/4)&
           /Ftotalg
      write(*,*)
      write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
