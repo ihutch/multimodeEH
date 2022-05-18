@@ -555,7 +555,7 @@ contains
   subroutine Fextern2(Wgi,isigma,dvinf,dfweight)
 ! Revised Fextern that calculates analytically the external forces
     real :: Wgi
-    complex :: Fextanal,Fextqanal,Amp,dvdfw,dfweight
+    complex :: Fextanal,Fext2anal,Fextqanal,Amp,dvdfw,dfweight
     vi=sqrt(2.*Wgi)
     dvdfw=dvinf*dfweight*sqm1g
     p=4.*kpar
@@ -566,13 +566,19 @@ contains
     Amp=(Pk+complex(0.,p)*Qk)/fn
     Fextanal=conjg(Amp)*CPmds(ngz,1)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))
+    Fext2anal=conjg(Amp)*CPmds(ngz,2)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
+         /(sqm1g*(kpar-omegag/vi))
+    ! Analytic Difference <q|V-Vw|q>
     Fextqanal=conjg(Amp)*CPmds(ngz,3)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))&
          +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
-    Fextqqwanal=Fextqqwanal+Fextqanal
+    Fextqqwanal=Fextqqwanal+Fextqanal ! Accumulated difference
     Ftauxp(2,1)=Ftauxp(2,1)+Fextanal*f4norm
     Ftauxp(2,3)=Ftauxp(2,3)+Fextqanal
-  end subroutine Fextern2    
+    Ftmdp(3,1)=Ftmdp(3,1)+Fextanal
+    Ftmdp(3,2)=Ftmdp(3,2)+Fext2anal
+    Ftmdp(3,3)=Ftmdp(3,3)+Fextqanal
+  end subroutine Fextern2
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine SumHarmonicsg(isigma)
