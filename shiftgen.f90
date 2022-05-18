@@ -302,7 +302,7 @@ contains
     real :: Emaxg
     real :: dvinf,fvinf,dfe,dfeperp
     real :: Wnext,dvnow,dvnext,vinfprior,vinfnow,vinfnext
-    complex :: dfweight
+    complex :: dfweight,ForceOfW
     omegadiff=omegag-omegaonly
     Ftp=0.
     Fextqq=0.
@@ -327,16 +327,16 @@ contains
        Wnext=max(psig,0.)+Emaxg*(min(i+1,nge)/float(nge))**ippow
        vinfnext=-isigma*sqrt(2.*Wnext)
        dvnext=abs(vinfnext-vinfnow)
-       call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxtemp)
+       call Fdirect(Wgarray(i),isigma,ForceOfW,Fauxtemp)
        dfe=dfdWpar(vinfnow,fvinf) ! fparallel slope and value
        dfeperp=-fvinf/Tperpg
        dfweight=(omegag*dfe-omegadiff*dfeperp)
        dvinf=0.5*(dvnow+dvnext)
-       Ftp=Ftp+Forcegarray(i)*dvinf*dfweight
+       Ftp=Ftp+ForceOfW*dvinf*dfweight
        do k=1,naux
           Ftauxp(k,:)=Ftauxp(k,:)+Fauxtemp(k,:)*dvinf*dfweight
        enddo
-       Forcegp(i)=Forcegarray(i)*dfweight
+       Forcegp(i)=ForceOfW*dfweight
        Fauxp(1:naux,:,i)=Fauxtemp(1:naux,:)*dfweight
        tbp(i)=taug(ngz)
        if(naux.ge.2)then
@@ -351,34 +351,35 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgReflectedEint(Ftr,isigma)
     implicit none
-    complex :: Ftr,Fauxtemprev(nauxmax,ndir)
+    complex :: Ftr,Fauxtemprev(nauxmax,ndir),ForceOfW,FOfWprev
     integer :: isigma,i
     real :: dvinf,fvinf,dfe,dfeperp,dfepre,dfeperppre
     omegadiff=omegag-omegaonly
     do i=1,nge  ! Reflected
        Wgarray(i)=psig*(1.-(i/float(nge))**2)
        vinfarrayr(i)=-isigma*sqrt(2.*Wgarray(i))
-       call Fdirect(Wgarray(i),isigma,Forcegarray(i),Fauxtemp)
+       call Fdirect(Wgarray(i),isigma,ForceOfW,Fauxtemp)
 ! This seems to have been an error found 16 Nov 2021.       
 !       dfe=dfdWpar(vinfarrayp(i),fvinf) ! fparallel slope and value
        dfe=dfdWpar(vinfarrayr(i),fvinf) ! fparallel slope and value
        dfeperp=-fvinf/Tperpg
        if(i.eq.1)then
           dvinf=abs(vinfarrayr(i))-sqrt(2.*psig)
-          Ftr=dvinf*Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
+          Ftr=dvinf*ForceOfW*(omegag*dfe-omegadiff*dfeperp)
           Ftauxr(1:naux,:)=dvinf*Fauxtemp(1:naux,:)&
                *(omegag*dfe-omegadiff*dfeperp)
        else
           dvinf=abs(vinfarrayr(i)-vinfarrayr(i-1))
           Ftr=Ftr+dvinf*0.5* &
-               (Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp) &
-               +Forcegarray(i-1)*(omegag*dfepre-omegadiff*dfeperppre))
+               (ForceOfW*(omegag*dfe-omegadiff*dfeperp) &
+               +FOfWprev*(omegag*dfepre-omegadiff*dfeperppre))
           Ftauxr(1:naux,:)=Ftauxr(1:naux,:)+dvinf*0.5* &
                (Fauxtemp(1:naux,:)*(omegag*dfe-omegadiff*dfeperp) &
                +Fauxtemprev(1:naux,:)*(omegag*dfepre-omegadiff*dfeperppre))
        endif
-       Forcegr(i)=Forcegarray(i)*(omegag*dfe-omegadiff*dfeperp)
+       Forcegr(i)=ForceOfW*(omegag*dfe-omegadiff*dfeperp)
        Fauxtemprev=Fauxtemp
+       FOfWprev=ForceOfW
        tbr(i)=taug(ngz)
        dfepre=dfe
        dfeperppre=dfeperp
