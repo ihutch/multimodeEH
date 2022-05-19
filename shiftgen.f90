@@ -45,22 +45,21 @@
 ! shift3mode version started 16 May 2022. nmd now controls nmodes.
 
 module shiftgen
-  complex :: omegag=(1.,0.),Ftot
-  complex :: omegadiff,omegaonly,Vw
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200
+  complex :: omegag=(1.,0.),Ftot,omegadiff,omegaonly,Vw
   real :: psig=.1,Wg,zm=29.9,Omegacg=5.,kg=0.
   real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.
 ! Tinf is really the reference (attracted). Torepel the repelled species tempr.
-  real :: f4norm
   real :: zR ! reflection position if any
   real :: rmime=1836. ! Ratio of mass of ion to mass of electron
-  real,parameter :: pig=3.1415926
+  real, parameter :: pig=3.1415926
   complex, parameter :: sqm1g=(0.,1.)
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200
   integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
-  real :: kpar
-! Spatial Arrays
+  real :: kpar,f4norm
+! Spatial Arrays variable
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
+! Fixed range  
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
@@ -87,7 +86,6 @@ module shiftgen
 ! Distribution function variables for mode dent densities 
   complex, dimension(-ngz:ngz,nmdmax-1) :: ftraux
   complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
-
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
   logical :: ldentaddp=.false.,ltrapaddp=.false.
@@ -725,89 +723,7 @@ end function dfdWptrap
 ! And the wave-generated internal passing density V_w|q>.
     denqwint=denqwint+dvinf*sqm1g*dfweight*(auxzd/&
          (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vinfbyv
-    
-    if(ldentaddp)call dentaddplot(dfweight)
-
   end subroutine dentadd
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine dentaddplot(dfweight)
-    complex :: dfweight
-    character*20 wchar
-    logical :: printwait=.false.
-
-    if(printwait)write(*,'(a,f7.4,'' ''$)')'Wg',Wg
-
-!    if(Wg.gt.1..and.Wg.lt.1.02)call pfset(3)
-    if(Wg.gt..1.and.Wg.lt..103)call pfset(3)
-    if(Wg.eq.Wgarray(nge))call pfset(3)
-    
-    call multiframe(2,1,0)
-    call dcharsize(.019,.019)
-
-    call minmax(dentq,4*nzd+2,dmin,dmax)
-    call pltinit(zg(-ngz),zg(ngz),dmin,dmax)
-    call fwrite(Wg,iwidth,4,wchar)
-    call boxtitle('Passing positive velocity contributions only to W='&
-         //wchar(1:iwidth))
-    call axis; call axis2
-    call axlabels('','!p!o~!o!qn!dq!d'    )
-    call polymark(zdmid(nzd),real(dentq(nzd)),1,1)
-    call polyline(zdmid(-nzd:nzd),real(dentq(-nzd:nzd)),2*nzd)
-    call dashset(2)
-    call polyline(zdmid(-nzd:nzd),imag(dentq(-nzd:nzd)),2*nzd)
-    call polymark(zdmid(nzd),imag(dentq(nzd)),1,1)
-    call color(6)
-    call polyline(zdmid,imag(denqwint),2*nzd)
-    call dashset(0)
-!    call axlabels('','              !p!o~!o!qV!dext!d|q>')
-    call axlabels('','              !p!o~!o!qn!dw!d')
-    call polyline(zdmid,real(denqwint),2*nzd)
-    if(Wg.eq.Wgarray(nge))then
-       call color(3)
-       call legendline(.3,.9,0,' V!dw!d|q>/2')
-       call polyline(zdmid,real(Vw*auxzd/2.),2*nzd)
-       call dashset(2)
-       call polyline(zdmid,imag(Vw*auxzd/2.),2*nzd)
-       call dashset(0)
-    endif
-    call color(15)
-
-    call minmax(dentpass,4*nzd+2,dmin,dmax)
-    call minmax(CapPhid,4*nzd+2,cmin,cmax)
-    Cfactor=min(abs(dmax),abs(dmin))/max(abs(cmin),abs(cmax))
-    call pltinit(zg(-ngz),zg(ngz),dmin,dmax)
-    call axis; call axis2
-    call axlabels('','!p!o~!o!qn!d4!d')
-    call legendline(.7,.2,0,'real')
-!    call polymark(zdmid(nzd),real(dentpass(nzd)),1,1)
-    call polyline(zdmid(-nzd:nzd),real(dentpass(-nzd:nzd)),2*nzd)
-    call dashset(2)
-    call legendline(.7,.1,0,'imag')
-    call polyline(zdmid(-nzd:nzd),imag(dentpass(-nzd:nzd)),2*nzd)
-    if(dfweight.ne.0)then
-       call dashset(3)
-       call color(4)
-       call polyline(zdmid,Cfactor*real(CapPhid),2*nzd)
-       call legendline(.7,.7,0,'!AF!@ (scaled)')
-    endif
-    call dashset(0)
-    call color(15)
- 
-    call multiframe(0,0,0)
-    if(printwait)call usleep(20000)
-    call accisflush
-    
-!    if(.not.printwait)call noeye3d(0)
-    call eye3d(ik) ! Control of movie effect d:run f:stop
-    if(ik.eq.ichar('d'))call noeye3d(0)
-    if(ik.eq.ichar('f'))call noeye3d(9999)
-    
-    if(Wg.ne.Wgarray(nge))call prtend('')
-    call pfget(isw)
-    if(isw.ne.0)then
-       call pfset(0)
-    endif
-  end subroutine dentaddplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine dentaddtrap(dfweight,cdvinf)
 ! Make denttrap equal to the weighted average of \Phi over the zg
@@ -837,116 +753,8 @@ end function dfdWptrap
 !         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vpsibyv
 ! Instead we should just use Vw*auxzd for the total. 
     
-    if(ltrapaddp)call dentaddtrapplot(dfweight,cdvinf)
-    
   end subroutine dentaddtrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine dentaddtrapplot(dfweight,cdvinf)
-! Diagnostic plots of density tilde n (contributions)
-    complex :: dfweight,cdvinf
-    character*20 wchar
-
-    if(Wgarray(nge).eq.psig)then
-!       write(*,*)'Last step increment fraction @ x=0',&
-!            cdvinf*ftrauxd(0,2)/dentqt(0)
-       call pfset(3)
-    endif
-    call multiframe(2,1,1)
-    call minmax(denttrap,4*nzd+2,dmin,dmax)
-    call minmax(ft4d,4*nzd+2,cmin,cmax)
-    if(abs(cdvinf).eq.0)then
-       Cfactor=1.
-       call pltinit(-zm,zm,cmin,cmax)
-    else
-       Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
-       call pltinit(-zm,zm,dmin,dmax)
-    endif
-    
-    call fwrite(Wg,iwidth,6,wchar)
-    if(real(dfweight).ne.999)then
-       call boxtitle('Trapped positive velocity contributions W='&
-            //wchar(1:iwidth))
-    else
-       call boxtitle('Antisymmetrized total densities')
-    endif
-    call axis;
-    call axlabels('','!p!o~!o!qn!d4!d')
-    call polyline(zdmid(-nzd:nzd),real(denttrap(-nzd:nzd)),2*nzd)
-    call legendline(.03,.9,0,' real')
-    call dashset(2)
-    call legendline(.03,.85,0,' imag')
-    call polyline(zdmid(-nzd:nzd),imag(denttrap(-nzd:nzd)),2*nzd)
-    if(dfweight.ne.0.and.abs(Wg-psig).gt.1.e-3)then
-       call color(4)
-       call axptset(1.,0.)
-       call ticrev
-       call altyaxis(1./Cfactor,1./Cfactor)
-       call axlabels('','!p!o~!o!qf!d4!d')
-       call ticrev
-       call winset(.true.)
-       call polyline(zdmid,Cfactor*imag(ft4d),2*nzd)
-       call dashset(0)
-       call polyline(zdmid,Cfactor*real(ft4d),2*nzd)
-!          write(wchar,'(e8.2)')Cfactor
-!          call legendline(.03,.75,0,' !p!o~!o!qf!d4!d*'//wchar(1:lentrim(wchar)))
-    else
-       call axis2          
-    endif
-    call dashset(0)
-    call color(15)
-    call accisflush
-    call minmax(dentqt,4*nzd+2,dmin,dmax)
-    call minmax(ftrauxd(:,2),4*nzd+2,cmin,cmax)
-    Cfactor=0.5*(dmax-dmin)/(cmax-cmin)
-    if(abs(cdvinf).eq.0)then
-       write(*,*)'WARNING fixed cdvinf=0'
-       Cfactor=1.
-       call pltinit(-zm,zm,cmin,cmax)
-    else
-       call pltinit(-zm,zm,dmin,dmax)
-    endif
-    call axis
-    call polyline(zdmid(-nzd:nzd),real(dentqt(-nzd:nzd)),2*nzd)
-    if(real(dfweight).eq.999)then
-    call color(3)
-    call dashset(2)
-    call polyline(zdmid,imag(Vw*auxzd),2*nzd)
-    call dashset(0)
-    call axlabels('','              !p!o~!o!qn!dw!d')
-    call polyline(zdmid,real(Vw*auxzd),2*nzd)
-    endif
-    call color(15)
-
-    call axlabels('z','!p!o~!o!qn!dq!d')
-    call dashset(2)
-    call polyline(zdmid(-nzd:nzd),imag(dentqt(-nzd:nzd)),2*nzd)
-    if(dfweight.ne.0.and.abs(Wg-psig).gt.1.e-3)then
-       call color(4)
-       call axptset(1.,0.)
-       call ticrev
-       call altyaxis(1./Cfactor,1./Cfactor)
-       call axlabels('','!p!o~!o!qf!dq!d')
-       call ticrev
-       call winset(.true.)
-       call polyline(zdmid,Cfactor*imag(ftrauxd(:,2)),2*nzd)
-       call dashset(0)
-       call polyline(zdmid,Cfactor*real(ftrauxd(:,2)),2*nzd)
-    else
-       call axis2          
-    endif
-    call dashset(0)
-!       write(wchar,'(e8.2)')Cfactor
-!       call legendline(.03,.85,0,' !p!o~!o!qf!dtq!d*'//wchar(1:lentrim(wchar)))
-    call multiframe(0,0,0)
-    call pfget(isw)
-    if(isw.ne.0.and.Wg.ne.psig) call pfset(0)
-    call eye3d(ik) ! Control of movie effect d:run f:stop
-    if(ik.eq.ichar('d'))call noeye3d(0)
-    if(ik.eq.ichar('f'))call noeye3d(9999)
-    if(ik.eq.ichar('p'))call pfset(3)
-    
-  end subroutine dentaddtrapplot
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine remesh(x1,y1,n1,x2,y2,n2)
 ! Interpolate arrays x1,y1, of length n1, where x1 is monotonic
 ! increasing, onto another monotonic increasing array x2 of length n2.

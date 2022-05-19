@@ -594,7 +594,7 @@ end subroutine plotmodes
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine plotdent
   use shiftgen
-  complex :: Ftotalg,Cfactor,dfweight=999,cdummy
+  complex :: Ftotalg,Cfactor ! ,dfweight=999,cdummy
   complex :: F44t=0,F44p=0,w2byw4,wqbyw4
   character*10 string
   character(len=20), external :: ffwrite
@@ -719,7 +719,7 @@ subroutine plotdent
         do i=-nzd,nzd
            dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
         enddo
-        call dentaddtrapplot(dfweight,cdummy)
+!        call dentaddtrapplot(dfweight,cdummy)
         call pltend
      endif
 
