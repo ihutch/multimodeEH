@@ -40,10 +40,9 @@
 
 ! Version for inclusion of auxiliary coupled perturbation modes,
 ! and works only for sech^4 potential shape. 
-! naux (1 or 2) determines the number of auxiliary modes used.
 ! 1 gives just the other discrete mode, and 2 adds the continuum.
 ! Inner products should be only for Fattract (presumably electrons). 
-! shift3mode version started 16 May 2022.
+! shift3mode version started 16 May 2022. nmd now controls nmodes.
 
 module shiftgen
   complex :: omegag=(1.,0.),Ftot
@@ -58,13 +57,10 @@ module shiftgen
   real,parameter :: pig=3.1415926
   complex, parameter :: sqm1g=(0.,1.)
   integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
-  integer, parameter :: nauxmax=2,ndir=3
-  integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws, naux=0
+  integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
   real :: kpar,zextfac=30.
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
-  complex, dimension(-ngz:ngz,nauxmax) :: auxmodes,ftraux
-  complex, dimension(-nzd:nzd,nauxmax) :: ftrauxd
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
@@ -78,21 +74,23 @@ module shiftgen
   real, dimension(nge) :: Wgarray,Wgarrayp,Wgarrayr,vinfarrayp
   real, dimension(nge) :: vinfarrayr,tbr,tbp,Wgarrayu
 !   Auxiliary Forces as a function of parallel energy/velocity.
-  ! ndir index denotes 1: <u|~V|4> or 2: <4|~V|u> or 3: <u|~V|u> 
   complex :: Fextqq,Fextqw,Fintqq,Fintqw,Fextqqwanal
-! Perpendicular Harmonic force arrays.
-  complex, dimension(-nhmax:nhmax) :: Frg,Ftg,Fpg
+! Perpendicular Harmonic force array.
+  complex, dimension(-nhmax:nhmax) :: Fpg
 ! Total forces
-  complex :: Ftotalmode
   complex :: Ftotalrg,Ftotalpg,Ftotalsumg,FVwsumg
 ! Mode matrices
   integer, parameter :: nmdmax=3
-  integer :: nmd=3 ! Default
+  integer :: nmd=nmdmax ! Default
   complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
   complex, dimension(nmdmax,nmdmax) :: Fmdaccum
 ! Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
+! Legacy variables
+  complex, dimension(-ngz:ngz,nmdmax-1) :: auxmodes,ftraux
+  complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
+
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
   logical :: ldentaddp=.false.,ltrapaddp=.false.
@@ -162,7 +160,7 @@ contains
     enddo
     f4norm=abs(16.*psig/(3.*sqrt(70.)))
     phigprime(:)=-real(pmds(:,1)*f4norm)
-    auxmodes(:,1:naux)=pmds(:,2:naux+1)
+    auxmodes(:,1:nmd-1)=pmds(:,2:nmd)
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
@@ -222,7 +220,7 @@ contains
     taug(-ngz)=0.
     CPmds(-ngz,1:nmd)=0.
 ! Set the incoming CPmds for continuum to be the wave solution.
-    if(Wg.ge.0)CPmds(-ngz,3)=auxmodes(-ngz,2)/(sqm1g*(-kpar*vg(ngz)-omegag))
+    if(Wg.ge.0)CPmds(-ngz,3)=pmds(-ngz,3)/(sqm1g*(-kpar*vg(ngz)-omegag))
     Fmdaccum=0.
     if(Wg.lt.phigofz(zm).and.psig.gt.0)return  ! Reflected Energy too small
     do i=-ngz+1,ngz
@@ -277,8 +275,8 @@ contains
 ! For symmetric potentials and f(v), the returned Ftotalg can simply be
 ! doubled to give the total force since then it is symmetric in isigma.
     complex Ftotalg
-    if(naux.ne.0)then
-      write(*,*)'WARNING naux=',naux,'not implemented for repelling potential.'
+    if(nmd.ne.1)then
+      write(*,*)'WARNING nmd=',nmd,'not implemented for repelling potential.'
     endif
     Emaxg=2.5*(sqrt(2*Tinf)+vshift)**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
@@ -297,6 +295,7 @@ contains
     complex :: dfweight,ForceOfW
     omegadiff=omegag-omegaonly
     Ftp=0.
+    Ftmdp=0.
     Fextqq=0.
     Fextqw=0.
     Fextqqwanal=0.
@@ -328,7 +327,7 @@ contains
        Forcegp(i)=ForceOfW*dfweight
        FmdpofW(:,:,i)=Fmdaccum*dfweight       ! Store contribution
        tbp(i)=taug(ngz)
-       if(naux.ge.2)then
+       if(nmd.ge.3)then
 ! Now we must do or add the external continuum integration.
           call Fextern2(Wgarray(i),isigma,dvinf,dfweight)
           if(zdent(nzd).ne.0)call dentadd(dfweight,dvinf) !Diagnostics
@@ -373,20 +372,14 @@ contains
     complex Ftotalg
     Emaxg=6.*Tinf+vshift**2
     call FgPassingEint(Ftotalpg,isigma,Emaxg)
-    if(naux.ge.2.and.zdent(nzd).ne.0.and.ldentaddp)then
-       call pltend
-       call noeye3d(9999)
-    endif
-    
+    call makezdent
+    call qwint                         ! Find internal wave force.
+    Ftmdp(3,3)=Ftmdp(3,3)-Fintqw       ! And subtract from qq
     call FgTrappedEint(Ftotalrg,-1/Tperpg,1.,isigma)
  ! Specifies dfperp, fperp, for Maxwellian perp distrib.    
-    if(naux.ge.2)then
-       call qwint                         ! Find internal wave force.
-       if(zdent(nzd).ne.0) call qdenqint  ! And densities when needed.
-    endif
+    call qdenqint                      ! And densities when needed.
     Ftotalg=(Ftotalpg+Ftotalrg)*2. ! account for both v-directions 
-    Ftmda=(Ftmdp+Ftmdt)*2
-    
+    Ftmda=(Ftmdp+Ftmdt)*2   
   end subroutine FgAttractEint
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   subroutine FgTrappedEint(Ftotal,dfperpdWperp,fperp,isigma)
@@ -404,7 +397,6 @@ contains
     denqwint=0.
     denttrap=0.
     Ftotal=0.
-    Ftotalmode=0.
     vpsiprev=sqrt(-2.*psig)
     omegabg(0)=0.
     Fnonresg(0)=0.                !Don't add zero energy point.
@@ -467,7 +459,7 @@ contains
        Fmdnpr=Fmdnr
        resdprev=resdenom
        tbr(i)=taug(ngz)
-       if(naux.ge.2.and.zdent(nzd).ne.0)then
+       if(nmd.ge.3)then
           call dentaddtrap(dfweight,cdvpsi)
        endif
     enddo
@@ -845,20 +837,6 @@ end function dfdWptrap
     endif
     call dashset(0)
     call color(15)
-
-    if(.false.)then
-    call pltinit(zg(-ngz),zext(nzext),-0.42,0.42)
-    call axis; call axis2
-    call polyline(zext,real(auxext),nzext)
-    call polyline(zg(-ngz:ngz),real(auxmodes(-ngz:ngz,2)),2*ngz+1)
-    call axlabels('z','|q>')
-    call legendline(.7,.9,0,'real')
-    call dashset(2)
-    call polyline(zext,imag(auxext),nzext)
-    call polyline(zg(-ngz:ngz),imag(auxmodes(-ngz:ngz,2)),2*ngz+1)
-    call legendline(.7,.8,0,'imag')
-    call dashset(0)
- endif
  
     call multiframe(0,0,0)
     if(printwait)call usleep(20000)
@@ -892,7 +870,7 @@ end function dfdWptrap
     ft4=sqm1g*dfweight*(CPmds(:,1)&
          -exp(sqm1g*omegag*taug)*CPmds(ngz,1)/resfac)
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
-    do j=1,naux ! Similarly for the auxmode trapped f
+    do j=1,nmd-1 ! Similarly for the auxmode trapped f
        ftraux(:,j)=sqm1g*dfweight*(CPmds(:,j+1)&
             -exp(sqm1g*omegag*taug)*CPmds(ngz,j+1)/resfac)
        call remesh(zg,ftraux(:,j),2*ngz+1,zdent,ftrauxd(:,j),2*nzd+1)

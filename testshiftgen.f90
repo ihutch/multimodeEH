@@ -86,7 +86,7 @@
     real, dimension(nge) :: vpsiarrayp
     complex :: Ftotalg
     character*40 annote,ffan,cij
-    character*20, dimension(nauxmax,ndir) :: modelabel
+    character*20, dimension(2,3) :: modelabel
 ! Give access to pf switch pfsw    
     integer pfsw
     integer pfilno,pfnextsw,pfPS,psini
@@ -97,7 +97,6 @@
 
     write(*,*)'testAttract'
     lioncorrect=.false.
-    naux=2
     if(real(omegag).eq.0)omegag=(.1,0.001000)
     omegaonly=omegag
     kg=real(omegag)
@@ -181,15 +180,15 @@
     call pltend
     endif
 
-    if(naux.ge.1)then  ! Plot of auxforces.
+    if(nmd.ge.2)then  ! Plot of auxforces.
        write(*,*)'f4norm=',f4norm,' kpar=',kpar
        write(*,'(a,8f8.4)')'Complex Ftotalg <4|V|4> =',Ftotalg
        write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
-      do j=1,ndir
+      do j=1,3
          f4h=f4norm
          if(j.eq.3)f4h=1.
-         do i=1,naux
+         do i=1,nmd-1
             k1=mod(j,2)*i+1
             k2=min(j-1,1)*i+1
        call multiframe(1,2,0)
@@ -444,7 +443,7 @@
        if(argument(1:3).eq.'-oc')read(argument(4:),*)Omegacg
        if(argument(1:3).eq.'-kg')read(argument(4:),*)kg
        if(argument(1:2).eq.'-n')read(argument(3:),*)nvs
-       if(argument(1:2).eq.'-a')read(argument(3:),*)naux
+       if(argument(1:2).eq.'-a')read(argument(3:),*)nmd
        if(argument(1:2).eq.'-c')then
           ipfset=-3
           read(argument(3:),*,err=201,end=201)ipfset
@@ -472,7 +471,7 @@
     write(*,101) '-or.. -oi..  set omega       [',ormax,oi
     write(*,101) '-oc.. -kg..  set O_c, set k  [',Omegacg,kg
     write(*,102) '-n..         set number of vs[',nvs
-    write(*,102) '-a..         set nauxmodes   [',naux
+    write(*,102) '-a..         set nmodes      [',nmd
     write(*,102) '-s..         set switches    [',isw
     write(*,*)' s=1 Frepel, 2 Fattr, 4 Fi(omega), 8 PlotForce, 16&
          & denem,',' 32 Modes, 64 SumHarm'
@@ -548,7 +547,6 @@ subroutine plotmodes
   call tsparse(ormax,oi,nvs,isw,vs,ps)
   kg=.1
   Omegacg=20
-  naux=2
   zm=25
   psig=-.1
   isigma=-1
@@ -583,11 +581,11 @@ subroutine plotmodes
   write(*,*)'dot12=',dot12,'  dot01=',dot01,'  dot02=',dot02
   write(*,*)'zm=',zm,' kpar=',kpar
   write(*,*)'psig/ppnorm',psig/ppnorm
-  if(naux.gt.0)call multiframe(naux+1,1,1)
+  if(nmd.gt.1)call multiframe(nmd,1,1)
 ! call autoplot(zg,phigprime*ppnorm/psig,2*ngz+1) ! Normalized
   call autoplot(zg,phigprime,2*ngz+1)
   call axlabels('','d!Af!@/dz')
-  do j=1,naux
+  do j=1,nmd-1
      call autoplot(zg,real(auxmodes(:,j)),2*ngz+1)
   enddo
   call axlabels('z','')
@@ -601,10 +599,13 @@ subroutine plotdent
   complex :: F44t=0,F44p=0,w2byw4,wqbyw4
   character*10 string
   character(len=20), external :: ffwrite
-  naux=2
   lioncorrect=.false.
-!  ldentaddp=.true.   ! dentadd movie
-!  ltrapaddp=.true.   ! trapped movie
+  ldentaddp=.false.   ! dentadd movie
+  ltrapaddp=.false.   ! trapped movie
+  if(ldentaddp)then
+     write(*,*)'To get density plots check out branch AuxmodeVersion'
+     stop
+  endif
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20
@@ -628,15 +629,15 @@ subroutine plotdent
   Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
   ! These are total forces integrated dW.
-!  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq+Fextqq-Fintqw-Fextqw)/(qresdenom/16.)
+!  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
 
-  if(naux.ge.2)then
-     if(nharmonicsg.gt.0)then
-        write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
-        write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
-        write(*,*)'Harm Sum <4|             <2|              <q|'
-        write(*,'(6f8.4)')Ftmdsum
+  if(nmd.gt.1)then
+  if(nharmonicsg.gt.0)then
+     write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
+     write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
+     write(*,*)'Harm Sum <4|               <2|                <q|'
+     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmdsum
   endif
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
@@ -660,13 +661,13 @@ subroutine plotdent
           (F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
      write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
           f4norm*F44t/(2.*Ftotalrg)
-     write(*,*)
-     write(*,*)'Passing <4|             <2|              <q|'
-     write(*,'(6f8.4)')2.*Ftmdp
-     write(*,*)'Trapped <4|             <2|              <q|'
-     write(*,'(6f8.4)')2.*Ftmdt
-     write(*,*)'Attract <4|             <2|              <q|'
-     write(*,'(6f8.4)')Ftmda
+     write(*,*)'Inner product matrices:'
+     write(*,*)'Passing <4|               <2|                <q|   [V-Vw|q>]'
+     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdp
+     write(*,*)'Trapped <4|               <2|                <q|'
+     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdt     
+     write(*,*)'Attract <4|               <2|                <q|'
+     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
      write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
           abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
      write(*,*)
@@ -690,11 +691,12 @@ subroutine plotdent
           &,Fintqq*2-Fintqw*2
      write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
           ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
+     write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
+          ,'    Ftmda',(Ftmda(3,3))
      write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
           (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
           ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
-     write(*,'(a,f8.2)')'zextmax=',zext(nzext)
 
      if(ltrapaddp)then
         call pltend
