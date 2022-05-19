@@ -88,7 +88,7 @@ module shiftgen
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
 ! Legacy variables
-  complex, dimension(-ngz:ngz,nmdmax-1) :: auxmodes,ftraux
+  complex, dimension(-ngz:ngz,nmdmax-1) :: ftraux
   complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
 
 ! Whether to apply a correction to the trapped species
@@ -133,7 +133,7 @@ contains
        stop
    endif
     omegar=real(omegaonly)
-! Set the kpar of the continuum auxmode.
+! Set the kpar of the continuum mode.
     if(omegar.le.1.and.Omegacg.gt.omegar)then
        kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
             ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
@@ -160,7 +160,6 @@ contains
     enddo
     f4norm=abs(16.*psig/(3.*sqrt(70.)))
     phigprime(:)=-real(pmds(:,1)*f4norm)
-    auxmodes(:,1:nmd-1)=pmds(:,2:nmd)
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
@@ -870,7 +869,7 @@ end function dfdWptrap
     ft4=sqm1g*dfweight*(CPmds(:,1)&
          -exp(sqm1g*omegag*taug)*CPmds(ngz,1)/resfac)
     call remesh(zg,ft4,2*ngz+1,zdent,ft4d,2*nzd+1)
-    do j=1,nmd-1 ! Similarly for the auxmode trapped f
+    do j=1,nmd-1 ! Similarly for the modes trapped f
        ftraux(:,j)=sqm1g*dfweight*(CPmds(:,j+1)&
             -exp(sqm1g*omegag*taug)*CPmds(ngz,j+1)/resfac)
        call remesh(zg,ftraux(:,j),2*ngz+1,zdent,ftrauxd(:,j),2*nzd+1)
@@ -1021,7 +1020,7 @@ end function dfdWptrap
   end subroutine remesh
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine qdenqint
-! Integrate the continuum mode force using auxmode and dentq in the
+! Integrate the continuum mode force using auxzd and dentq in the
 ! hole region -zm to zm.
     dz=zm/nzd
     Fintqq=-conjg(auxzd(-nzd))*dentq(-nzd)*dz/2.
@@ -1122,7 +1121,7 @@ subroutine makezdent
   use shiftgen
   do i=-nzd,nzd
      zdent(i)=.999999*zm*i/float(nzd)
-     ! And the continuum auxmode internally on the zd mesh.  
+     ! And the continuum auxzd internally on the zd mesh.  
      auxzd(i)=auxofz(zdent(i),2,kpar)
      phi0d(i)=phigofz(zdent(i)) ! and phi0d
      phipd(i)=phigprimeofz(zdent(i)) ! and phi0prime.

@@ -553,23 +553,22 @@ subroutine plotmodes
   Wg=.1*abs(psig)
   omegaonly=omegag   ! Needed for evaluation of kpar
   call makezg(isigma)
-  write(*,'(i3,4f10.5)')(i,zg(i),auxmodes(i,2),i=-2,2)
+  write(*,'(i3,4f10.5)')(i,zg(i),pmds(i,3),i=-2,2)
   write(*,*)'kpar=',kpar,'omegag=',omegag
   dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
   do i=-ngz+1,ngz
      dot0=dot0+(phigprime(i-1)**2+phigprime(i)**2)*(zg(i)-zg(i-1))/2
      ! Fix the z/x normalization by dividing by 2*4
-     dot1=dot1+real(auxmodes(i-1,1)**2+auxmodes(i,1)**2)*(zg(i)-zg(i-1))/2
-     dot2=dot2+(abs(auxmodes(i-1,2))**2+abs(auxmodes(i,2))**2)*(zg(i)-zg(i-1))/8
-     dot12=dot12+real(auxmodes(i-1,1)*auxmodes(i-1,2)&
-          +auxmodes(i,1)*auxmodes(i,2))*(zg(i)-zg(i-1))/8
-     dot01=dot01+real(auxmodes(i-1,1)*phigprime(i-1)&
-          +auxmodes(i,1)*phigprime(i))*(zg(i)-zg(i-1))/8
-     dot02=dot02+real(phigprime(i-1)*auxmodes(i-1,2)&
-          +phigprime(i)*auxmodes(i,2))*(zg(i)-zg(i-1))/8
+     dot1=dot1+real(pmds(i-1,2)**2+pmds(i,2)**2)*(zg(i)-zg(i-1))/2
+     dot2=dot2+(abs(pmds(i-1,3))**2+abs(pmds(i,3))**2)*(zg(i)-zg(i-1))/8
+     dot12=dot12+real(pmds(i-1,2)*pmds(i-1,3)&
+          +pmds(i,2)*pmds(i,3))*(zg(i)-zg(i-1))/8
+     dot01=dot01+real(pmds(i-1,2)*phigprime(i-1)&
+          +pmds(i,2)*phigprime(i))*(zg(i)-zg(i-1))/8
+     dot02=dot02+real(phigprime(i-1)*pmds(i-1,3)&
+          +phigprime(i)*pmds(i,3))*(zg(i)-zg(i-1))/8
   enddo
 
-  ! auxmodes should be normalized (but continuum is more problematic).
   ! Normalization of phigprime.
   ppnorm=3*sqrt(70.)/16
   dot0=dot0/(psig/ppnorm)**2
@@ -586,7 +585,7 @@ subroutine plotmodes
   call autoplot(zg,phigprime,2*ngz+1)
   call axlabels('','d!Af!@/dz')
   do j=1,nmd-1
-     call autoplot(zg,real(auxmodes(:,j)),2*ngz+1)
+     call autoplot(zg,real(pmds(:,j+1)),2*ngz+1)
   enddo
   call axlabels('z','')
   call pltend
@@ -739,37 +738,32 @@ subroutine plotdent
      ind2=int(ngz/9.)
      call jdrwstr(wx2nx(zg(ind2)),wy2ny(-phigprime(ind2)/f4norm),'4',0.)
      call dashset(5)
-     call polyline(zg,-phigprime/f4norm+real(w2byw4*auxmodes(:,1)+wqbyw4*auxmodes(:,2)),2*ngz)
+     call polyline(zg,-phigprime/f4norm+real(w2byw4*pmds(:,2)+wqbyw4*pmds(:,3)),2*ngz)
      call legendline(.7,.3,0,' real(total)')
      call dashset(0)
      call color(2)
-     call polyline(zg,real(w2byw4*auxmodes(:,1)),2*ngz)
+     call polyline(zg,real(w2byw4*pmds(:,2)),2*ngz)
      call color(1)
-     call polyline(zg,real(wqbyw4*auxmodes(:,2)),2*ngz)
+     call polyline(zg,real(wqbyw4*pmds(:,3)),2*ngz)
      call dashset(2)
      call color(2)
-     call polyline(zg,imag(w2byw4*auxmodes(:,1)),2*ngz)
-     call jdrwstr(wx2nx(zg(ind2)),wy2ny(imag(w2byw4*auxmodes(ind2,1))),'2',0.)
+     call polyline(zg,imag(w2byw4*pmds(:,2)),2*ngz)
+     call jdrwstr(wx2nx(zg(ind2)),wy2ny(imag(w2byw4*pmds(ind2,2))),'2',0.)
      call color(1)
      indq=int(ngz*.9)
-     call polyline(zg,imag(wqbyw4*auxmodes(:,2)),2*ngz)
-     call jdrwstr(wx2nx(zg(indq)),wy2ny(real(wqbyw4*auxmodes(indq,2))),'q',0.)
-!     call polyline(zg,real(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
+     call polyline(zg,imag(wqbyw4*pmds(:,3)),2*ngz)
+     call jdrwstr(wx2nx(zg(indq)),wy2ny(real(wqbyw4*pmds(indq,3))),'q',0.)
      call color(15)
      call legendline(.7,.1,0,' imag')
      call dashset(0)
      call legendline(.7,.2,0,' real')
      call color(4)
-! These combinations are irrelevant because the real is unperturbed
-! and the imaginary comes almost entirely from |2>.
-!     call polyline(zg,real(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
      call dashset(2)
-!     call polyline(zg,imag(-phigprime/f4norm+w2byw4*auxmodes(:,1)),2*ngz)
      call dashset(0)
      call color(15)
      xi=.02
-     call autoplot(zg,-phig+xi*(-phigprime/f4norm+real(wqbyw4*auxmodes(:,2))&
-     +real(w2byw4*auxmodes(:,1))),2*ngz)
+     call autoplot(zg,-phig+xi*(-phigprime/f4norm+real(wqbyw4*pmds(:,3))&
+     +real(w2byw4*pmds(:,2))),2*ngz)
      call axis2
      call fwrite(xi,iwidth,2,string)
 !     write(*,*)trim(ffwrite(xi,iwidth,2)),'%'
