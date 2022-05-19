@@ -88,7 +88,6 @@ module shiftgen
   complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
 ! Whether to apply a correction to the trapped species
   logical :: lioncorrect=.true.,lbess=.false.
-  logical :: ldentaddp=.false.,ltrapaddp=.false.
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine makezg(isigma)

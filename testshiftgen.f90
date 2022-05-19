@@ -117,7 +117,6 @@
        write(*,'(i4,g12.4,f12.4)')(i,Wgarrayr(i),tbr(i),i=1,nge)
     endif
     vpsiarrayp=sqrt(2.*(Wgarrayp(1:nge)-psig))
-!    call fvinfplot
     psi=-psig                     ! psi is the positive depth
     omegac=10.
     write(*,*)'omega=',omegag
@@ -553,7 +552,7 @@ subroutine plotmodes
   Wg=.1*abs(psig)
   omegaonly=omegag   ! Needed for evaluation of kpar
   call makezg(isigma)
-  write(*,'(i3,4f10.5)')(i,zg(i),pmds(i,3),i=-2,2)
+  write(*,'(i3,3f10.5)')(i,zg(i),pmds(i,3),i=-1,1)
   write(*,*)'kpar=',kpar,'omegag=',omegag
   dot0=0;dot1=0;dot2=0;dot12=0;dot01=0;dot02=0
   do i=-ngz+1,ngz
@@ -599,12 +598,7 @@ subroutine plotdent
   character*10 string
   character(len=20), external :: ffwrite
   lioncorrect=.false.
-  ldentaddp=.false.   ! dentadd movie
-  ltrapaddp=.false.   ! trapped movie
-  if(ldentaddp)then
-     write(*,*)'To get density plots check out branch AuxmodeVersion'
-     stop
-  endif
+  write(*,*)'To get density plots check out branch AuxmodeVersion'
   psidef=-.1
   if(psig.ge.0)psig=psidef
   omegacg=20
@@ -696,32 +690,6 @@ subroutine plotdent
           (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
      write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
           ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
-
-     if(ltrapaddp)then
-        call pltend
-
-! Antisymmetrize to get the total densities and plot     
-        denstore=denttrap
-        do i=-nzd,nzd
-           denttrap(i)=denstore(i)-denstore(-i)
-        enddo
-        if(.true.)then
-!     denstore=dentpass
-           do i=-nzd,nzd
-              denttrap(i)=denttrap(i)+dentpass(i)-dentpass(-i)
-           enddo
-        endif
-        denstore=dentqt     ! Trapped q
-        do i=-nzd,nzd
-           dentqt(i)=denstore(i)-denstore(-i)
-        enddo
-        denstore=dentq      ! Passing q
-        do i=-nzd,nzd
-           dentqt(i)=dentqt(i)+denstore(i)-denstore(-i)
-        enddo
-!        call dentaddtrapplot(dfweight,cdummy)
-        call pltend
-     endif
 
      zm=12
      Wg=0.01
