@@ -56,18 +56,15 @@ module shiftgen
   real :: rmime=1836. ! Ratio of mass of ion to mass of electron
   real,parameter :: pig=3.1415926
   complex, parameter :: sqm1g=(0.,1.)
-  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200,nzext=500
+  integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200
   integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
-  real :: kpar,zextfac=30.
+  real :: kpar
 ! Spatial Arrays
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
   real, dimension(-nzd:nzd) :: zdent=0.,zdmid,vpsibyv,vinfbyv,phi0d
   complex, dimension(-nzd:nzd) :: CapPhid,dentpass,denttrap,CapPhidprev
   complex, dimension(-nzd:nzd) :: CapQd,dentq,auxzd,denqwint,dentqt
   complex, dimension(-nzd:nzd) :: ft4d,phipd,denstore,denqwintd
-  real, dimension(0:nzext) :: zext
-  complex, dimension(0:nzext) :: dentext,auxext,denqext,CapPext,CapQext
-  complex, dimension(0:nzext) :: CapQw,denqw
 ! Parallel energy arrays
   complex, dimension(0:nge) :: omegabg, Fnonresg
   complex, dimension(nge) :: Forcegp,Forcegt,Forcegr
@@ -299,9 +296,6 @@ contains
     Fextqw=0.
     Fextqqwanal=0.
     dentpass=0.
-    dentext=0.
-    denqext=0.
-    denqw=0.
     denqwint=0.
     
     vinfprior=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
@@ -658,8 +652,7 @@ contains
     else
        mdofz=0.
        write(*,*)'ERROR: Incorrect mode number',imd
-    endif
-    
+    endif    
   end function mdofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   real function dfdWptrap(Wj,fe)
@@ -752,38 +745,29 @@ end function dfdWptrap
     call dcharsize(.019,.019)
 
     call minmax(dentq,4*nzd+2,dmin,dmax)
-    call minmax(denqext,2*nzext,dqmin,dqmax)
-    dmin=min(dmin,dqmin)
-    dmax=max(dmax,dqmax)
-    call pltinit(zg(-ngz),zext(nzext),dmin,dmax)
+    call pltinit(zg(-ngz),zg(ngz),dmin,dmax)
     call fwrite(Wg,iwidth,4,wchar)
     call boxtitle('Passing positive velocity contributions only to W='&
          //wchar(1:iwidth))
     call axis; call axis2
     call axlabels('','!p!o~!o!qn!dq!d'    )
-    call polyline(zext,real(denqext),nzext)
     call polymark(zdmid(nzd),real(dentq(nzd)),1,1)
     call polyline(zdmid(-nzd:nzd),real(dentq(-nzd:nzd)),2*nzd)
     call dashset(2)
     call polyline(zdmid(-nzd:nzd),imag(dentq(-nzd:nzd)),2*nzd)
     call polymark(zdmid(nzd),imag(dentq(nzd)),1,1)
-    call polyline(zext,imag(denqext),nzext)
     call color(6)
-    call polyline(zext,imag(denqw),nzext)
     call polyline(zdmid,imag(denqwint),2*nzd)
     call dashset(0)
 !    call axlabels('','              !p!o~!o!qV!dext!d|q>')
     call axlabels('','              !p!o~!o!qn!dw!d')
-    call polyline(zext,real(denqw),nzext)
     call polyline(zdmid,real(denqwint),2*nzd)
     if(Wg.eq.Wgarray(nge))then
        call color(3)
        call legendline(.3,.9,0,' V!dw!d|q>/2')
        call polyline(zdmid,real(Vw*auxzd/2.),2*nzd)
-       call polyline(zext,real(Vw*auxext/2.),nzext)
        call dashset(2)
        call polyline(zdmid,imag(Vw*auxzd/2.),2*nzd)
-       call polyline(zext,imag(Vw*auxext/2.),nzext)
        call dashset(0)
     endif
     call color(15)
@@ -791,22 +775,19 @@ end function dfdWptrap
     call minmax(dentpass,4*nzd+2,dmin,dmax)
     call minmax(CapPhid,4*nzd+2,cmin,cmax)
     Cfactor=min(abs(dmax),abs(dmin))/max(abs(cmin),abs(cmax))
-    call pltinit(zg(-ngz),zext(nzext),dmin,dmax)
+    call pltinit(zg(-ngz),zg(ngz),dmin,dmax)
     call axis; call axis2
     call axlabels('','!p!o~!o!qn!d4!d')
     call legendline(.7,.2,0,'real')
-    call polyline(zext,real(dentext/f4norm),nzext)
 !    call polymark(zdmid(nzd),real(dentpass(nzd)),1,1)
     call polyline(zdmid(-nzd:nzd),real(dentpass(-nzd:nzd)),2*nzd)
     call dashset(2)
     call legendline(.7,.1,0,'imag')
     call polyline(zdmid(-nzd:nzd),imag(dentpass(-nzd:nzd)),2*nzd)
-    call polyline(zext,imag(dentext/f4norm),nzext)
     if(dfweight.ne.0)then
        call dashset(3)
        call color(4)
        call polyline(zdmid,Cfactor*real(CapPhid),2*nzd)
-       call polyline(zext,Cfactor*real(CapPext)/f4norm,nzext)
        call legendline(.7,.7,0,'!AF!@ (scaled)')
     endif
     call dashset(0)
