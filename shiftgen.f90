@@ -87,7 +87,7 @@ module shiftgen
 ! Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
-! Legacy variables
+! Distribution function variables for mode dent densities 
   complex, dimension(-ngz:ngz,nmdmax-1) :: ftraux
   complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
 
@@ -635,31 +635,6 @@ contains
     phigprimeofz=-psig*sinh(zval/4.)/cosh(zval/4.)**5
   end function phigprimeofz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  complex function auxofz(zval,iaux,kpar)
-    real kpar,p2
-! Eigenmodes of the potential, assumed to be sech^4(z/4) (z-normalized)
-    x=zval/4.
-    S=1./cosh(x)
-    T=tanh(x)
-    if(iaux.eq.1)then   ! Discrete
-       auxofz=T*S**2*(3*S**2-2)*sqrt(105.)/8
-    elseif(iaux.eq.3)then  ! Return the step benchmark mode
-       auxofz=sign(1.,zval)
-       if(zval.eq.0)auxofz=0.
-    else
-       p=4.*kpar
-       p2=p**2
-       fnorm=sqrt(8.*3.1415926*(1+p2)*(4+p2)*(9+p2)*(16+p2)*(25+p2))
-       Pk= -15*(p2**2 + (28*S**2 - 15)*p2 + 63*S**4 - 56*S**2 + 8)
-       Qk= p2**2 + (105*S**2 - 85)*p2 + 945*S**4 - 1155*S**2 + 274
-! complex version, antisymmetric
-       auxofz=(T*Pk+sign(1.,x)*complex(0.,p)*Qk)&
-            *exp(complex(0.,p*abs(x)))/fnorm
-!       if(abs(x).lt.0.2)write(*,*)'x,auxofz',x,auxofz,Pk,Qk
-       if(x.eq.0)auxofz=0.
-    endif
-  end function auxofz
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   complex function mdofz(zval,imd,kpar)
 ! Eigenmodes of the potential, assumed to be sech^4(z/4) (z-normalized)
     real :: kpar,p2
@@ -1122,25 +1097,13 @@ subroutine makezdent
   do i=-nzd,nzd
      zdent(i)=.999999*zm*i/float(nzd)
      ! And the continuum auxzd internally on the zd mesh.  
-     auxzd(i)=auxofz(zdent(i),2,kpar)
+     auxzd(i)=mdofz(zdent(i),3,kpar)
      phi0d(i)=phigofz(zdent(i)) ! and phi0d
      phipd(i)=phigprimeofz(zdent(i)) ! and phi0prime.
      zdmid(i)=zdent(i)
   enddo
   CapPhidprev=0.
 end subroutine makezdent
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine makezext
-! Initialize the uniform zext and |q> for external integration.
-  use shiftgen
-  zemax=zextfac/real(omegaonly)+zm
-  izext=2
-  do i=0,nzext
-     zext(i)=zm+(zemax-zm)*i**izext/nzext**izext
-     auxext(i)=auxofz(zext(i),2,kpar)
-!     auxext(i)=auxofz(zext(i),3,kpar) ! Test of making external the step
-  enddo   
-end subroutine makezext
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!! Routines not dependent on shiftgen.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
