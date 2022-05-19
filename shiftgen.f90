@@ -153,7 +153,7 @@ contains
        enddo
     enddo
     f4norm=abs(16.*psig/(3.*sqrt(70.)))
-    phigprime(:)=-real(pmds(:,1)*f4norm)
+    phigprime(:)=sign(1.,psig)*real(pmds(:,1)*f4norm)
   end subroutine makezg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine orbitendg(Wj,z0,zL)
