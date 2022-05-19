@@ -268,7 +268,9 @@ contains
 ! For symmetric potentials and f(v), the returned Ftotalg can simply be
 ! doubled to give the total force since then it is symmetric in isigma.
     complex Ftotalg
-    if(nmd.ne.1)then
+    integer :: ncalls=1
+    if(nmd.ne.1.and.ncalls.eq.1)then
+       ncalls=ncalls+1
       write(*,*)'WARNING nmd=',nmd,'not implemented for repelling potential.'
     endif
     Emaxg=2.5*(sqrt(2*Tinf)+vshift)**2
@@ -320,8 +322,8 @@ contains
        if(nmd.ge.3)then
 ! Now we must do or add the external continuum integration.
           call Fextern2(Wgarray(i),isigma,dvinf,dfweight)
-          if(zdent(nzd).ne.0)call dentadd(dfweight,dvinf) !Diagnostics
        endif
+       call dentadd(dfweight,dvinf) !Diagnostics
        vinfprior=vinfnow
     enddo
     Wgarrayp=Wgarray
@@ -449,9 +451,7 @@ contains
        Fmdnpr=Fmdnr
        resdprev=resdenom
        tbr(i)=taug(ngz)
-       if(nmd.ge.3)then
-          call dentaddtrap(dfweight,cdvpsi)
-       endif
+       call dentaddtrap(dfweight,cdvpsi)
     enddo
     Wgarrayr=Wgarray
   end subroutine FgTrappedEint
@@ -747,11 +747,6 @@ end function dfdWptrap
     enddo    
     denttrap=denttrap+cdvinf*ft4d *vpsibyv
     dentqt=dentqt+cdvinf*ftrauxd(:,2) *vpsibyv
-! It makes no sense to use the following for trapped orbits. 
-!    denqwint=denqwint+cdvinf*dfweight*(auxzd/&
-!         (sqm1g*(sign(1.,zdent)*kpar*vg(ngz)-omegag))) *vpsibyv
-! Instead we should just use Vw*auxzd for the total. 
-    
   end subroutine dentaddtrap
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine remesh(x1,y1,n1,x2,y2,n2)

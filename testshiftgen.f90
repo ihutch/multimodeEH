@@ -625,7 +625,6 @@ subroutine plotdent
 !  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
 
-  if(nmd.gt.1)then
   if(nharmonicsg.gt.0)then
      write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
      write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
@@ -634,115 +633,113 @@ subroutine plotdent
   endif
 ! Form the density versions of inner products, compensating for symmetry
 ! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
-     dzd=zm/nzd
-     do i=-nzd+1,nzd
-        F44t=F44t-0.5*&
-             (conjg(phipd(i))*(denttrap(i)-denttrap(-i))&
-             +conjg(phipd(i-1))*(denttrap(i-1)-denttrap(1-i)))*dzd
-        F44p=F44p-0.5*&
-             (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
-             +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
-     enddo
-     write(*,*)
-     write(*,*)'Details from just the m=0 contribution:'
-     write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
-          ' applied to all forces.'
-     write(*,*)'Force check:        Total             Passing          Trapped'
-     write(*,'(a,8f8.4)')'Complex <4|V|4>  =',&
-          Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
-     write(*,'(a,8f8.4)')'Complex <4|n_4   =',&
-          (F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
-     write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
-          f4norm*F44t/(2.*Ftotalrg)
-     write(*,*)'Inner product matrices:'
-     write(*,*)'Passing <4|               <2|                <q|   [V-Vw|q>]'
-     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdp
-     write(*,*)'Trapped <4|               <2|                <q|'
-     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdt     
-     write(*,*)'Attract <4|               <2|                <q|'
-     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
-     write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
-          abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
-     write(*,*)
-     w2byw4=Ftmda(2,1)/(kg**2+12/16.)
-     write(*,*)'Amplitude         w_2/w_4=',w2byw4
-     wqbyw4=-sqm1g*16*3.1415926*Ftmda(3,1)/(qresdenom*Cfactor)
-     write(*,*)'Amplitude \int w_q dq/w_4=',wqbyw4          
-     write(*,*)'         Coefficient magnitudes'
-     write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
-          ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
-     write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
-     write(*,*)Ftmda(2,1)*Ftmda(1,2)/Ftotalg/(kg**2+12/16.)
-     write(*,'(2a)')'Size of q term relative to 4 term,'
-     write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
-          -sqm1g*4*3.1415926*Ftmda(3,1)*Ftmda(1,3)/(qresdenom*Cfactor/4)*f4norm**2&
-          /Ftotalg
-     write(*,*)
-     write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
-          &       <q|V-Vw|q>'
-     write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2 &
-          &,Fintqq*2-Fintqw*2
-     write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
-          ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
-     write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
-          ,'    Ftmda',(Ftmda(3,3))
-     write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
-          (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
-     write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
-          ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
+  dzd=zm/nzd
+  do i=-nzd+1,nzd
+     F44t=F44t-0.5*&
+          (conjg(phipd(i))*(denttrap(i)-denttrap(-i))&
+          +conjg(phipd(i-1))*(denttrap(i-1)-denttrap(1-i)))*dzd
+     F44p=F44p-0.5*&
+          (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
+          +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
+  enddo
+  write(*,*)
+  write(*,*)'Details from just the m=0 contribution:'
+  write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
+       ' applied to all forces.'
+  write(*,*)'Force check:        Total             Passing          Trapped'
+  write(*,'(a,8f8.4)')'Complex <4|V|4>  =',&
+       Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
+  write(*,'(a,8f8.4)')'Complex <4|n_4   =',&
+       (F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
+  write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
+       f4norm*F44t/(2.*Ftotalrg)
+  write(*,*)'Inner product matrices:'
+  write(*,*)'Passing <4|               <2|                <q|   [V-Vw|q>]'
+  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdp
+  write(*,*)'Trapped <4|               <2|                <q|'
+  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdt     
+  write(*,*)'Attract <4|               <2|                <q|'
+  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
+  write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
+       abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
+  write(*,*)
+  w2byw4=Ftmda(2,1)/(kg**2+12/16.)
+  write(*,*)'Amplitude         w_2/w_4=',w2byw4
+  wqbyw4=-sqm1g*16*3.1415926*Ftmda(3,1)/(qresdenom*Cfactor)
+  write(*,*)'Amplitude \int w_q dq/w_4=',wqbyw4          
+  write(*,*)'         Coefficient magnitudes'
+  write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
+       ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
+  write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
+  write(*,*)Ftmda(2,1)*Ftmda(1,2)/Ftotalg/(kg**2+12/16.)
+  write(*,'(2a)')'Size of q term relative to 4 term,'
+  write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
+       -sqm1g*4*3.1415926*Ftmda(3,1)*Ftmda(1,3)/(qresdenom*Cfactor/4)*f4norm**2&
+       /Ftotalg
+  write(*,*)
+  write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
+       &       <q|V-Vw|q>'
+  write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2 &
+       &,Fintqq*2-Fintqw*2
+  write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
+       ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
+  write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
+       ,'    Ftmda',(Ftmda(3,3))
+  write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
+       (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
+  write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
+       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
 
-     zm=12
-     Wg=0.01
-     call pfset(3)
-     call makezg(isigma)
+  zm=12
+  Wg=0.01
+  call pfset(3)
+  call makezg(isigma)
 ! |4>=-TS^4=+dphi/dz with psi=+1.
 ! Code says phigprimeofz=-psig*sinh(zval/4.)/cosh(zval/4.)**5 (psig -ve)
 ! so phigprime is -psi*dphi/dz and |4> is -phigprime/f4norm.     
-     call multiframe(2,1,0)
-     call dcharsize(.018,.018)
-     call autoplot(zg,-phigprime/f4norm,2*ngz)
-     call axis2
-     call axlabels('','Perturbation Modes')
-     ind2=int(ngz/9.)
-     call jdrwstr(wx2nx(zg(ind2)),wy2ny(-phigprime(ind2)/f4norm),'4',0.)
-     call dashset(5)
-     call polyline(zg,-phigprime/f4norm+real(w2byw4*pmds(:,2)+wqbyw4*pmds(:,3)),2*ngz)
-     call legendline(.7,.3,0,' real(total)')
-     call dashset(0)
-     call color(2)
-     call polyline(zg,real(w2byw4*pmds(:,2)),2*ngz)
-     call color(1)
-     call polyline(zg,real(wqbyw4*pmds(:,3)),2*ngz)
-     call dashset(2)
-     call color(2)
-     call polyline(zg,imag(w2byw4*pmds(:,2)),2*ngz)
-     call jdrwstr(wx2nx(zg(ind2)),wy2ny(imag(w2byw4*pmds(ind2,2))),'2',0.)
-     call color(1)
-     indq=int(ngz*.9)
-     call polyline(zg,imag(wqbyw4*pmds(:,3)),2*ngz)
-     call jdrwstr(wx2nx(zg(indq)),wy2ny(real(wqbyw4*pmds(indq,3))),'q',0.)
-     call color(15)
-     call legendline(.7,.1,0,' imag')
-     call dashset(0)
-     call legendline(.7,.2,0,' real')
-     call color(4)
-     call dashset(2)
-     call dashset(0)
-     call color(15)
-     xi=.02
-     call autoplot(zg,-phig+xi*(-phigprime/f4norm+real(wqbyw4*pmds(:,3))&
-     +real(w2byw4*pmds(:,2))),2*ngz)
-     call axis2
-     call fwrite(xi,iwidth,2,string)
+  call multiframe(2,1,0)
+  call dcharsize(.018,.018)
+  call autoplot(zg,-phigprime/f4norm,2*ngz)
+  call axis2
+  call axlabels('','Perturbation Modes')
+  ind2=int(ngz/9.)
+  call jdrwstr(wx2nx(zg(ind2)),wy2ny(-phigprime(ind2)/f4norm),'4',0.)
+  call dashset(5)
+  call polyline(zg,-phigprime/f4norm+real(w2byw4*pmds(:,2)+wqbyw4*pmds(:,3)),2*ngz)
+  call legendline(.7,.3,0,' real(total)')
+  call dashset(0)
+  call color(2)
+  call polyline(zg,real(w2byw4*pmds(:,2)),2*ngz)
+  call color(1)
+  call polyline(zg,real(wqbyw4*pmds(:,3)),2*ngz)
+  call dashset(2)
+  call color(2)
+  call polyline(zg,imag(w2byw4*pmds(:,2)),2*ngz)
+  call jdrwstr(wx2nx(zg(ind2)),wy2ny(imag(w2byw4*pmds(ind2,2))),'2',0.)
+  call color(1)
+  indq=int(ngz*.9)
+  call polyline(zg,imag(wqbyw4*pmds(:,3)),2*ngz)
+  call jdrwstr(wx2nx(zg(indq)),wy2ny(real(wqbyw4*pmds(indq,3))),'q',0.)
+  call color(15)
+  call legendline(.7,.1,0,' imag')
+  call dashset(0)
+  call legendline(.7,.2,0,' real')
+  call color(4)
+  call dashset(2)
+  call dashset(0)
+  call color(15)
+  xi=.02
+  call autoplot(zg,-phig+xi*(-phigprime/f4norm+real(wqbyw4*pmds(:,3))&
+       +real(w2byw4*pmds(:,2))),2*ngz)
+  call axis2
+  call fwrite(xi,iwidth,2,string)
 !     write(*,*)trim(ffwrite(xi,iwidth,2)),'%'
-     call axlabels('z','!AR!@(!Af!@) for amplitude w!d4!d='//string(1:iwidth))
-     call legendline(.7,.8,0,'!Af!@!d0!d+!p!u~!u!q!af!@')
-     call dashset(4)
-     call polyline(zg,-phig,2*ngz)
-     call legendline(.7,.7,0,'!Af!@!d0!d')
-     call pltend     
-  endif
-
+  call axlabels('z','!AR!@(!Af!@) for amplitude w!d4!d='//string(1:iwidth))
+  call legendline(.7,.8,0,'!Af!@!d0!d+!p!u~!u!q!af!@')
+  call dashset(4)
+  call polyline(zg,-phig,2*ngz)
+  call legendline(.7,.7,0,'!Af!@!d0!d')
+  call pltend     
 end subroutine plotdent
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 character(len=20) function ffwrite(x,iwidth,ipoint)
