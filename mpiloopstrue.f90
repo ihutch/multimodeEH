@@ -72,6 +72,14 @@ contains
     endif
   end subroutine mpilcommscomplex
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine mpilkillslaves
+    use mpi
+! Kills the slaves by calling mpifinalize and exiting them.
+! Then no more parallelism works. Avoids hang with mpistopslaves
+    call MPI_FINALIZE(ierr)
+    if(myid.ne.0) call exit
+  end subroutine mpilkillslaves
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine mpilstopslaves
     use mpi
 ! Stops the slaves by calling a barrier for them but not master.

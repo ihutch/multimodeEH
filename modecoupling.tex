@@ -49,11 +49,11 @@ $\phi_0(z)$, can be determined from this equation. Then for
 infinitessimally slow linearized potential perturbations $\phi_1$
 about this equilibrium the perturbed density is
 $n_1=\phi_1dn_0/d\phi_0$, and the resulting Poisson equation can be
-written as the operator $V_a =(\nabla^2-dn_0/d\phi_0)$ acting on
-$\phi_1$. This $V_a$ is called the ``adiabatic'' operator, and the
-associated density perturbation $n_1$ the adiabatic density
-(perturbation). The expansion of the potential perturbation is most
-naturally in terms of the eigenmodes of $V_a$. For purely growing
+written using the operator $V_a \equiv(\nabla^2-dn_0/d\phi_0)$ acting on
+$\phi_1$ as $V_a\phi_1=0$. This $V_a$ is called the ``adiabatic''
+operator, and the associated density perturbation $n_1$ the adiabatic
+density (perturbation). The expansion of the potential perturbation is
+most naturally in terms of the eigenmodes of $V_a$. For purely growing
 instabilities $\omega=0+i\omega_i$, at the threshold $\omega_i\sim 0$,
 evidently the adiabatic response is nearly equal to the total because
 changes are infinitessimally slow; so the non-adiabatic part
@@ -720,7 +720,7 @@ resultant frequency spread exceeds $\sim\omega$ for the whistler mode
 contribution itself is then suppressed, and it is reasonable to ignore
 coupling to the continuum modes.
 
-\subsection{Numerical evaluation Probably Obsolete}
+\subsection{Numerical evaluation:  Obsolete}
 
 The terms in the dispersion relation (\ref{eigtotal}) contain inner
 products of the form $\bra{s}|\tilde V\ket{u}$ that must be evaluated
@@ -768,29 +768,29 @@ given by \ref{eq:24}. This difference illustrates physics, not an
 error. A related feature is that $\tilde n_q$ and $\tilde n_w$ require
 a non-zero value of the prior time integral $\Phi_m$ (e.q.\
 \ref{eq:phim}) to be prescribed at the left-hand edge of the inner
-region ($z=-z_j=-20$ in this illustration) representing the integral
-along the past orbit from $z=-\infty$ to $-z_j$. This value is supplied
+region ($z=-z_d=-20$ in this illustration) representing the integral
+along the past orbit from $z=-\infty$ to $-z_d$. This value is supplied
 by eq.\ \ref{eq:16} for inward-propagating orbits:
 $\ket{q_0}/i(-k_\parallel v -\omega)$ and is not exactly antisymmetric
-with the outward moving values at $+z_j=20$. Denoting pedantically for
+with the outward moving values at $+z_d=20$. Denoting pedantically for
 a moment the plotted densities, which use only positive velocities, as
 $\tilde n_+$, the densities including the total velocity distribution
 (positive and negative) are given by the antisymmetrizing sum
 $\tilde n_{total}(z)=\tilde n_+(z)-\tilde n_+(-z)$. The external
-values of $\tilde n_+$ at $|z|>z_j$ are not needed for inner products
+values of $\tilde n_+$ at $|z|>z_d$ are not needed for inner products
 with discrete modes such as $\bra{4}|\tilde V\ket{q_0}$ because they
 ($\bra{j}|$) are zero there. The antisymmetry of $\bra{j}|$ then means
 we can simply double the inner products found using only
 positive-velocity orbits to obtain the total.
 
 Inner products with continuum modes $\bra{q_0}|$, however, require
-integration for the external region $z_j<|z|$ (shown up to $\sim 450$ in
+integration for the external region $z_d<|z|$ (shown up to $\sim 450$ in
 Fig.\ \ref{externfig}). Discrete mode external density, e.g.\
 $\tilde V \ket{4}$, arises only from outgoing orbits, not incoming, so
 the outgoing calculation for $\bra{q_0}|\tilde V\ket{4}$ need not be
 doubled to account for both velocity signs, only to represent the
 positive and negative $z$-ranges, since we integrate only over
-$z>+z_j$. Incoming velocity orbits' density for continuum modes is not
+$z>+z_d$. Incoming velocity orbits' density for continuum modes is not
 negligible, but can accurately be taken as the wave value evaluated
 with incoming sign (${\rm sign}(k_\parallel v)=-1$) in the factor
 $(k_\parallel v-\omega)$.  \iffalse Thus, incoming density in the
@@ -824,23 +824,24 @@ simply substitute $\omega_m$ for $\omega$.
 
 \subsection{External Analytic Integration}
 
-In the external region $|z|>z_j$, the prior integral $\Phi$ giving
-$\tilde f$ for modes $\ket{4}$ and $\ket{q_0}$ is non-zero for outward
-moving orbits. We focus for definiteness on $z>z_j$ and positive $v$.
-For inward moving orbits, by contrast, $\tilde f$ is zero externally for the
-operations $\tilde V\ket{4}$ and $(\tilde V -\tilde
-V_w)\ket{q_0}$. Consequently, the external contribution to the forces
-$\bra{q_0}|\tilde V \ket{4}$ and $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$
-arises from the external integration $\int_{z_j}^\infty q_0^*(z) \Phi(z)
-dz$ for outward orbits only.
+In the external region $|z|>z_d$, the prior integral $\Phi$ giving
+$\tilde f$ for discrete modes $\ket{j}$ and the continuum mode
+$\ket{q_0}$ is non-zero only for outward moving orbits. We focus for
+definiteness on $z>z_d$ and positive $v$.  For inward moving orbits,
+by contrast, $\tilde f$ is zero externally for the operations
+$\tilde V\ket{j}$ and $(\tilde V -\tilde V_w)\ket{q_0}$. Consequently,
+the external contribution to the forces $\bra{q_0}|\tilde V \ket{j}$
+and $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$ arises from the external
+integration $\int_{z_d}^\infty q_0^*(z) \Phi(z) dz$ for outward orbits
+only.
 
-In the external region, the velocity is constant; so for $\ket{4}$,
+In the external region, the velocity is constant; so for $\ket{j}$,
 which has zero perturbed potential there, $\Phi$ is a simple time
 delay factor times its value at the join between internal and external
-regions $\Phi(z_j)$:
+regions $\Phi(z_d)$:
 \begin{equation}
   \label{phi4}
-  \Phi_{\ket{4}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{4}}(z_j).
+  \Phi_{\ket{j}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{j}}(z_d).
 \end{equation}
 The corresponding expression for the continuum mode, which has
 non-zero external potential, may be
@@ -849,42 +850,45 @@ which can be integrated analytically to give an extra term, arriving
 at 
 \begin{equation}
   \label{phiq}
-  \Phi_{\ket{q_0}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{q_0}}(z_j)
-  +{A\etothe{ik_\parallel z_j}\over i(k_\parallel v-\omega_m)}[\etothe{ik_\parallel(z-z_j)}
-  -\etothe{i\omega_m(z-z_j)/v}].
+  \Phi_{\ket{q_0}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
+  +{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}[\etothe{ik_\parallel(z-z_d)}
+  -\etothe{i\omega_m(z-z_d)/v}].
 \end{equation}
 Recalling that the wave operator is simply constant, its external
 contribution to $\Phi_{\ket{w}}$ for a particular positive velocity is
 ${A\etothe{ik_\parallel z}\over i(k_\parallel v-\omega_m)}$, which
 exactly cancels the first term in the square bracket of
 $\Phi_{\ket{q_0}}(z)$. Such cancellation is essential to produce a
-finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence, for
-$(\tilde V -\tilde V_w)\ket{q_0}$,
+finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence,
+when forming
+$(\tilde V -\tilde V_w)\ket{q_0}$, the required external prior
+integral is
 \begin{equation}
   \label{phidiff}
-  \Phi_{\ket{q_0-w}}(z)=\etothe{i\omega_m(z-z_j)/v}   \Phi_{\ket{q_0}}(z_j)
-  %-\Phi_{w}(z_j)]
-  -{A\etothe{ik_\parallel z_j}\over i(k_\parallel v-\omega_m)}
-  \etothe{i\omega_m(z-z_j)/v}.
+  \Phi_{\ket{q_0-w}}(z)\equiv \Phi_{\ket{q_0}}(z)-\Phi_{\ket{w}}
+  =\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
+  %-\Phi_{w}(z_d)]
+  -{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}
+  \etothe{i\omega_m(z-z_d)/v}.
 \end{equation}
 To obtain the total external force we can carry out the inner product
 $z$-integration analytically as
 \begin{equation}
   \label{extforce}
-  \int_{z_j}^\infty q_0^*(z) \Phi_u(z)  dz =
-  {A^*\Phi_u(z_j)\etothe{-ik_\parallel z_j}\over i(k_\parallel  v-\omega_m)}
-  \left[+ {|A|^2v\over (k_\parallel v-\omega_m)^2}\right],
+  \int_{z_d}^\infty q_0^*(z) \Phi_u(z)  dz =
+  {A^*\Phi_u(z_d)\etothe{-ik_\parallel z_d}\over i(k_\parallel  v-\omega_m)}
+  + {\delta_{q_0u}|A|^2v\over (k_\parallel v-\omega_m)^2},
 \end{equation}
-where $\Phi_u$ refers to the ``ket'' mode (4 or $q_0-w$ or for that
-matter 2) and the $|A|^2$ term is present only if we are constructing
-$\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$. This force quantity is
-multiplied by the extra weighting factors in equation
-(\ref{eq:ftmagnetic}) and integrated (numerically) over parallel
-velocity so as to produce the total inner product. Because the
-integration is carried out only for positive $z$, the result must be
-doubled to account for force exerted at negative $z$ (assuming
-velocity symmetry of $f_0(v)$). The sum over relevant cyclotron
-harmonics must also be carried out.
+where $\Phi_u$ refers to the ``ket'' mode (j or $q_0-w$), and the
+$|A|^2$ term is present only if we are constructing
+$\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$, as indicated by
+$\delta_{q_0u}$. This force quantity is multiplied by the extra
+weighting factors in equation (\ref{eq:ftmagnetic}) and integrated
+(numerically) over parallel velocity so as to produce the total inner
+product. Because the integration is carried out only for positive $z$,
+the result must be doubled to account for force exerted at negative
+$z$ (assuming velocity symmetry of $f_0(v)$). The sum over relevant
+cyclotron harmonics must also be carried out.
 
 \section{Complete matrix formulation (Optional)}
 
@@ -912,7 +916,13 @@ the the right hand side of $q$ to find
 \end{equation}
 Thus, writing the resonant integral
 $\int {dq\over \lambda_\perp-\lambda_q-V_w}=1/K$, where
-$K\simeq-(1/\omega^2-1)q_0/(16\pi i) $, and substituting elsewhere the
+\begin{equation}
+  \label{Kdef}
+  K\simeq-{(1/\omega^2-1)q_0\over16\pi i}
+  ={-k_\perp\over4\pi i}\sqrt{{1\over\omega^2}-1}
+\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}},  
+\end{equation}
+and substituting elsewhere the
 value $q=q_0$ at the integrand's pole, we have
 \begin{equation}
   \label{eigqint2}
@@ -946,7 +956,7 @@ considered a matrix equation $\M\a=0$, where
     &\lambda_2-\lambda_\perp+\bra{2}|\tilde
       V\ket{2}&\bra{2}|\tilde V\ket{q_0}\\
     \bra{q_0}|\tilde V\ket{4}
-    &\bra{q_0}|\tilde V\ket{2}&-(K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})
+    &\bra{q_0}|\tilde V\ket{2}&-K+\bra{q_0}|\tilde V-\tilde V_w\ket{q_0}
   \end{array}\right]
 \iffalse
 \left[

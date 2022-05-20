@@ -46,7 +46,7 @@
 
 module shiftgen
   integer, parameter :: ngz=100,nge=200,nhmax=60,nzd=200
-  complex :: omegag=(1.,0.),Ftot,omegadiff,omegaonly,Vw
+  complex :: omegag=(1.,0.),Ftot,omegadiff,omegaonly,Vw,dispMdet
   real :: psig=.1,Wg,zm=29.9,Omegacg=5.,kg=0.
   real :: vshift=0.,vrshift=9999  ! The shape of ion distribution.
   real :: Tinf=1.,Tperpg=1.,Torepel=1.
@@ -81,7 +81,7 @@ module shiftgen
   complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
   complex, dimension(nmdmax,nmdmax) :: Fmdaccum
 ! Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
-  complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,Ftmdh
+  complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,dispM
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
 ! Distribution function variables for mode dent densities 
   complex, dimension(-ngz:ngz,nmdmax-1) :: ftraux
@@ -134,7 +134,7 @@ contains
        Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
        if(ncalls.eq.1)  write(*,'(a,f8.5,a,2f8.4)')' kpar=',kpar,' Vw=',Vw
     else
-       write(*,*)'ERROR omegar >=1 is not allowed',omegar
+       write(*,*)'ERROR omegar >=1,omegac is not allowed',omegar,Omegacg
        stop
     endif
 ! Construct the modes
@@ -258,7 +258,7 @@ contains
        enddo
     endif
 ! Put value into the passed argument. 
-    dForceg=Fmdaccum(1,1)*f4norm**2  ! This is    <4V4>
+    dForceg=Fmdaccum(1,1)*f4norm**2  ! This is <4V4> (unnormalized)
   end subroutine Fdirect
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -433,11 +433,12 @@ contains
        endif
 
 ! Then divide by the resonance denominator and sum 
-       Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
-    ! Now Forcegr when multiplied by cdvpsi and summed over all ne energies
-    ! and multiplied by 2 gives the total force. 
        Fmdres(1:nmd,1:nmd,i)=0.5*(Fmdnr(1:nmd,1:nmd)/resdenom &
             + Fmdnpr(1:nmd,1:nmd)/resdprev)
+!       Forcegr(i)=0.5*(Fnonresg(i)/resdenom + Fnonresg(i-1)/resdprev)
+       Forcegr(i)=Fmdres(1,1,i)*f4norm**2
+    ! Now Forcegr when multiplied by cdvpsi and summed over all ne energies
+    ! and multiplied by 2 gives the total force. 
        if(.not.(abs(Forcegr(i)).ge.0))then
           write(*,*)'Forcegr NAN?',i
           write(*,*)Fnonresg(i),Forcegr(i)
@@ -591,7 +592,30 @@ contains
     Ftotalsumg=Ftotalsumg+Fpg(0)*EIm(0)
     Ftmdsum=Ftmdsum+Ftmda*EIm(0)
     FVwsumg=FVwsumg+(Fintqw+Fextqw)*2*EIm(0)
+    call DispCalc
   end subroutine SumHarmonicsg
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine DispCalc
+! Calculate the complex Dispersion matrix M and Determinant det(M)
+    implicit none
+    integer :: i1,i2,i3
+    dispM=Ftmdsum
+    dispM(1,1)=dispM(1,1)-kg**2
+    dispM(2,2)=dispM(2,2)-kg**2-12./16.
+    dispM(3,3)=dispM(3,3)+kpar*(1/omegaonly**2-1)/(4*3.1415926*sqm1g)
+    dispMdet=0.
+    if(nmd.eq.3)then
+       do i1=1,3    ! 3x3 Determinant
+          i2=mod(i1,3)+1; i3=mod(i1+1,3)+1
+          dispMdet=dispMdet+dispM(i1,1)*&
+               (dispM(i2,2)*dispM(i3,3)-dispM(i3,2)*dispM(i2,3))
+       enddo
+    elseif(nmd.eq.2)then
+       dispMdet=dispM(1,1)*dispM(2,2)-dispM(1,2)*dispM(2,1)
+    else
+       dispMdet=dispM(1,1)
+    endif
+  end subroutine DispCalc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Distribution functions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -850,6 +874,13 @@ subroutine electronforce(Felec,omegain,kin,Omegacp,psiin,vsin,isigma)
   vshift=vs      ! Restore vshift and vrshift.
   vrshift=vr
 end subroutine electronforce
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+complex function getdet()
+  use shiftgen
+!  write(*,*)'Attract <4|               <2|                <q|'
+!  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
+  getdet=dispMdet
+end function getdet
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine LBessSet
   use shiftgen
