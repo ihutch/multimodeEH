@@ -28,6 +28,10 @@ contains
   end subroutine mpilstopslaves
   subroutine mpilfreeslaves
   end subroutine mpilfreeslaves
+  subroutine mpilkillslaves
+  end subroutine mpilkillslaves
+  subroutine mpilserial
+  end subroutine mpilserial
 end module mpiloops
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! This is a template for using mpiloops to parallelize a loop.
@@ -40,10 +44,9 @@ subroutine mpiltemplate
   complex, dimension(length) :: sbuf  ! Result and communication buffer.
   nvals=1
   impi=0
+  call mpilprep(id,nproc) ! Return id my rank, nproc the total rank.
   do j=1,nj
   do i=1,ni
-     impi=impi+1
-     call mpilprep(id,nproc) ! Return id my rank, nproc the total rank.
      iactiv=mod(impi,nproc)  ! Decide the active rank process iactiv
      if(iactiv.eq.id)then    ! If I am active I do the work needed ...
         sbuf(impi)=complex(impi,1./impi)  ! Trivial example.
@@ -51,6 +54,7 @@ subroutine mpiltemplate
      endif
      call mpilcommscomplex(sbuf(impi),iactiv,nvals,impi)
 !     call mpilbarrier(ierr)   ! Not necessary because comms should block.
+     impi=impi+1
   enddo
   enddo
   call mpilstopslaves        ! Prevent slaves from continuing, usually desired.

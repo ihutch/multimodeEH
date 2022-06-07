@@ -489,13 +489,15 @@ subroutine plotionforce(psi,Typ,vsin)
   complex, dimension(nfi) :: Fiarray,omegaFi
   write(*,*)'plotionforce'
   omegamax=10
+  nmd=1
+  Omegacg=20
   isigma=1
   write(*,*)'psi=',psi,' vsin=',vsin,' isigma=',isigma
   write(*,*)'  i           omega                       Fi'
   do i=1,nfi
      omegaFi(i)=omegamax*(float(i)/nfi)/sqrt(rmime)+complex(0.,.01)/sqrt(rmime)
 !         ionforce(Fi,omega,kin,Omegacin,psiin,vsin,isigma)
-     call ionforce(Fiarray(i),omegaFi(i),0.1,.1,psi,vsin,isigma)
+     call ionforce(Fiarray(i),omegaFi(i),0.1,5.,psi,vsin,isigma)
      Fiarray(i)=Fiarray(i)/psi
      write(*,'(i4,''  ('',2e11.3,'')'','' ('',2e11.3,'')'')')&
           i,omegaFi(i),Fiarray(i)
@@ -618,10 +620,10 @@ subroutine plotdent
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg
   call makezdent
 !  call FgEint(Ftotalg,isigma)
-  call SumHarmonicsg(isigma)
+  call SumHarmonicsg(isigma) 
   Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
-  ! These are total forces integrated dW.
+ ! These are total forces integrated dW.
 !  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
 

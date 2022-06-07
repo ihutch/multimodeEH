@@ -132,10 +132,12 @@ contains
        kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
             ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
        Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
-       if(ncalls.eq.1)  write(*,'(a,f8.5,a,2f8.4)')' kpar=',kpar,' Vw=',Vw
-    else
-       write(*,*)'ERROR omegar >=1,omegac is not allowed',omegar,Omegacg
-       stop
+       if(ncalls.eq.1)write(*,'(a,f8.5,a,2f8.4)')'makezg kpar=',kpar,' Vw=',Vw
+    elseif(psig.lt.0)then
+       if(mod(ncalls-1,10000).eq.0)write(*,*)'ERROR omegar >=1,omegac is not allowed'
+!       if(mod(ncalls,1000).eq.0)write(*,*)'Setting kpar to zero',omegar,Omegacg,ncalls
+       kpar=0.
+!       stop
     endif
 ! Construct the modes
     zg(0)=0.; phig(0)=psig; vg(0)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(0)))
@@ -286,7 +288,7 @@ contains
     integer :: isigma,i
     real :: Emaxg
     real :: dvinf,fvinf,dfe,dfeperp
-    real :: Wnext,dvnow,dvnext,vinfprior,vinfnow,vinfnext
+    real :: Wnext,dvnow,dvnext,vinfnow,vinfnext
     complex :: dfweight,ForceOfW
     omegadiff=omegag-omegaonly
     Ftp=0.
@@ -297,10 +299,10 @@ contains
     dentpass=0.
     denqwint=0.
     
-    vinfprior=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
+    vinfnow=sqrt(2.*max(psig,0.))  ! Speed of just passing at z=0.
     Wnext=max(psig,0.)+Emaxg*(1./float(nge))**ippow
     vinfnext=-isigma*sqrt(2.*Wnext)
-    dvnext=abs(vinfnext-vinfprior )*2.  ! Approximate the start via dvnow*2.
+    dvnext=abs(vinfnext-vinfnow )*2.  ! Approximate the start via dvnow*2.
     do i=1,nge  ! Passing, corrected for psig sign.
        Wgarray(i)=Wnext
        vinfnow=vinfnext
@@ -320,11 +322,10 @@ contains
        FmdpofW(:,:,i)=Fmdaccum*dfweight       ! Store contribution
        tbp(i)=taug(ngz)
        if(nmd.ge.3)then
-! Now we must do or add the external continuum integration.
+! Now we must do and add the external continuum integration.
           call Fextern2(Wgarray(i),isigma,dvinf,dfweight)
        endif
        call dentadd(dfweight,dvinf) !Diagnostics
-       vinfprior=vinfnow
     enddo
     Wgarrayp=Wgarray
   end subroutine FgPassingEint
@@ -602,7 +603,9 @@ contains
     dispM=Ftmdsum
     dispM(1,1)=dispM(1,1)-kg**2
     dispM(2,2)=dispM(2,2)-kg**2-12./16.
-    dispM(3,3)=dispM(3,3)+kpar*(1/omegaonly**2-1)/(4*3.1415926*sqm1g)
+!    dispM(3,3)=dispM(3,3)+kpar*(1/omegaonly**2-1)/(4*3.1415926*sqm1g)
+    dispM(3,3)=dispM(3,3)+kg*sqrt(1/(real(omegaonly)**2+1.e-8)-1)&
+         *sqrt(1+Tperpg/(Omegacg**2-omegaonly**2))/(4*3.1415926*sqm1g)
     dispMdet=0.
     if(nmd.eq.3)then
        do i1=1,3    ! 3x3 Determinant
@@ -610,6 +613,10 @@ contains
           dispMdet=dispMdet+dispM(i1,1)*&
                (dispM(i2,2)*dispM(i3,3)-dispM(i3,2)*dispM(i2,3))
        enddo
+ ! Weighting factor for iteration.      
+       dispMdet=dispMdet/(1/(real(omegaonly)**2+1.e-8)-1)**.5
+!            *real(omegaonly+.001)
+!       dispMdet=dispMdet/sqrt(1+Tperpg/(Omegacg**2-omegaonly**2))
     elseif(nmd.eq.2)then
        dispMdet=dispM(1,1)*dispM(2,2)-dispM(1,2)*dispM(2,1)
     else
@@ -863,7 +870,6 @@ subroutine electronforce(Felec,omegain,kin,Omegacp,psiin,vsin,isigma)
   complex :: omegain,Felec
   omegag=omegain
   kg=kin
-!  write(*,*)'electronforce kg=',kg
   Omegacg=Omegacp
   vr=vrshift
   vrshift=vsin   ! lioncorrect value
@@ -877,8 +883,6 @@ end subroutine electronforce
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 complex function getdet()
   use shiftgen
-!  write(*,*)'Attract <4|               <2|                <q|'
-!  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
   getdet=dispMdet
 end function getdet
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

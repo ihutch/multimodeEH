@@ -1,25 +1,25 @@
 module iterfind
-! Provides iterfindroot for solving shiftmode dispersion relation by Newton iteration. 
+! Provides iterfindroot for solving shiftmode dispersion relation by
+! Newton iteration.  Modified to iterate on the dispersion matrix
+! determinant when lgetdet is true.
 ! External calls are to electronforce, ionforce.
   integer, parameter :: niterfind=12
-  real, dimension(0:niterfind) :: Frit,Fiit  !The sequence of complex roots for access.
+  real, dimension(0:niterfind) :: Frit,Fiit  !The sequence of complex roots.
+  logical :: lgetdet=.true.
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
-! Modified to iterate on the dispersion matrix determinant.  
   real, intent(in) :: psip,vsin,Omegacp,kp
   integer, intent(in) :: isigma
   complex, intent(inout) :: omegap    ! The found root on out.
   integer, intent(out) :: nit         ! zero is failure, else n-iterations.
   integer :: nunconv=3
   complex :: Fec,Fic,Fm1,Fm2,om1
-  logical :: litw=.true.,lgetdet=.true.
+  logical :: litw=.true.
   complex, external :: getdet
-  zoif=.001  ! Iteration minimum oi limit factor.
+  zoif=.0001  ! Iteration minimum oi limit factor.
   nzo=0
-  omegap=complex(0.9*sqrt(psip)/8.,.9*sqrt(psip)/8./(1.+vsin))
-  if(vsin.eq.9999)  omegap=0.9*sqrt(psip)/8.*complex(1.,.1)
   FE=kp**2*psip**2*128./315.
   Fic=0.
   Frit(0)=max(real(omegap),-2e-3)
@@ -35,16 +35,23 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   iinharm=inharm()
   call electronforce(Fec,omegap,kp,Omegacp,psip,vsin,isigma)
   ienharm=inharm()
+  if(litw)write(*,'(a,$)')'  i  nharm      omega       oerr     '
   Fm2=Fec+Fic-FE
-  if(lgetdet)Fm2=getdet()
+  if(lgetdet)then
+     Fm2=getdet()
+     write(*,*)'||M||'
+  else
+     write(*,*)'Fec+Fic-FE'
+  endif
   err=abs((omegap-om1)/om1)
   do i=1,niterfind
      if(litw)then
-        write(*,'(a,3i3,5f9.6)')'i,nharm,omega,oerr,abs(F)',i-1&
-             &,ienharm,iinharm,omegap,err,abs(Fm2)
+        write(*,'(3i3,5f9.6)')i-1 ,ienharm,iinharm,omegap,err,abs(Fm2),abs(getdet())
      endif
      nit=i
      call complexdnewton(Fm1,Fm2,om1,omegap)
+! The following limits how big a step can be taken when far from convergence.
+     omegap=om1+min(abs(omegap-om1),0.01)/abs(omegap-om1)*(omegap-om1)
      Frit(i)=max(real(omegap),-2e-3)
      Fiit(i)=imag(omegap)
      if(.not.abs(omegap).lt.1.e6)write(*,*)'Iterfindroot',i,psip,vsin,omegap
@@ -79,8 +86,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   i=i-1
   write(*,*)'Unconverged after',i,' iterations'
 1 continue
-  if(litw)write(*,'(a,3i3,5f9.6)')'i,nharm,omega,oerr,abs(F)',i&
-       &,ienharm,iinharm,omegap,err,abs(Fm2)
+  if(litw)write(*,'(3i3,5f9.6)')i,ienharm,iinharm,omegap,err,abs(Fm2)
 end subroutine iterfindroot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine complexdnewton(F1,F2,x1,x2)
