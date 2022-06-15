@@ -1,1 +1,1 @@
-mpiloopstrue.f90
+mpiloopsdummy.f90

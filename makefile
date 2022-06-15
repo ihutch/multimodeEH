@@ -49,12 +49,22 @@ altlibmodbess : toms715.f90
 	$(FORTRAN) -c $(COMPILE-SWITCHES) toms715.f90
 	ar -crs libmodbess.a toms715.o
 
+mpiloopsdummy :
+	ln -f -s mpiloopsdummy.f90 mpiloops.f90
+	touch mpiloops.f90
+	make modules
+	make osolvomk
 
-# An attempt to prevent repetitive module compilation.
+mpiloopstrue :
+	ln -f -s mpiloopstrue.f90 mpiloops.f90
+	touch mpiloops.f90
+	make modules
+	make osolvomk
+
 modules : $(MODULES)
 
 clean :
-	rm -f *.o *.mod  bessmodsums omsolve fhgfuncmain libmodbess.a plot000*.ps testshiftgen slowstabgen
+	rm -f *.o *.mod  bessmodsums omsolve fhgfuncmain libmodbess.a plot000*.ps testshiftgen slowstabgen osolvomk
 
 
 

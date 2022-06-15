@@ -5,7 +5,8 @@ module iterfind
 ! External calls are to electronforce, ionforce.
   integer, parameter :: niterfind=12
   real, dimension(0:niterfind) :: Frit,Fiit  !The sequence of complex roots.
-  logical :: lgetdet=.true.
+  logical :: lgetdet=.true.,litw=.true.
+
 contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -16,7 +17,6 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   integer, intent(out) :: nit         ! zero is failure, else n-iterations.
   integer :: nunconv=3
   complex :: Fec,Fic,Fm1,Fm2,om1
-  logical :: litw=.true.
   complex, external :: getdet
   zoif=.0001  ! Iteration minimum oi limit factor.
   nzo=0
@@ -35,18 +35,13 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   iinharm=inharm()
   call electronforce(Fec,omegap,kp,Omegacp,psip,vsin,isigma)
   ienharm=inharm()
-  if(litw)write(*,'(a,$)')'  i  nharm      omega       oerr     '
+  if(litw)write(*,'(a)')'  i  nharm      omega       oerr   |Fe+Fi=FE|  ||M|| '
   Fm2=Fec+Fic-FE
-  if(lgetdet)then
-     Fm2=getdet()
-     write(*,*)'||M||'
-  else
-     write(*,*)'Fec+Fic-FE'
-  endif
+  if(lgetdet)Fm2=getdet()
   err=abs((omegap-om1)/om1)
   do i=1,niterfind
      if(litw)then
-        write(*,'(3i3,5f9.6)')i-1 ,ienharm,iinharm,omegap,err,abs(Fm2),abs(getdet())
+        write(*,'(3i3,8f9.6)')i-1 ,ienharm,iinharm,omegap,err,abs(Fec+Fic-FE),abs(getdet())
      endif
      nit=i
      call complexdnewton(Fm1,Fm2,om1,omegap)
@@ -56,14 +51,17 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
      Fiit(i)=imag(omegap)
      if(.not.abs(omegap).lt.1.e6)write(*,*)'Iterfindroot',i,psip,vsin,omegap
      if(imag(omegap).lt.zoif*sqrt(psip))then
+        zoif=zoif*max(1,nzo)
         nzo=nzo+1
-        if(nzo.ge.nunconv)then
-           write(*,'(a,i2,a,g10.3)')'Uncoverged after',nzo,'&
-                & omegai less than',zoif*sqrt(psip)
+!        write(*,*)'nzo=',nzo,' zoif=',zoif,' oi=',imag(omegap)
+        if(nzo.ge.nunconv.and.imag(omegap).le.0.)then
+           write(*,'(a,i2,a,g10.3,a,g10.3)')'Unconverged after',nzo,'&
+                & omegai (',imag(omegap),') less than',zoif*sqrt(psip)
            err=1.
            nit=0
            goto 1
         endif
+        zoif=zoif/nzo
         omegap=complex(real(omegap),zoif*sqrt(psip))
      endif
      if(.not.abs(omegap).lt.1.e3)then
@@ -78,7 +76,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
      if(lgetdet)Fm2=getdet()
      if(err.lt..5e-4)goto 1
      if(err*abs(omegap).lt.1.e-6)then
-        write(*,*)'Apparent convergence at low omegap'
+        write(*,*)'Apparent convergence at low omega'
         goto 1
      endif
   enddo
@@ -86,7 +84,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   i=i-1
   write(*,*)'Unconverged after',i,' iterations'
 1 continue
-  if(litw)write(*,'(3i3,5f9.6)')i,ienharm,iinharm,omegap,err,abs(Fm2)
+  if(litw)write(*,'(3i3,5f9.6)')i,ienharm,iinharm,omegap,err
 end subroutine iterfindroot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine complexdnewton(F1,F2,x1,x2)

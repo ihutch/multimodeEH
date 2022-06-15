@@ -178,7 +178,7 @@ that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$, by dividing eq.\
 Far
 from the hole ($z\gg1$) the normalized oscillatory continuum modes are
 sinusoidal with amplitude $1/\sqrt{8\pi}=0.19947$, and parallel wavenumber
-$k_\parallel=p/4$. The eigenmodes are plotted in Fig.\
+$|k_\parallel|=p/4$. The eigenmodes are plotted in Fig.\
 \ref{modeplots}.
 \begin{figure}\center
   \includegraphics[width=0.6\hsize]{continmodez}
@@ -189,7 +189,7 @@ $k_\parallel=p/4$. The eigenmodes are plotted in Fig.\
 We now must consider the full linearized Poisson equation including the
 non-adiabatic response arising from the solution to the time-dependent
 Vlasov equation, $\tilde{V}$, as well as the adiabatic response
-in $V_a$. The form of the non-adiabatic Vlasov operator $\tilde{V}$ will
+$V_a$. The form of the non-adiabatic Vlasov operator $\tilde{V}$ will
 be discussed later. For a perturbation
 $\phi_1(y,z,t)=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ with
 transverse wavenumber $k_\perp$ and frequency $\omega$, Poisson's
@@ -266,14 +266,16 @@ eigenvalues, and adjusting $\omega$ until the eigenvalue for which
 $a_4$ is predominant over the other coefficients becomes zero.
 
 Such a program faces formidable practical challenges, however, because
-each evaluation of $\tilde{V}\ket{u}$, requires a computation involving
-multiple-dimension integrations over space and velocity distribution
---- repeated for each mode $\ket{u}$ and each adjustment of $\omega$.
-Moreover, in principle, the continuum contains infinitely many modes,
-and the matrix contains the square of the number of modes.  Obviously
-we require this number to be reduced! Also, continuum modes $\ket{p}$
-extend to $|z|=\infty$: an integration range that for computation
-needs to be reduced.
+each evaluation of $\tilde{V}\ket{u}$, requires a computation
+involving multiple-dimension integrations over space and velocity
+distribution --- repeated for each mode $\ket{u}$ and each adjustment
+of $\omega$.  Moreover, in principle, the continuum contains
+infinitely many modes, and the matrix contains the square of the
+number of modes.  Obviously we require this number to be reduced. We
+later show how the entire continuum contribution can be reduced to a
+single amplitude. Also, continuum modes $\ket{p}$ extend to
+$|z|=\infty$: an integration range that for computation needs to be
+reduced. We will show how that is done.
 
 Formally, any mode for which $\tilde{V}\ket{u}a_u$ is not negligible
 must be retained in the sum of $\bra{s}|\tilde{V}\ket{u}$ in eq.\
@@ -313,17 +315,18 @@ the final sum; but we do not need to do that since we consider
 $\lambda_\perp$ to be given and $\omega$ to be changed to achieve
 equality in this equation.
 
-Equations (\ref{eq:11}) and (\ref{eq:12}) apply fully for coupled
-discrete modes $\ket{j}$ when the amplitudes $a_u\bra{u}\ket{u}$
-for $u\not=4$ are small compared with $a_4\bra{4}\ket{4}$. Those
-equations give the first order mode amplitude and second order
-eigenvalue correction from them.  However, in our case, for the
-continuum modes, $\tilde{V}$ is not systematically small everywhere,
-and an altered approach appropriate to the actual form of $\tilde{V}$
-must be adopted. We shall see that in order to obtain converged
-integrals for the relevant continuum inner products it is necessary to
-use the difference between $\tilde V \ket{q}$ and a pure wave operator
-expression $\tilde V_w\ket{q}$.
+These perturbation equations (\ref{eq:11}) and (\ref{eq:12}) are
+appropriate for coupled discrete modes $\ket{j}$ when the amplitudes
+$a_u\bra{u}\ket{u}$ for $u\not=4$ are small compared with
+$a_4\bra{4}\ket{4}$. Those equations give the first order mode
+amplitude and second order eigenvalue correction from them.  However,
+in our case, for the continuum modes, $\tilde{V}$ is not
+systematically small everywhere, and an altered approach appropriate
+to the actual form of $\tilde{V}$ must be adopted. We shall see that
+in order to obtain converged integrals for the relevant continuum
+inner products it is necessary to use the difference between
+$\tilde V \ket{q}$ and a pure wave operator expression
+$\tilde V_w\ket{q}$.
 
 
 \section{Calculating the Eigenmode coefficients}
@@ -363,22 +366,22 @@ with
    b_m=i\left[\omega_m
   {\partial f_{\parallel0}\over \partial W_\parallel}
   +m\Omega {f_{\parallel0}\over T_\perp}\right]
-q_e{\rm e}^{-\xi_t^2}I_m(\xi_t^2),\qquad
+q_e{\rm e}^{-\zeta_t^2}I_m(\zeta_t^2),\qquad
 \Phi_m=\int_{-\infty}^t \hat\phi(z(\tau))\etothe{-i\omega_m(\tau-t)}d\tau.
 \end{equation}
-Here $\xi_t^2=k^2T_\perp/\Omega^2m_e$, $I_m$ is the modified Bessel
+Here $\zeta_t^2=k^2T_\perp/\Omega^2m_e$, $I_m$ is the modified Bessel
 function, and $\omega_m=m\Omega+\omega$. The unperturbed equilibrium
-parallel distribution function depends only on energy $W$ and is
-written $f_{\parallel 0}$, but for the perturbed parallel
-distributions we omit the $\parallel$ subscript for brevity, and from
-now on omit the $y,t$ dependencies as implicitly
+parallel distribution function depends only on parallel energy $W$
+(not $z$ directly) and is written $f_{\parallel 0}$, but for the
+perturbed parallel distributions we omit the $\parallel$ subscript for
+brevity, and from now on omit the $y,t$ dependencies as implicitly
 $ {\rm e}^{i(k_\perp y-\omega t)}$ (so in $\Phi_m$, the upper limit is
 $t=0$). The prior integral $\Phi_m$ is a function of parallel position
 $z$ and velocity $v$. The weight $b_m$ is independent of $z$ but
-depends on $v$ through the $f_{\parallel0}$ distribution.
-We can regard each harmonic $m$ as giving a
-perturbed density contribution $\tilde n_m(z)=\int \tilde f_m
-dv$. When $\hat\phi$ is a sum over modes $\ket{u}$,
+depends on $v$ through the $f_{\parallel0}$ distribution.  We can
+regard each harmonic $m$ as giving a perturbed density contribution
+$\tilde n_m(z)=\int \tilde f_m dv$. When $\hat\phi$ is a sum over
+modes $\ket{u}$,
 \begin{equation}
   \label{eq:13}
 \tilde  n_m=\tilde{V}_{m}\ket{\hat\phi}=\tilde{V}_{m}\sum_u a_u\ket{u}=\int \sum_u a_u
@@ -399,150 +402,7 @@ different $\omega_m$ in eq.\ (\ref{mweight}). The inner products
 we need are $\bra{s}|\tilde V\ket{u}=\int_{-\infty}^\infty s^*(z)\tilde
 n_{u}(z) dz$.
 
-\subsection{The continuum contribution}
-
-In the region far outside the hole, $|z/4|\gg 1$ where
-$T=\tanh(z/4)\to\pm1$ and $S=\sinh(z/4)\to0$ in eq.\ (\ref{eq:2}), the
-normalized continuum modes (taking them to be antisymmetrically
-outward propagating) are
-\begin{equation}
-  \label{eq:14}
- \ket{a_p}= \ket{p}=A\etothe{ip|z/4|}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
-      [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{ip|z/4|},
-\end{equation}
-where $\sigma_z={\rm sign}(z)$. Thus they are purely sinusoidal
-waves. Assuming that for large enough $|z|$ the influence of the local
-hole potential becomes negligible, such waves should there be
-identified with the normal modes of the uniform background plasma.
-The applicable normal mode for the present electrostatic approximation
-when $\omega<\Omega,\omega_{pe}$ (and $\omega/k\gg v_{te}$) is the high
-frequency end of the whistler branch of the cold plasma dispersion
-relation at high refractive index $kc/\omega$. This is the obliquely
-propagating ``magnetized langmuir wave'', for which at high
-$\Omega/\omega_{pe}$, 
-$\omega\approx\omega_{pe}\cos\theta$ (where
-$k_\perp/k_\parallel=\tan\theta$). More completely, in the cold
-electrostatic limit ignoring ion response, the dispersion relation
-(including the upper hybrid waves) is
-\begin{equation}
-  \label{eq:15}
-  k_\parallel^2/k_\perp^2={\omega^2(\Omega^2+\omega_{pe}^2-\omega^2)
-    \over(\Omega^2-\omega^2)(\omega_{pe}^2-\omega^2)}.
-\end{equation}
-(In our normalized units $\omega_{pe}=1$.)  Assuming that $\omega$ and
-$k_\perp$ are prescribed, there is only one $|k_\parallel|$ that
-satisfies this dispersion relation; and corresponding to it, the
-continuum eigenmode of $V_a$ has $p=4k_\parallel$.
-
-Intuitively, then, the continuum contribution is limited more or less
-to the single mode
-$p/4=k_\parallel$ given by eq.\ (\ref{eq:15}).
-For such a mode, one can immediately calculate the value of
-$\Phi_m(z)$ for \emph{inward} orbit velocity, (negative $v$) on the
-positive-$z$ side, using $z'=z(\tau)$ and $\tau=-(z-z')/v$, as
-\begin{equation}
-  \label{eq:16}
-  \Phi_m(z) = \int_{\infty}^zA{\rm e}^{i[pz'/4+\omega_m
-    (z-z')/v]}dz'/v
-  ={A{\rm e}^{ipz/4} \over i(pv/4-\omega_m)}={A{\rm e}^{ik_\parallel z} \over
-    i(k_\parallel v-\omega_m)},
-\end{equation}
-where dropping the infinity limit is justified by positive imaginary
-part of $\omega$.  This $\Phi_m$ applies for all $z$ down to where the
-eigenmode begins to deviate significantly, because of non-zero hole
-potential, from the external wave; obviously that $z$ is of order a
-few times 4. The non-adiabatic perturbation to \emph{outward}
-(positive) orbit velocity, by contrast, is strongly affected by the
-rapid variation of potential across the hole at $z\sim 0$ whose effect
-is carried into the external region. However, that local hole
-perturbation develops a phase shift further into the positive z region
-that is equal to $z\omega_m/v$; and so different $v$ contributions to
-the density $\tilde n$ arising in $\int \tilde f(v) dv$ oscillate
-increasingly rapidly with $v$, as $z$ increases, cancelling out
-eachother's contribution to $\tilde n$. The density integral, omitting the
-common factor $\etothe{ik_\parallel z}$ and ignoring the width of the
-hole, looks like
-$(2/\sqrt{\pi})\int_0^\infty \etothe{-i\omega_m
-  z/v}\etothe{-v^2/2}dv$.  It has its first $z$-zero near
-$\omega_m z=1$. Thus, the density influence of the localized hole
-perturbation extends approximately a normalized distance
-$z_l\sim 1/\omega_m$ (dimensionally
-$z_l\sim \lambda_{De}\omega_{pe}/\omega_m$) and becomes increasingly
-attenuated further away. At $z>z_l$, moreover, the outward going
-contribution to $\tilde n$ is increasingly contributed by the spatial
-range $[z-z_l,z]$, and merges into being given by the same integral as
-\ref{eq:16}.  Thus distant $\tilde n$ perturbations for inward and
-outward going velocities are given approximately by integrating $dv$
-the same $\Phi_m$ expression for $z>z_l$, but with $v$ of opposite
-sign.
-
-The magnitude of the non-adiabatic response in the wave region can be
-understood intuitively by recognizing that the criterion for ignoring
-Landau (or cyclotron) damping, $\omega_m/k\gg v_{te}$, is equivalent
-to saying that the explicit \emph{time} dependence at the particle
-($\partial/\partial t$) of the wave is far faster than the parallel
-space dependence ($v\partial/\partial z$) at the typical
-velocity. Thus, as a particle passes through the wave it mostly
-experiences an increase or decrease of its total energy because of the
-\emph{time}-variation of the wave potential, with little variation of
-its velocity or kinetic energy. That is equivalent to saying that the
-sum of adiabatic and non-adiabatic distribution variation is
-\emph{small}; i.e.\ that they cancel each other to lowest order in
-$k_\parallel v/\omega_m$. This is made algebraically explicit by
-Taylor expanding the right hand side of (\ref{eq:16}) in the small
-quantity $k_\parallel v/\omega_m$ and substituting into eq.\
-(\ref{eq:ftmagnetic}), arriving at
-\begin{equation}
-  \label{eq:17}
-  \tilde f_m = i\left[\omega_m
-    {\partial f_{\parallel0}\over \partial W_\parallel}
-    +m\Omega {f_{\parallel0}\over T_\perp}\right]
-  q_e{\rm e}^{-\xi_t^2}I_m(\xi_t^2) A{\rm e}^{ik_\parallel z}
-  \left[1+{k_\parallel v\over\omega_m}+
-    \left({k_\parallel v\over\omega_m}\right)^2+\dots\right]
-  \Big/(-i\omega_m).
-\end{equation}
-Setting aside the complexities of the cyclotron harmonic expansion for
-the moment, if $m=0$ is all we need, the first (constant) term in the
-expansion exactly cancels the adiabatic term
-$q_eA{\partial f_{\parallel0}/\partial W_\parallel}$. The next term
-(first-order) integrates to zero over the parallel velocity
-distribution because of its velocity parity. The density change
-associated with the magnetized Langmuir wave arises from the
-\emph{second order} term in the Taylor expansion. The total
-non-adiabatic Vlasov term $\tilde{V}\ket{p}$ has the same magnitude as
-the adiabatic term $V_a\ket{p}$ outside the hole, and cannot be
-ordered as ignorable there.
-
-Instead though, the non-adiabatic density in the wave-like external region
-becomes the potential there ($\ket{p}$) multiplied by a function of
-($\omega_m$ and) $p$ that is \emph{independent of position}. Let us
-express that in terms of an operator $\tilde{V}_{w}$. If only $m=0$
-($\omega_m=\omega$) is
-required and higher harmonic terms are negligible, then by inspection
-of eq.\ (\ref{eq:17}), the operator
-would be 
-\begin{equation}
-  \label{eq:20}
-\tilde{V}_{w}\sim-q_e{dn_0\over d\phi_0}\left[1+\left(k_\parallel v_t\over\omega\right)^2\right]=1+\left(k_\parallel\over\omega\right)^2.
-\end{equation}
-However, that approximation effectively implements the limit
-$\Omega\gg \omega_{pe}$, and gives a dispersion relation
-$k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
-than the full cold plasma expression for finite $\Omega/\omega$: eq.\
-(\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
-the harmonic sum for the kinetic electrostatic dispersion
-relation\footnote{See, e.g., Swanson (1989) section 4.4.} are also
-included to lowest order in $\xi_t^2$. The resulting analytic form is
-\begin{equation}
-  \label{eq:24}
-  \tilde V_w= 1 + \left(k_\parallel\over\omega\right)^2 +
-  k_\perp^2 {T_\perp/T_\parallel\over\omega^2-\Omega^2}.
-\end{equation}
-The crucial point is that $(\tilde{V}-\tilde{V}_{w})\ket{q}$ is
-localized, tending to zero in the region beyond $z_l$.
-
-\subsection{The continuum contribution: Rewritten}
+\subsection{The external continuum wave contribution}
 
 In the region far outside the hole, $|z/4|\gg 1$ where
 $T=\tanh(z/4)\to\pm1$ and $S=\sinh(z/4)\to0$ in eq.\ (\ref{eq:2}), the
@@ -558,7 +418,7 @@ waves. For large enough $|z|$ the influence of the local hole
 potential becomes negligible, and such waves should there be
 identified with the normal modes of the uniform background plasma.
 The applicable normal mode for the present electrostatic
-approximation, in the (well justified) cold electrostatic limit,
+approximation, in the (usually well justified) cold electrostatic limit,
 ignoring ion response, has dispersion relation (including the upper
 hybrid waves)
 \begin{equation}
@@ -579,7 +439,7 @@ of $\Phi_m(z)$ for external positions and \emph{inward} orbit velocity
 (e.g.\ negative $v$ on the positive-$z$ side) using $z'=z(\tau)$ and
 $\tau=-(z-z')/v$, as
 \begin{equation}
-  \label{eq:16}
+  \label{Phiwave}
   \Phi_{m}^{wave}(z) = \int_{\sigma_z\infty}^zA{\rm e}^{i[\sigma_zpz'/4+\omega_m
     (z-z')/v]}dz'/v
   ={A{\rm e}^{i\sigma_zpz/4} \over i(\sigma_zpv/4-\omega_m)}={A{\rm e}^{ik_\parallel z} \over
@@ -599,12 +459,13 @@ particle orbits. However, for large enough $|z|$ the effects of the
 hole and earlier parts of the orbit become negligible because of
 dephasing between oscillatory contributions from different
 velocities. The dephasing effect attenuates the influence on density
-in a distance of approximately $z_l\sim 1/\omega_m$, which is finite
-but (for $m=0$ at least) typically greatly exceeds the hole extent
-itself ($\sim 4$) because $\omega$ is small.  Thus the very distant
-$\tilde n$ perturbations for inward and outward going velocities are
-given approximately by integrating $dv$ the same $\Phi_m^{wave}$
-expression for $z>z_l$, but with $v$ of opposite sign.
+in a distance of several times $z_l\sim 1/\omega_m$, which is finite
+but (for $m=0$ at least) typically exceeds the hole extent itself
+($\sim 4$) because $\omega$ is small.  Thus the very distant
+($|z|\gg z_l$) $\tilde n$ perturbations for inward and outward going
+velocities are given approximately by integrating $dv$ the same
+$\Phi_m^{wave}$ expression for $z\gg z_l$, but with $v$ of opposite
+sign.
 
 The total wave density perturbation can then be considered to be a
 constant $\tilde V_m^{wave}$ times $\ket{p}$, where
@@ -614,17 +475,19 @@ constant $\tilde V_m^{wave}$ times $\ket{p}$, where
     i(k_\parallel v-\omega_m)} dv.
 \end{equation}
 If $f_{\parallel0}$ is an unshifted Maxwellian, and only $m=0$ is
-included, the total wave operator $\tilde V_w\equiv \sum_m\tilde
-V_m^{wave}$ is proportional to the plasma dispersion function $Z$, and
-in the small $k_\parallel/\omega$ limit becomes $\tilde V_w=1+(k_\parallel/\omega)^2$.
-However, that approximation effectively implements the limit
+included, the total wave operator
+$\tilde V_w\equiv \sum_m\tilde V_m^{wave}$ is proportional to the
+plasma dispersion function $Z$, and in the small $k_\parallel/\omega$
+limit becomes $\tilde V_w=1+(k_\parallel/\omega)^2$.  However, that
+approximation effectively implements the limit
 $\Omega\gg \omega_{pe}$, and gives a dispersion relation
 $k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
 than the full cold plasma expression for finite $\Omega/\omega$: eq.\
 (\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
 the harmonic sum for the kinetic electrostatic dispersion
-relation\footnote{See, e.g., Swanson (1989) section 4.4.} are also
-included to lowest order in $\xi_t^2$. The resulting analytic form is
+relation\footnote{See, e.g., Swanson (1989) section 4.4.}, to lowest
+order in $\zeta_t^2$, are also included. The resulting analytic form
+is
 \begin{equation}
   \label{eq:24}
   \tilde V_w= 1 + \left(k_\parallel\over\omega\right)^2 +
@@ -636,395 +499,29 @@ localized, tending to zero in the region beyond $z_l$, which means
 that overlap integrals of the form
 $\bra{p}|\tilde{V}-\tilde{V}_{w}\ket{q}$ exist finite over an infinite
 domain. An important secondary feature is that for external positions
-$|z|\ge z_p$ the incoming velocity part of $\tilde V_m^{wave}$,
+$|z|\ge z_d$ the inward velocity part of $\tilde V_m^{wave}$,
 consisting of
 \begin{equation}
-  \label{incoming}
+  \label{inward}
   \tilde V_m^{in}= \int_{0}^\infty { b_m(-\sigma_x|v|) \over
     i(-|k_\parallel v|-\omega_m)}\sigma_x d|v|,
 \end{equation}
 is \emph{exactly} equal to the actual non-adiabatic density
 perturbation that accounts for the hole's presence and the full
 eigenmode structure. So the cancellation of the part of
-$\tilde V-\tilde V_w$ for incoming orbits only is exact. Therefore the
-non-zero contribution to external region $z$-integrals of
-$(\tilde V-\tilde V_w)\ket{q}$ arise only from outgoing orbits. The
-necessary integral of outgoing orbits must be carried out to an upper
-limit for which $|z|\gtrsim z_l$. We shall consider explicitly only
-parallel distributions $f_{\parallel0}$ that are symmetric in $v$. In
-that case $b_m$ is symmetric, and the overlap integrals can be
-calculated for a single sign of $v$ and then doubled to give the
-total. 
-
-\subsection{Reducing the integral over the continuum}
-\label{reducing}
-Now we discuss mathematically how the previous considerations allow us
-to reduce the continuum contribution to effectively a single mode.
-Using $s\to q$ to observe our notation for continuum modes, and
-supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we
-write eq.\ \ref{eq:10} explicitly as an integral $a_pdp$ over an
-amplitude distribution function $a_p$ rather than a sum:
-\begin{equation}
-  \label{continw}
-  0=(\lambda_q-\lambda_\perp)a_q+\bra{q}|\tilde{V}\ket{4}a_4
-  +\int\bra{q}|\tilde{V}\ket{p}a_pdp.
-\end{equation}
-The adiabatic term is the first, which for normalized modes is
-\begin{equation}
-  \label{eq:contadiab}
-  \int\bra{q}|V_a-\lambda_\perp\ket{p}a_pdp = \int
-  (\lambda_p-\lambda_\perp)\delta_{qp}a_pdp = (\lambda_q-\lambda_\perp)a_q.
-\end{equation}
-The non-adiabatic contribution is $\bra{q}|\tilde{V}\ket{4}a_4$ plus the
-continuum integral
-\begin{equation}
-  \label{eq:18}
-  \int \bra{q}|\tilde{V}\ket{p}a_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp
-  =\tilde{V}_{w}a_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp.
-\end{equation}
-As can be seen in Fig. \ref{modeplots}, the form of the continuum
-modes in the inner region is almost independent of $p$. Actually for
-small $p$, which is our interest here, the differences are even
-smaller than that figure shows. Therefore, to that degree of
-approximation, we can replace $\ket{p}$ with $\ket{q}$ in the final
-term giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp\simeq
-\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp$, and yielding the
-equation
-\begin{equation}
-  \label{eq:21}
-  (\lambda_\perp-\lambda_q-\tilde V_w)a_q= \bra{q}|\tilde{V}\ket{4}a_4
-  +\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp.
-\end{equation}
-If $\int a_pdp$ is sufficiently small compared with $a_4$, the final
-term can be ignored.  If, however, the term cannot be dropped, it has
-weak dependence on $q$ locally, depending only on the integral
-$\int a_pdp$. Let us for brevity denote it in eq.\ (\ref{eq:21}) as
-$G$. The value of $a_q$ by contrast has resonant dependence on $q$
-(i.e.\ on $k_\parallel$),
-giving
-\begin{equation}
-  \label{eq:resonance}
-  a_q = {\bra{q}|\tilde{V}\ket{4}a_4+G\over (\lambda_\perp-\lambda_q-\tilde{V}_{w})}
-  ={\bra{q}|\tilde{V}\ket{4}a_4+G\over
-    (k_\perp^2+k_\parallel^2+1-\tilde V_w) },
-%  ={\bra{q}|\tilde{V}\ket{4}a_4+G\over k_\perp^2-(q/4)^2(1/\omega^2-1) },
-\end{equation}
-using eq.\ (\ref{eq:3}) $\lambda_q=-q^2/16-1=-k_\parallel^2-1$ and
-$\lambda_\perp=k_\perp^2$.
-%, and $\tilde{V}_{w}=[1+(k_\parallel/\omega)^2]=1+q^2/(16\omega^2)$
-Let us write the denominator using eq.\ (\ref{eq:24})as
-\begin{equation}
-  \label{eq:25}
-  k_\perp^2+k_\parallel^2+1-\tilde
-  V_w\simeq k_\perp^2\left(1-{T_\perp/T_\parallel\over\omega^2-\Omega^2}\right)
-  +k_\parallel^2\left(1-{1\over\omega^2}\right)
-= {1\over4^2}\left({1\over\omega^2}-1\right)\left(q_0^2-q^2\right)
-\end{equation}
-where
-\begin{equation}
-  \label{eq:26}
-  q_0=4k_\perp\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}
-  \Bigg/\sqrt{{1\over\omega^2}-1}.
-\end{equation}
-The denominator is zero when $q^2=q_0^2$ which is the approximate
-dispersion relation of the wave in a uniform plasma. It is equal to the cold
-plasma expression (\ref{eq:15}) when $T_\perp/T_\parallel=1$.
-
-In view of the resonant form of the expression for $a_q$, we can regard the
-integral over this resonance $\int a_q dq$ as quantifying the total
-continuum perturbation.  The integral $dq$ of the expression for $a_q$
-just found (\ref{eq:resonance}) encounters the two poles of $a_q$ at
-$q=\pm q_0$.
-% =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
-Near them the real part of the denominator becomes small. Its
-imaginary part comes from the small, \emph{necessarily positive},
-imaginary part of
-$\omega=\omega_r+i\omega_i$. It can then quickly be shown that
-$q_0$ has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$.
-\iftrue%
-The infinite integral along the real
-$q$-axis can be closed by returning in the upper part of the complex
-plane ($\Im(q)$ positive) where the eigenmode tends
-to zero. Its value is then just $2\pi i$ times the residue at the positive $q_0$ pole.
-\begin{equation}
-  \label{poles}
-  \int a_q dq 
-  ={2\pi i(\bra{q_0}|\tilde{V}\ket{4}a_4+G)
-    \over
-    -2q_{0}(1/\omega^2-1)/4^2}.
-\end{equation}
-\else
-A resonant integral for small positive
-$\epsilon$ and real $q$ generally gives
-\begin{equation}
-  \label{resint}
-  \int_{-}^{+} {g(q) dq\over \pm q_{0r} \pm i\epsilon-q}\simeq \mp
-  i\pi g(\pm q_{0r})
-\end{equation}
-for any slowly varying function $g$.
-On this basis
-\footnote{Write the integral $\int{g(q)dq\over
-  (q_{0r}+i\epsilon)^2-q^2}=\int{g(q)dq\over 
-(q_{0r}+i\epsilon-q)(q_{0r}+i\epsilon+q)}\simeq \int{g(q_{0r})dq\over
-  (q_{0r}+i\epsilon-q)2q_{0r}}-\int{g(-q_{0r})dq\over
-  2q_{0r}(-q_{0r}-i\epsilon-q) }\simeq -i\pi [g(q_{0r})+g(-q_{0r})]/2q_{0r}. $ when
- $\epsilon$ is
-positive. This treatment is equivalent to closing the $q$-integration path
-along $+i\infty$ and setting the closed contour integral equal to
-$2\pi i$ times only the residue at $q=q_{0r}+i\epsilon$.}
-\begin{equation}
-  \label{poles}
-  \int a_q dq \simeq -i4\pi {(\bra{q_{0r}}|\tilde{V}\ket{4}
-    +\bra{-q_{0r}}|\tilde{V}\ket{4})a_4+2G
-    \over
-    2q_{0r}(1/\omega^2-1)/4^2
-  }
-  =\sum_{q=\pm q_{0r}}{-i4\pi(\bra{q}|\tilde{V}\ket{4}a_4+G)
-    \over
-    2q_{0r}(1/\omega^2-1)/4^2}.
-\end{equation}
-\fi
-Taking the $G$ term to the left hand side and reinserting its definition, we get
-\begin{equation}
-  \label{eq:22}
-  \left(1+{i2\pi \bra{q_{0}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0}}\over
-      2q_{0}(1/\omega^2-1)/4^2}\right)\int a_pdp
-  ={-i2\pi\bra{q_0}|\tilde{V}\ket{4}a_4
-    \over
-    2q_{0}(1/\omega^2-1)/4^2}.
-\end{equation}
-and, for brevity, the approximately constant coefficient on the left will
-be written
-\begin{equation}
-  \label{eq:23}
-  C \equiv
-  \left(1+{i2\pi\bra{q_{0}}|\tilde{V}-\tilde{V}_{w}\ket{q_{0}}\over
-      2q_{0}(1/\omega^2-1)/4^2}\right).
-\end{equation}
-
-This analysis thus shows that the entire influence of the continuum
-can (for given $\omega$ and $k_\perp$) be approximated by a single
-parallel wavenumber $k_\parallel= q_{0}/4$ continuum mode, having an
-amplitude $\int a_p dp$ given by eq.\ (\ref{eq:22}).
-
-The continuum contribution to the eigenvalue in eq.\ (\ref{eq:12}) then
-becomes
-\begin{equation}
-  \label{eigcon}
-  {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
-    \over
-    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}\iffalse
-  =
-  {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
-    \over
-    k_\parallel(1/\omega^2-1)\bra{4}\ket{4}C}\fi.
-\end{equation}
-And the total eigenvalue equation, dropping symmetric discrete modes, becomes
-\begin{equation}
-  \label{eigtotal}
-  \lambda_\perp=\lambda_4+{\bra{4}|\tilde{V}\ket{4}\over
-    \bra{4}\ket{4}}
-    +{\bra{4}|\tilde{V}\ket{2}\bra{2}|\tilde{V}\ket{4}\over
-      (\lambda_\perp-\lambda_2)\bra{4}\ket{4} \bra{2}\ket{2}}
-    +%\sum_{q=\pm q_{0}}
-    {-i4\pi\bra{4}|\tilde V \ket{q_{0}}\bra{q_{0}}|\tilde{V}\ket{4}
-    \over
-    (q_{0}/4)(1/\omega^2-1)\bra{4}\ket{4}C}.
-\end{equation}
-When $\ket{4}$ and $\ket{2}$ are normalized as well as the
-continuum modes, then $\bra{4}\ket{4}=\bra{2}\ket{2}=1$, of
-course. Note that $q_0$ depends on $k_\perp$ which is
-$\sqrt{\lambda_\perp}$, so both the last two terms depend on
-$\lambda_\perp$.
-
-Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
-cyclotron harmonics to determine $q_{0}.$ That is justified by
-supposing that the finite Larmor radius parameter
-$\xi_t=k_\perp\sqrt{T_\perp/m_e}/\Omega$ is small, and recognizing
-$I_m(\xi_t^2)\propto \xi_t^{2m}$. If $\xi_t$ is not small (because
-$\Omega\not\gg k_\perp v_{t\perp}$), instead, the dependence
-$\etothe{-\xi_t^2}$ predominates in eq.\ (\ref{eq:ftmagnetic}), and
-harmonics up to $|m|\sim 3\xi_t$ approximate a continuous integral
-over the perpendicular Maxwellian, with the relevant range of
-$\omega_m$ approximately $\omega\pm 3k_\perp v_{t\perp}$. The
-resultant frequency spread exceeds $\sim\omega$ for the whistler mode
-(for which $\omega < \Omega$) implying that high harmonic
-(perpendicular Landau) damping is strong. The continuum mode
-contribution itself is then suppressed, and it is reasonable to ignore
-coupling to the continuum modes.
-
-\subsection{Numerical evaluation:  Obsolete}
-
-The terms in the dispersion relation (\ref{eigtotal}) contain inner
-products of the form $\bra{s}|\tilde V\ket{u}$ that must be evaluated
-by numerical integration. Those involving only $\ket{4}$ or $\ket{2}$
-are performed using the same approach as has been described elsewhere
-[]. They require spatial integrals over only the limited hole region where
-those modes are non-negligible. However, the continuum mode remains
-finite to large $z$; so $\bra{q_{0}}|\tilde{V}\ket{4}$ (and
-$\bra{q_{0}}|\tilde{V}\ket{q_0}$ needed for the coefficient $C$)
-require a much wider integration range, out to where the density
-perturbation generated within the hole becomes negligible. These issues are
-illustrated in Fig \ref{externfig}.
-\begin{figure}
-  \includegraphics[width=0.8\hsize]{extern1} (a)\\
-  \includegraphics[width=0.8\hsize]{extern2} (b)
-  \caption{Illustrating the process of calculating the inner products
-    involving $\ket{4}$ and $\ket{q_0}$. Passing density contributions
-    from positive velocity orbits (a) partially integrated to a low
-    energy, (b) integrated over all relevant energies. The square
-    point locates the edge of the inner hole region, chosen as
-    $z=20$. The scaled $\Phi$ shown is for the last included energy
-    $W$.\label{externfig}}
-\end{figure}
-Part way through the energy (positive parallel velocity) integration:
-\ref{externfig}(a), the partial densities $\tilde n_q$ and
-$\tilde n_4$ extend considerably into the external region, a distance
-proportional to $v/\omega$. The eigenmode partial density $\tilde n_q$
-differs mostly in its spatial oscillations from the wave partial
-density $\tilde n_w$, which is the partial integral of
-$\ket{q_0}/i(k_\parallel v -\omega)$. The $\tilde n_4$ density from
-$\tilde V\ket{4}$ also has some oscillations arising from the
-oscillation of its $\Phi$, of which the value at the maximum energy is
-plotted (arbitrarily scaled). When the energy integration is complete:
-\ref{externfig}(b), the oscillations have mostly been washed out by
-integration, but there remain differences between $\tilde n_q$ and
-$\tilde n_w$ close to the hole region that rapidly decrease further
-away so that $\tilde n_q-\tilde n_w$ is limited in spatial
-extent. Plot (b) includes the curve $V_w\ket{q_0}/2$, which represents
-the simple multiplication of $\ket{q_0}$ by equation \ref{eq:24}. It
-differs from $\tilde n_w$ because $\tilde n_w$ represents here only
-outward velocity orbits, and so the first-order term of eq.\
-\ref{eq:17} is not cancelled out in $\tilde n_w$. The result is not
-exactly antisymmetric and does not exactly equal $V_w\ket{q_0}/2$ as
-given by \ref{eq:24}. This difference illustrates physics, not an
-error. A related feature is that $\tilde n_q$ and $\tilde n_w$ require
-a non-zero value of the prior time integral $\Phi_m$ (e.q.\
-\ref{eq:phim}) to be prescribed at the left-hand edge of the inner
-region ($z=-z_d=-20$ in this illustration) representing the integral
-along the past orbit from $z=-\infty$ to $-z_d$. This value is supplied
-by eq.\ \ref{eq:16} for inward-propagating orbits:
-$\ket{q_0}/i(-k_\parallel v -\omega)$ and is not exactly antisymmetric
-with the outward moving values at $+z_d=20$. Denoting pedantically for
-a moment the plotted densities, which use only positive velocities, as
-$\tilde n_+$, the densities including the total velocity distribution
-(positive and negative) are given by the antisymmetrizing sum
-$\tilde n_{total}(z)=\tilde n_+(z)-\tilde n_+(-z)$. The external
-values of $\tilde n_+$ at $|z|>z_d$ are not needed for inner products
-with discrete modes such as $\bra{4}|\tilde V\ket{q_0}$ because they
-($\bra{j}|$) are zero there. The antisymmetry of $\bra{j}|$ then means
-we can simply double the inner products found using only
-positive-velocity orbits to obtain the total.
-
-Inner products with continuum modes $\bra{q_0}|$, however, require
-integration for the external region $z_d<|z|$ (shown up to $\sim 450$ in
-Fig.\ \ref{externfig}). Discrete mode external density, e.g.\
-$\tilde V \ket{4}$, arises only from outgoing orbits, not incoming, so
-the outgoing calculation for $\bra{q_0}|\tilde V\ket{4}$ need not be
-doubled to account for both velocity signs, only to represent the
-positive and negative $z$-ranges, since we integrate only over
-$z>+z_d$. Incoming velocity orbits' density for continuum modes is not
-negligible, but can accurately be taken as the wave value evaluated
-with incoming sign (${\rm sign}(k_\parallel v)=-1$) in the factor
-$(k_\parallel v-\omega)$.  \iffalse Thus, incoming density in the
-outer region is equal to outgoing times the factor
-$R=\int_0^\infty (k_\parallel v-\omega)/(-k_\parallel v-\omega)\;
-f_\infty(v)dv$, and the total external contribution to
-$\bra{q_0}|\tilde V\ket{q_0}$ is $1+R$ times the outgoing.  \fi For
-present purposes, we really only need the difference
-$\bra{q_0}|\tilde V-\tilde V_w\ket{q_0}$, and the two operators cancel
-exactly for external incoming orbits, provided both are expressed in
-terms of $(k_\parallel v-\omega)$ with incoming $v$-sign.  That is why
-we calculate the outward going external density for both $\tilde V$
-and $\tilde V_w$ using the outward $(k_\parallel v-\omega)$ factor,
-rather than eq.\ (\ref{eq:24}). We double their
-$\bra{q_0}|\tilde V\ket{q_0}$ values to account for positive and
-negative $z$.
+$\tilde V-\tilde V_w$ for inward orbits only is exact
+$(\tilde V^{in}-\tilde V_m^{in})\ket{q}=0$. Therefore the non-zero
+contribution to external region $z$-integrals of
+$(\tilde V-\tilde V_w)\ket{q}$ arises only from outward orbits
+$(\tilde V^{out}-\tilde V_m^{out})\ket{q}\not=0$. The necessary
+integral of outward orbits must be carried out to an upper limit for
+which $|z|\gg z_l$. We shall consider explicitly only parallel
+distributions $f_{\parallel0}$ that are symmetric in $v$. In that case
+$b_m$ is symmetric, and the overlap integrals can be calculated for a
+single sign of $v$ and then doubled to give the total.
 
 
-
-For finite $\Omega$, where the sum over harmonics is essential, we
-determine $k_\parallel$ from eq.\ (\ref{eq:15}), the same for all
-harmonics. Then for external passing orbits evaluating $\Phi_m$ as
-$\ket{q_0}/i(k_\parallel v -\omega_m)$, integrating the resulting
-$\tilde f_m$ $dv$ and summing over harmonics $m$ we get
-$\tilde V_w\ket{q_0}$ externally. Such a treatment does not
-apply to internal orbits, so instead we use for $\tilde V_w$ internally
-eq.\ (\ref{eq:24}) multiplying $\ket{q_0}$. That excludes any resonances
-between bounce frequency and higher-$m$ cyclotron harmonics. The other
-$\tilde V\ket{4}$, $\tilde V\ket{2}$, $\tilde V\ket{q_0}$, calculations
-simply substitute $\omega_m$ for $\omega$.
-
-\subsection{External Analytic Integration}
-
-In the external region $|z|>z_d$, the prior integral $\Phi$ giving
-$\tilde f$ for discrete modes $\ket{j}$ is non-zero only for outward
-moving orbits. We focus for definiteness on $z>z_d$ and positive $v$.
-For inward moving orbits, by contrast, $\tilde f$ is zero externally
-for the operations $\tilde V\ket{j}$ and
-$(\tilde V -\tilde V_w)\ket{q_0}$. Consequently, the external
-contribution to the forces $\bra{q_0}|\tilde V \ket{j}$ and
-$\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$ arises from the external
-integration $\int_{z_d}^\infty q_0^*(z) \Phi(z) dz$ for outward orbits
-only.
-
-In the external region, the velocity is constant; so for $\ket{j}$,
-which has zero perturbed potential there, $\Phi$ is a simple time
-delay factor times its value at the join between internal and external
-regions $\Phi(z_d)$:
-\begin{equation}
-  \label{phi4}
-  \Phi_{\ket{j}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{j}}(z_d).
-\end{equation}
-The corresponding expression for the continuum mode, which has
-non-zero external potential, may be
-found by substituting the wave expression \ref{eq:14} for  $\ket{q_0}$
-which can be integrated analytically to give an extra term, arriving
-at 
-\begin{equation}
-  \label{phiq}
-  \Phi_{\ket{q_0}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
-  +{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}[\etothe{ik_\parallel(z-z_d)}
-  -\etothe{i\omega_m(z-z_d)/v}].
-\end{equation}
-Recalling that the wave operator is simply constant, its external
-contribution to $\Phi_{\ket{w}}$ for a particular positive velocity is
-${A\etothe{ik_\parallel z}\over i(k_\parallel v-\omega_m)}$, which
-exactly cancels the first term in the square bracket of
-$\Phi_{\ket{q_0}}(z)$. Such cancellation is essential to produce a
-finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence,
-when forming
-$(\tilde V -\tilde V_w)\ket{q_0}$, the required external prior
-integral is
-\begin{equation}
-  \label{phidiff}
-  \Phi_{\ket{q_0-w}}(z)\equiv \Phi_{\ket{q_0}}(z)-\Phi_{\ket{w}}
-  =\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
-  %-\Phi_{w}(z_d)]
-  -{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}
-  \etothe{i\omega_m(z-z_d)/v}.
-\end{equation}
-To obtain the total external force we can carry out the inner product
-$z$-integration analytically as
-\begin{equation}
-  \label{extforce}
-  \int_{z_d}^\infty q_0^*(z) \Phi_u(z)  dz =
-  {A^*\Phi_u(z_d)\etothe{-ik_\parallel z_d}\over i(k_\parallel  v-\omega_m)}
-  + {\delta_{q_0u}|A|^2v\over (k_\parallel v-\omega_m)^2},
-\end{equation}
-where $\Phi_u$ refers to the ``ket'' mode (j or $q_0-w$), and the
-$|A|^2$ term is present only if we are constructing
-$\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$, as indicated by
-$\delta_{q_0u}$. This force quantity is multiplied by the extra
-weighting factors in equation (\ref{eq:ftmagnetic}) and integrated
-(numerically) over parallel velocity so as to produce the total inner
-product. Because the integration is carried out only for positive $z$,
-the result must be doubled to account for force exerted at negative
-$z$ (assuming velocity symmetry of $f_0(v)$). The sum over relevant
-cyclotron harmonics must also be carried out.
-
-\section{Complete matrix formulation (To replace the reducing
-  continuum subsection)}
+\subsection{Reducing the continuum to give the dispersion matrix}
 
 Now we discuss mathematically how the previous considerations allow us
 to reduce the continuum contribution to effectively a single mode.
@@ -1046,32 +543,32 @@ the left hand side:
 \begin{equation}
   \label{eigq}
   (-\lambda_q+\lambda_\perp)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
-+\int\bra{q}|\tilde V\ket{p} a_pdp,
++\int\bra{q}|\tilde V\ket{p} a_pdp.
 \end{equation}
-Then we write the continuum integral using $\bra{q}|\tilde V_w\ket{p}=
+We write the continuum integral using $\bra{q}|\tilde V_w\ket{p}=
 \tilde V_w \delta_{qp}$as 
 \begin{equation}
   \label{eq:18}
   \int \bra{q}|\tilde{V}\ket{p}a_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp
-  =\tilde{V}_{w}a_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp,
+  =\tilde{V}_{w}a_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp.
 \end{equation}
 As can be seen in Fig. \ref{modeplots}, the form of the continuum
 modes in the inner region is almost independent of $p$. Actually for
 small $p$, which is our interest here, the differences are even
 smaller than that figure shows. Therefore, to that degree of
 approximation, we can replace $\ket{p}$ with $\ket{q}$ in the final
-term giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp\simeq
+term, giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp\simeq
 \bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp$, and obtain the
 equation
 \begin{equation}
   \label{eigq}
-  (-\lambda_q+\lambda_\perp-V_w)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
+  (-\lambda_q+\lambda_\perp-\tilde V_w)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
 +\bra{q}|\tilde V-\tilde V_w\ket{q}\int a_pdp.
 \end{equation}
 Since the right hand side is a weak function of $q$, this equation
 implies that $a_q$ is a localized function of $q$ centered on the
 $q$-value for which its coefficient on the left hand side is
-approximately zero. We can write it using eq.\ (\ref{eq:24})as
+approximately zero. We can write the coefficient using eq.\ (\ref{eq:24})as
 \begin{equation}
   \label{}
   k_\perp^2+k_\parallel^2+1-\tilde
@@ -1085,9 +582,10 @@ where
   q_0=4k_\perp\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}
   \Bigg/\sqrt{{1\over\omega^2}-1}.
 \end{equation}
-The coefficient $(-\lambda_q+\lambda_\perp-V_w) $ is zero when $q^2=q_0^2$ which is the approximate
-dispersion relation of the wave in a uniform plasma. It is equal to the cold
-plasma expression (\ref{eq:15}) when $T_\perp/T_\parallel=1$.
+The coefficient $(-\lambda_q+\lambda_\perp-V_w) $ is zero when
+$q^2=q_0^2$, which is the approximate dispersion relation of the wave
+in a uniform plasma. It is equal to the cold plasma expression
+(\ref{eq:15}) when $T_\perp/T_\parallel=1$.
 
 
 
@@ -1140,7 +638,7 @@ discrete modes then satisfy, for $l=4,2$,
   =\sum_j\bra{l}|\tilde{V}\ket{j}a_j
   +\bra{l}|\tilde{V}\ket{q_0}\int a_pdp.
 \end{equation}
-We regard the coefficients of the three modes 4,2,$q_0$ as composing a
+We regard the amplitudes of the three modes 4,2,$q_0$ as composing a
 column 3-vector whose transpose is
 \begin{equation}
   \label{avector}
@@ -1180,6 +678,156 @@ determining $a_2/a_4$ from the second row, and $\int a_pdp/a_4$ from the third
 row.}
 
 
+Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
+cyclotron harmonics to determine $q_{0}.$ That is justified by
+supposing that the finite Larmor radius parameter
+$\zeta_t=k_\perp\sqrt{T_\perp/m_e}/\Omega$ is small, and recognizing
+$I_m(\zeta_t^2)\propto \zeta_t^{2m}$. If $\zeta_t$ is not small (because
+$\Omega\not\gg k_\perp v_{t\perp}$), instead, the dependence
+$\etothe{-\zeta_t^2}$ predominates in eq.\ (\ref{eq:ftmagnetic}), and
+harmonics up to $|m|\sim 3\zeta_t$ approximate a continuous integral
+over the perpendicular Maxwellian, with the relevant range of
+$\omega_m$ approximately $\omega\pm 3k_\perp v_{t\perp}$. The
+resultant frequency spread exceeds $\sim\omega$ for the whistler mode
+(for which $\omega < \Omega$) implying that high harmonic
+(perpendicular Landau) damping is strong. The continuum mode
+contribution itself is then suppressed, and it is reasonable to ignore
+coupling to the continuum modes, reducing $\M$ to its upper left
+2$\times$2 submatrix.
+
+\subsection{Internal Numerical Evaluation of inner products}
+
+The evaluation of the overlap integrals (forces) that appear in $\M$
+for the inner hole region is carried out numerically using methods
+that have been documented in detail previously [] for mode
+$\ket{4}$. In summary the process consists, for each relevant orbit
+energy $W$, of numerically integrating to obtain the relationship
+between $z$ and the prior time $\tau$ for the unperturbed orbit, and
+simultaneously accumulating the integral $\Phi_m(z)$, using a discrete
+(but non-uniform) $z$-mesh.  Trapped orbits $W<0$ require a sum over
+all prior bounces in the potential well, which requires a multiplying
+resonant factor. Passing orbits use a single transit across the domain
+$-z_d<z<z_d$, and for the discrete modes there is no external
+contribution. The continuum mode at the incoming boundary
+($z_{in}=-(v/|v|)z_d$), unlike the discrete modes, has a non-zero
+value, which is provided by the wave expression
+$\Phi_m(z_{in})=\Phi_m^{wave}$, eq.\ (\ref{Phiwave}).  Inside the
+prior time integration loop the overlap integrals
+$\int s^*(z)\tilde f_m(z)dz$ are simultaneously
+accumulated. Afterwards they are integrated $dv$ over the relevant
+range of parallel energy $W$, and summed over relevant harmonics $m$
+to give the hole-region contributions to $\bra{s}|\tilde
+V\ket{u}$. Except when $s$ is the continuum mode (the bottom row of
+$\M$), these internal values provide the full evaluation of the
+overlap integrals. For $s=q_0$, however, extra contributions arise
+from the external region, which we now describe.
+
+\subsection{External Analytic Integration}
+
+In the external region $|z|>z_d$, the prior integral $\Phi$ giving
+$\tilde f$ for discrete modes $\ket{j}$ is non-zero only for outward
+moving orbits. We focus for definiteness on $z>z_d$ and positive $v$.
+For inward moving orbits, by contrast, $\tilde f$ is zero externally
+for the operations $\tilde V\ket{j}$ and
+$(\tilde V -\tilde V_w)\ket{q_0}$. Consequently, the external
+contribution to the forces $\bra{q_0}|\tilde V \ket{j}$ and
+$\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$ arises from the external
+integration $\int_{z_d}^\infty q_0^*(z) \tilde n dz$ only for \emph{outward} orbits.
+
+To assist with understanding, figure \ref{externfig2} shows a case
+illustrating the relevant
+\begin{figure}[ht]
+  \includegraphics[width=0.8\hsize]{extern3}
+  \caption{Illustrating the process of calculating the inner products
+    involving $\ket{q_0}$ and $\ket{4}$. Passing density contributions
+    from positive, outward, velocity orbits integrated over all
+    relevant energies. The square point locates the edge of the inner
+    hole region, chosen as $z_d=30$. The scaled $\Phi$ shown is for the
+    last included energy $W=6$.\label{externfig2}}
+\end{figure}
+density perturbations $\tilde n_q=\tilde V_0^{out}\ket{q}$,
+$\tilde n_w=\tilde V_0^{out}\ket{q}$, and $\tilde n_4=\tilde V\ket{4}$
+arising from positive velocity orbits. The upper panel shows the
+relevant curves for the continuum mode in the inner and outer regions.
+The densities $\tilde n_q$ and $\tilde n_w$ are very different in the
+inner region $|z|<z_d$ and well outside it but they converge to each
+other in the wave region $|z|\gg z_l$ ($z_l\sim 20$ for this
+relatively high frequency illustration). Also shown is the curve of
+$\tilde V_w\ket{q}/2$ which is the average of the inward and
+outward densities. It has a shape similar to $\tilde n_w$ but is
+somewhat smaller because $\tilde V_0^{in}< \tilde V_0^{out}$. The
+relevant contribution comes from the difference between $\tilde n_q$
+and $\tilde n_w$. 
+
+The lower panel shows $\tilde n_4$ which is substantial in the inner
+region and converges to zero for $|z|\gg z_l$, on it one can see
+residual oscillations caused by discrete contributions at low velocity
+approximating the $dv$ integral, which die out at large $z$. In the
+upper panel there are also some oscillations but they are barely
+visible. The ``$\Phi$ (scaled)'' curve illustrates (only) the shape of
+the final contribution to the velocity integral from high velocity,
+showing how long the wavelength of oscillations becomes there; its
+contribution to $\tilde n$ is small because $f_{\parallel0}$ is
+negligible at high $v$.
+
+
+Now we explain how the external integrations are performed mostly
+analytically.  In the external region, the velocity is constant; so
+for $\ket{j}$, which has zero perturbed potential there, $\Phi$ is a
+simple time delay factor times its value at the join between internal
+and external regions $\Phi(z_d)$:
+\begin{equation}
+  \label{phi4}
+  \Phi_{\ket{j}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{j}}(z_d).
+\end{equation}
+The corresponding expression for the continuum mode, which has
+non-zero external potential, may be
+found by substituting the wave expression \ref{eq:14} for  $\ket{q_0}$
+which can be integrated analytically to give an extra term, arriving
+at 
+\begin{equation}
+  \label{phiq}
+  \Phi_{\ket{q_0}}(z)=\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
+  +{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}[\etothe{ik_\parallel(z-z_d)}
+  -\etothe{i\omega_m(z-z_d)/v}].
+\end{equation}
+Recalling that the wave operator is simply constant, its external
+contribution to $\Phi_{\ket{w}}$ for a particular positive velocity is
+${A\etothe{ik_\parallel z}\over i(k_\parallel v-\omega_m)}$, which
+exactly cancels the first term in the square bracket of
+$\Phi_{\ket{q_0}}(z)$. Such cancellation is essential to produce a
+finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence,
+when forming
+$(\tilde V -\tilde V_w)\ket{q_0}$, the required external prior
+integral is
+\begin{equation}
+  \label{phidiff}
+  \Phi_{\ket{q_0-w}}(z)\equiv \Phi_{\ket{q_0}}(z)-\Phi_{\ket{w}}
+  =\etothe{i\omega_m(z-z_d)/v}   \Phi_{\ket{q_0}}(z_d)
+  %-\Phi_{w}(z_d)]
+  -{A\etothe{ik_\parallel z_d}\over i(k_\parallel v-\omega_m)}
+  \etothe{i\omega_m(z-z_d)/v}.
+\end{equation}
+To obtain the total external force we can carry out the inner product
+$z$-integration analytically as
+\begin{equation}
+  \label{extforce}
+  \int_{z_d}^\infty q_0^*(z) \Phi_u(z)  dz =
+  {A^*\Phi_u(z_d)\etothe{-ik_\parallel z_d}\over i(k_\parallel  v-\omega_m)}
+  + {\delta_{q_0u}|A|^2v\over (k_\parallel v-\omega_m)^2},
+\end{equation}
+where $\Phi_u$ refers to the ``ket'' mode (j or $q_0-w$), and the
+$|A|^2$ term is present only if we are constructing
+$\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$, as indicated by
+$\delta_{q_0u}$. This force quantity is multiplied by the extra
+weighting factor $b_m$ (equation \ref{mweight}) and integrated
+(numerically) over parallel velocity so as to produce the total inner
+product. For asymmetric $f_{\parallel0}$ the process would need to be
+carried out also for negative velocity and $z$, but since we take
+$f_{\parallel0}$ to be symmetric the integration is carried out only
+for positive $v$ and $z$; the result is then doubled to account for
+force exerted at negative $z$. The sum over relevant cyclotron
+harmonics must also be carried out.
 
 \end{document}
 

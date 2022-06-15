@@ -56,7 +56,7 @@ module shiftgen
   real, parameter :: pig=3.1415926
   complex, parameter :: sqm1g=(0.,1.)
   integer :: iwpowg=3,ippow=3,nharmonicsg,ivs,iws
-  real :: kpar,f4norm
+  real :: kpar,f4norm    ! kpar is unsigned (+ve) in this code.
 ! Spatial Arrays variable
   real, dimension(-ngz:ngz) :: zg,vg,phig,phigprime,taug
 ! Fixed range  
@@ -80,9 +80,10 @@ module shiftgen
   integer :: nmd=nmdmax ! Default
   complex, dimension(-ngz:ngz,nmdmax) :: pmds,CPmds,ftrmds
   complex, dimension(nmdmax,nmdmax) :: Fmdaccum
-! Force totals Reflected, Passing, Sum, Attracted, Trapped, hill=Repelled  
+! Force totals Reflected, Passing, Sum, Attracted, Trapped
   complex, dimension(nmdmax,nmdmax) :: Ftmdr,Ftmdp,Ftmdsum,Ftmda,Ftmdt,dispM
   complex, dimension(nmdmax,nmdmax,0:nge) :: Fmdres,Fmdp,FmdofW,FmdpofW  
+  complex, dimension(nmdmax) :: amd     ! Amplitude of modes
 ! Distribution function variables for mode dent densities 
   complex, dimension(-ngz:ngz,nmdmax-1) :: ftraux
   complex, dimension(-nzd:nzd,nmdmax-1) :: ftrauxd
@@ -131,13 +132,16 @@ contains
     if(omegar.le.1.and.Omegacg.gt.omegar)then
        kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
             ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
+       if(Vw.eq.1)ncalls=1
        Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
        if(ncalls.eq.1)write(*,'(a,f8.5,a,2f8.4)')'makezg kpar=',kpar,' Vw=',Vw
-    elseif(psig.lt.0)then
-       if(mod(ncalls-1,10000).eq.0)write(*,*)'ERROR omegar >=1,omegac is not allowed'
-!       if(mod(ncalls,1000).eq.0)write(*,*)'Setting kpar to zero',omegar,Omegacg,ncalls
+    elseif(psig.lt.0)then!
+!       if(mod(ncalls-1,100000).eq.0)&
+       if(Vw.ne.1.)&
+            write(*,'(a,f7.4,a,f7.4,a)')&
+            'omegar',omegar,'> Omegac',Omegacg,' Setting kpar=0.'
        kpar=0.
-!       stop
+       Vw=1.e0
     endif
 ! Construct the modes
     zg(0)=0.; phig(0)=psig; vg(0)=isigma*ivs*sqrt(2.*max(0.,Wg-phig(0)))
@@ -497,7 +501,8 @@ contains
   subroutine Fextern2(Wgi,isigma,dvinf,dfweight)
 ! Revised Fextern that calculates analytically the external forces
     real :: Wgi
-    complex :: Fextanal,Fext2anal,Fextqanal,Amp,dvdfw,dfweight
+    real, parameter :: vp=.5,dvp=.02
+    complex :: Fextanal,Fext2anal,Fextqanal,Amp,dvdfw,dfweight,Fin,Fout
     vi=sqrt(2.*Wgi)
     dvdfw=dvinf*dfweight*sqm1g
     p=4.*kpar
@@ -514,6 +519,14 @@ contains
     Fextqanal=conjg(Amp)*CPmds(ngz,3)*dvdfw*exp(-sqm1g*kpar*zg(ngz))&
          /(sqm1g*(kpar-omegag/vi))&
          +dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2
+    if(.false..and.abs(vi-vp).lt.dvp.and.abs(omegag-omegaonly).eq.0)then
+       Fout=dvdfw*abs(Amp)**2/vi/(kpar-omegag/vi)**2/dvinf
+       Fin=-dvdfw*abs(Amp)**2/vi/(kpar**2-(omegag/vi)**2)/dvinf&
+            *exp(sqm1g*omegag*taug(ngz))
+       write(*,*)'   vi       dFqtotal         dFxin           dFxout',&
+       '   dFqtotal-dFxin-dFxout'
+       write(*,'(9f8.4)')vi,Fextqanal/dvinf,Fin,Fout,Fextqanal/dvinf-Fin-Fout
+    endif
     Fextqqwanal=Fextqqwanal+Fextqanal ! Accumulated difference
     Ftmdp(3,1)=Ftmdp(3,1)+Fextanal
     Ftmdp(3,2)=Ftmdp(3,2)+Fext2anal
@@ -600,6 +613,7 @@ contains
 ! Calculate the complex Dispersion matrix M and Determinant det(M)
     implicit none
     integer :: i1,i2,i3
+    complex :: det23
     dispM=Ftmdsum
     dispM(1,1)=dispM(1,1)-kg**2
     dispM(2,2)=dispM(2,2)-kg**2-12./16.
@@ -614,14 +628,18 @@ contains
                (dispM(i2,2)*dispM(i3,3)-dispM(i3,2)*dispM(i2,3))
        enddo
  ! Weighting factor for iteration.      
-       dispMdet=dispMdet/(1/(real(omegaonly)**2+1.e-8)-1)**.5
-!            *real(omegaonly+.001)
-!       dispMdet=dispMdet/sqrt(1+Tperpg/(Omegacg**2-omegaonly**2))
+       dispMdet=dispMdet/sqrt(1/(real(omegaonly)**2+1.e-8)-1)
     elseif(nmd.eq.2)then
        dispMdet=dispM(1,1)*dispM(2,2)-dispM(1,2)*dispM(2,1)
     else
        dispMdet=dispM(1,1)
     endif
+! Solve for the amplitudes of non-shift modes, assuming detM is zero and
+! that the amplitude of shift mode is 1. 
+    amd(1)=1.
+    det23=dispM(2,2)*dispM(3,3)-dispM(2,3)*dispM(3,2)
+    amd(2)=(dispM(2,3)*dispM(3,1)-dispM(2,1)*dispM(3,3))/det23
+    amd(3)=(dispM(2,1)*dispM(3,2)-dispM(3,1)*dispM(2,2))/det23
   end subroutine DispCalc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Distribution functions
@@ -885,6 +903,20 @@ complex function getdet()
   use shiftgen
   getdet=dispMdet
 end function getdet
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+complex function rowone()
+  use shiftgen
+  rowone=0.
+  do i=1,nmd
+     rowone=rowone+dispM(1,i)*amd(i)
+  enddo
+end function rowone
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine getamd(nm,modes)
+  use shiftgen
+  complex :: modes(nm)
+  modes(1:nm)=amd(1:nm)
+end subroutine getamd
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine LBessSet
   use shiftgen
