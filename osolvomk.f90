@@ -39,7 +39,6 @@ program osolvomk
   enddo
   read(12,*)(kparray(j),j=1,nk)
   read(12,*,end=10)lg
-  if(id.eq.0)write(*,*)'read lg=',lg,'  lgetdet=',lgetdet
   if(lg.neqv.lgetdet)goto 1
 10 close(12)
   call mpilkillslaves
@@ -59,12 +58,10 @@ program osolvomk
      do i=1,no
         if(j.eq.1)oc(i)=Ocmax*(i-.7)/(no-.7)
         Omegacp=sqrt(psip)*oc(i)
-        if(nit.eq.0.or.oc(i).gt.0.3)omegap=sqrt(psip)/10.*complex(1.,1.)
+        if(nit.eq.0.or.oc(i).gt.0.3)omegap=complex(min(thek,oc(i)),thek/2)
         impi=impi+1
         iactiv=mod(impi,nproc)
         if(iactiv.eq.id)then
-!           write(*,'(a,f8.4,a,f8.4,a,i4)')'Find for Omegac=',oc(i),' k='&
-!                &,kparray(j),' id=',id
            call iterfindroot(psip,vs,Omegacp,omegap,thek,isigma,nit)
            if(nit.gt.1.and.nit.le.niterfind)then
               or(i,j)=real(omegap)/sqrt(psip)
@@ -74,7 +71,7 @@ program osolvomk
                  rw1(i,j)=rowone()
               endif
               write(*,'(a,2i3,a,f8.4,a,f8.4,a,f8.4,a,f8.4,a&
-                &,i3)')'Found:',i,j,' Oc=' ,oc(i),' k=',kparray(j),'&
+                &,i3)')'Found:',i,j,' Oc=' ,oc(i),' k/sqpsi=',kparray(j),'&
                 & or=',or(i,j),' oi=',oi(i ,j),' id=',id
               if(.true.)then
                  lgetdet=.not.lgetdet
@@ -88,7 +85,7 @@ program osolvomk
                        rw1(i,j)=rowone()
                     endif
                     write(*,'(a,2i3,a,f8.4,a,f8.4,a,f8.4,a,f8.4,a&
-                         &,l1)')'Second:',i,j,' Oc=' ,oc(i),' k=',kparray(j),'&
+                         &,l1)')'Second:',i,j,' Oc=' ,oc(i),' k/sqpsi=',kparray(j),'&
                          & dor=',dor(i,j),' doi=',doi(i ,j),' lgetdet=',lgetdet
                  else
                     write(*,*)'Failed second iteration'
@@ -119,9 +116,9 @@ program osolvomk
 
   
 2 continue                  !Plot
-  do i=1,no
-     write(*,*)oc(i),(rw1(i,j),j=1,nk)
-  enddo
+!  do i=1,no
+!     write(*,*)oc(i),(rw1(i,j),j=1,nk)
+!  enddo
 
   call multiframe(2,1,3)
   call dcharsize(.02,.02)
@@ -137,13 +134,14 @@ program osolvomk
   call fwrite(vs,iwidth,2,string)
   if(vs.lt.9999)call legendline(.6,1.05,258,'v!ds!d='//string(1:iwidth))
   if(lgetdet)call legendline(.6,1.05,258,'Multimode')
+  if(.not.lgetdet)call legendline(.6,1.05,258,'Shiftmode')
   call color(1)
   call jdrwstr(wx2nx(oc(no)*.7),wy2ny(max(.05*omax,or(no,1)-0.05&
        &*omax)),'real',0.)
   call color(4)
   call jdrwstr(wx2nx(oc(no)*.5),wy2ny(max(.05*omax,oi(no,1)+0.05&
        &*omax)),'imag',0.)
-  call winset(.true.)
+!  call winset(.true.) triggers dashed line plotting bug.
   do j=1,nk
      call dashset(j-1)
      call color(1)
@@ -154,7 +152,7 @@ program osolvomk
      call fwrite(kparray(j),iwidth,2,string)
      call legendline(.73,.97-j*.09,0,' '//string(1:iwidth))
   enddo
-  call legendline(.76,.95,258,'k=')
+  call legendline(.73,.95,258,'k/!A)y!@=')
 !  call pltend
   call minmax(doi(1:no,1:nk),no*nk,gmin,gmax)
   call pltinit(0.,oc(no),gmin,gmax)
@@ -170,7 +168,7 @@ program osolvomk
      call polyline(oc,doi(1,j),no)
      call color(15)
      call fwrite(kparray(j),iwidth,2,string)
-     call legendline(.73,.6-j*.09,0,' '//string(1:iwidth))
+!     call legendline(.73,.6-j*.09,0,' '//string(1:iwidth))
   enddo
   call dashset(0)
   call pltend
@@ -179,6 +177,8 @@ program osolvomk
   call pltinit(0.,oc(no),gmin,gmax)
   call axis;call axis2
   call axlabels('','a!d2!d/a!d4!d')
+  call fwrite(psip,iwidth,2,string)
+  call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
   call color(1)
   call legendline(.1,.75,258,'real')
   call color(4)
@@ -197,7 +197,7 @@ program osolvomk
   call pltinit(0.,oc(no),gmin,gmax)
   call axis;call axis2
   call axlabels('!AW!@/!A)y!@','a!dq!d/a!d4!d')
-  call legendline(.76,.5,258,'k=')
+  call legendline(.1,.8,258,'k/!A)y!@=')
   do j=1,nk
      call dashset(j-1)
      call color(1)
@@ -206,7 +206,7 @@ program osolvomk
      call polyline(oc,imag(amds(3,1:no,j)),no)
      call color(15)
      call fwrite(kparray(j),iwidth,2,string)
-     call legendline(.73,.5-j*.09,0,' '//string(1:iwidth))
+     call legendline(.1,.8-j*.09,0,' '//string(1:iwidth))
   enddo
   call pltend
 end program osolvomk

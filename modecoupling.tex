@@ -19,17 +19,18 @@
 
 \section{Introduction}
 
-The stability of plasma electron holes has recently been extensively studied
-assuming that the most unstable perturbation is a parallel shift of
-the hole position []. The eigenvalue, which determines the complex
-frequency $\omega$, has previously been evaluated using a ``Rayleigh
-Quotient'' which provides an approximation accurate to second order in
-any deviations from the exact unstable mode structure. The results are
-in reasonable agreement with PIC simulations, but some discrepancies
-have been noted. The purpose of the present work is to discover
-whether more accurate mode shape determination, including deviations
-from the shift mode, can explain those discrepancies, and to quantify
-by analysis how important the deviations are.
+The multidimensional stability of plasma electron holes has recently been
+extensively studied assuming that the most unstable perturbation is a
+parallel shift of the hole position []. The eigenvalue, which
+determines the complex frequency $\omega$, has previously been
+evaluated using a ``Rayleigh Quotient'' which provides an
+approximation accurate to second order in any deviations from the
+exact unstable mode structure. The results are in reasonable agreement
+with PIC simulations, but some discrepancies have been noted. The
+purpose of the present work is to discover whether more accurate mode
+shape determination, including deviations from the shift mode, can
+explain those discrepancies, and to quantify by analysis how important
+the deviations are.
 
 Two main phenomena have been observed in transverse instability
 simulations that are not represented by the shift mode analysis. They
@@ -39,28 +40,28 @@ parallel length streaks or waves on the whistler branch, during
 oscillatory instability at high magnetic field.
 
 A relatively compact approach to managing a generalization of the
-unstable mode of a Vlasov-Poisson problem [] is to represent the
-perturbation of potential in terms of the eigenmodes (which are
-orthogonal) of a judiciously chosen differential operator. In the
-present context, the operator generally used represents the Poisson
-equation for steady (or very slowly varying) potential
-($\nabla^2\phi-n=0$ in appropriately normalized units). The particle
-density $n_0(z)$ associated with the potential equilibrium
-$\phi_0(z)$, can be determined from this equation. Then for
-infinitessimally slow linearized potential perturbations $\phi_1$
+unstable mode of a Vlasov-Poisson problem previously advocated[] is to
+represent the perturbation of potential in terms of the eigenmodes
+(which are orthogonal) of a judiciously chosen differential
+operator. In the present context, the operator generally used
+represents the Poisson equation for steady (or very slowly varying)
+potential ($\nabla^2\phi-n=0$ in appropriately normalized units). The
+particle density difference $n_0(z)$ associated with the potential
+equilibrium $\phi_0(z)$, can be determined from this equation. Then
+for infinitessimally slow linearized potential perturbations $\phi_1$
 about this equilibrium the perturbed density is
 $n_1=\phi_1dn_0/d\phi_0$, and the resulting Poisson equation can be
-written using the operator $V_a \equiv(\nabla^2-dn_0/d\phi_0)$ acting on
-$\phi_1$ as $V_a\phi_1=0$. This $V_a$ is called the ``adiabatic''
+written using the operator $V_a \equiv(\nabla^2-dn_0/d\phi_0)$ acting
+on $\phi_1$ as $V_a\phi_1=0$. This $V_a$ is called the ``adiabatic''
 operator, and the associated density perturbation $n_1$ the adiabatic
-density (perturbation). The expansion of the potential perturbation is
-most naturally in terms of the eigenmodes of $V_a$. For purely growing
-instabilities $\omega=0+i\omega_i$, at the threshold $\omega_i\sim 0$,
-evidently the adiabatic response is nearly equal to the total because
-changes are infinitessimally slow; so the non-adiabatic part
-$\tilde V$ of the operator is small compared with $V_a$ in the
-perturbed Poisson equation. Consequently to lowest order the
-perturbation unstable mode is equal to the eigenmode of $V_a$ with
+density (perturbation). For low frequencies, expansion of the
+potential perturbation is most naturally in terms of the eigenmodes of
+$V_a$. For purely growing instabilities $\omega=0+i\omega_i$, at the
+threshold $\omega_i\sim 0$, evidently the adiabatic response is nearly
+equal to the total because changes are infinitessimally slow; so the
+non-adiabatic part $\tilde V$ of the operator is small compared with
+$V_a$ in the perturbed Poisson equation. Consequently to lowest order
+the perturbation unstable mode is equal to the eigenmode of $V_a$ with
 zero eigenvalue. For a solitary potential structure in a uniform
 background, such a zero eigenvalue always exists, and its eigenmode
 has the form of a uniform shift of the equilibrium.
@@ -75,16 +76,20 @@ contributions from other eigenmodes of $V_a$ becomes an important
 question. It can be explored by carrying the perturbation analysis to
 first order in the other eigenmodes, in much the way that
 time-independent perturbation theory is used in quantum
-mechanics. This was successfully pursued in an early study of the
-one-dimensional instability of a train of electron holes, which leads
-eventually to hole merger[]. However, the few subsequent efforts to
-apply it [] have been of limited utility either because of perturbing
-about the wrong eigenmode, or, more fundamentally because of adopting
-inappropriate approximations to the solution of the Vlasov equation,
-which constitutes the complementary (and more difficult) part of the
-Poisson-Vlasov system: the non-adiabatic perturbation. The present
-work instead solves the Vlasov problem by numerical integration over
-the prior orbit.
+mechanics. This approach was successfully pursued in an early study of
+the one-dimensional instability of a train of electron holes that
+leads eventually to hole merger[]. However, the few subsequent efforts
+to apply it [] have been of limited utility either because of
+expanding about the wrong eigenmode, or, more fundamentally because of
+adopting inappropriate approximations to the solution of the Vlasov
+equation, which constitutes the complementary (and more difficult)
+part of the Poisson-Vlasov system: the non-adiabatic perturbation. The
+present work instead solves the Vlasov problem by numerical
+integration internally over the prior orbit. Moreover it avoids any
+perturbative approximation for the relative amplitudes of the different
+modes, instead showing how the eigenmode continuum contribution can be
+represented through a single amplitude corresponding to the
+external wave dispersion relation.
 
 
 \section{Eigenmode Expansion}
@@ -101,12 +106,13 @@ continuum modes such that $u$ and $s$ are real parameters, this is
 whereas for discrete modes $\delta_{jl}$ is the Kronecker delta.
 
 \subsection{Adiabatic Response Eigenmodes}
-In scaled units Poisson's equation is $d^2\phi/dz^2=n-1$. The
-equilibrium analyzed is chosen to be of the form
-$\phi_0=\psi\sech^4(z/4)$. Writing for brevity
-$S=\sech(z/4)$ and $T=\tanh(z/4)$ and denoting the $z$-derivative by
-prime, the linearized equilibrium (``adiabatic'')
-Poisson operator for this hole potential can then be written
+In scaled units the one-dimensional Poisson equation, assuming
+immobile uniform ion density, is $d^2\phi/dz^2=n-1$. The equilibrium
+analyzed is chosen to be of the form
+$\phi_0=\psi\sech^4(z/4)$. Writing for brevity $S=\sech(z/4)$ and
+$T=\tanh(z/4)$ and denoting the $z$-derivative by prime, the
+linearized equilibrium (``adiabatic'') Poisson operator for this hole
+potential can then be written
 \begin{equation}
   \label{eq:1}
   V_a = \left[{d^2\over dz^2} - {dn\over d\phi_0}\right]
@@ -124,7 +130,7 @@ the function $ \etothe{uz/4}$ yielding
   \begin{split}
  \ket{u}(z)= &\exp(uz/4)\{[-15u^4 + (420S^2 - 225)u^2 - 945S^4 +
  840S^2 - 120]T \\
- &\qquad\qquad u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
+ &\qquad\qquad+ u[u^4 + (-105S^2 + 85)u^2 + (945S^4 - 1155S^2
  +274)]\}.
 \end{split}
 \end{equation}
@@ -182,7 +188,7 @@ $|k_\parallel|=p/4$. The eigenmodes are plotted in Fig.\
 \ref{modeplots}.
 \begin{figure}\center
   \includegraphics[width=0.6\hsize]{continmodez}
-\caption{Eigenmodes of the adiabatic response operator.\label{modeplots}}
+  \caption{Eigenmodes of the adiabatic response operator.\label{modeplots}}
 \end{figure}
 
 \subsection{Including Non-adiabatic Response}
@@ -329,7 +335,7 @@ $\tilde V \ket{q}$ and a pure wave operator expression
 $\tilde V_w\ket{q}$.
 
 
-\section{Calculating the Eigenmode coefficients}
+\section{The Eigenmode Coefficients}
 \subsection{The Non-adiabatic Linearized Vlasov Operator}
 
 The operator $\tilde{V}$ transforms a potential perturbation $\ket{u}$
@@ -338,15 +344,15 @@ are complex functions of $z$. It does so by solving the linearized
 time-dependent Vlasov equation for the non-adiabatic distribution
 function perturbation $\tilde f(z,v)$ and integrating it:
 $\tilde n =\int \tilde f dv$. The solution can be found in terms
-of an integral over past time along the unperturbed orbit $\bm x(t)$
-(which is the linearized Vlasov equation's ``characteristic'')
+of an integral over past time along the linearized Vlasov equation's
+``characteristic'', that is, the unperturbed orbit $\bm x(t)$:
 \begin{equation}
   \label{eq:phim}
   \Phi(\bm x,\bm v,t)\equiv 
   \int_{-\infty}^t \phi_1(\bm x(\tau),t-\tau ) d\tau,
 \end{equation}
 where $\phi_1(\bm x,t)$ is the potential perturbation and
-$\bm x(\tau)$ is the past parallel position of the unperturbed orbit
+$\bm x(\tau)$ is the past position of the unperturbed orbit
 that has velocity $\bm v$ at $(\bm x,t)$.  When a uniform magnetic
 field in the $z$-direction is present with cyclotron frequency
 $\Omega$, and we take the form of the potential perturbation to be
@@ -371,14 +377,14 @@ q_e{\rm e}^{-\zeta_t^2}I_m(\zeta_t^2),\qquad
 \end{equation}
 Here $\zeta_t^2=k^2T_\perp/\Omega^2m_e$, $I_m$ is the modified Bessel
 function, and $\omega_m=m\Omega+\omega$. The unperturbed equilibrium
-parallel distribution function depends only on parallel energy $W$
+parallel distribution function depends only on parallel energy $W_\parallel$
 (not $z$ directly) and is written $f_{\parallel 0}$, but for the
 perturbed parallel distributions we omit the $\parallel$ subscript for
 brevity, and from now on omit the $y,t$ dependencies as implicitly
 $ {\rm e}^{i(k_\perp y-\omega t)}$ (so in $\Phi_m$, the upper limit is
 $t=0$). The prior integral $\Phi_m$ is a function of parallel position
 $z$ and velocity $v$. The weight $b_m$ is independent of $z$ but
-depends on $v$ through the $f_{\parallel0}$ distribution.  We can
+depends on $W_\parallel$ through the $f_{\parallel0}$ distribution.  We can
 regard each harmonic $m$ as giving a perturbed density contribution
 $\tilde n_m(z)=\int \tilde f_m dv$. When $\hat\phi$ is a sum over
 modes $\ket{u}$,
@@ -405,12 +411,12 @@ n_{u}(z) dz$.
 \subsection{The external continuum wave contribution}
 
 In the region far outside the hole, $|z/4|\gg 1$ where
-$T=\tanh(z/4)\to\pm1$ and $S=\sinh(z/4)\to0$ in eq.\ (\ref{eq:2}), the
+$T=\tanh(z/4)\to\pm1$ and $S=\sech(z/4)\to0$ in eq.\ (\ref{eq:2}), the
 normalized continuum modes (taking them to be antisymmetrically
 outward propagating) are
 \begin{equation}
   \label{eq:14}
- \ket{a_p}= \ket{p}=A\etothe{i\sigma_zpz/4}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
+ \ket{p}=A\etothe{i\sigma_zpz/4}=\sigma_z{(-15p^4+225p^2-120) +ip (p^{4}-85p^{2}+274)\over
       [8\pi(p^2+1^2)(p^2+2^2)(p^2+3^2)(p^2+4^2)(p^2+5^2)]^{1/2}}\etothe{i\sigma_zpz/4},
 \end{equation}
 where $\sigma_z={\rm sign}(z)$. Thus they are purely sinusoidal
@@ -527,46 +533,46 @@ Now we discuss mathematically how the previous considerations allow us
 to reduce the continuum contribution to effectively a single mode.
 Using $s,u\to q,p$ etc to observe our notation for continuum modes, and
 supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we
-write eq.\ \ref{eq:10} explicitly as an integral $a_pdp$ over an
-amplitude distribution function $a_p$ rather than a sum.
+write eq.\ \ref{eq:10} explicitly as an integral $a(p)dp$ over an
+amplitude distribution function $a(p)$ rather than a sum.
 Proceeding with no assumption about the size of cross coupling of secondary
 modes, the eigenmode equation inner product with mode $\bra{s}|$ gives
 the replacement for \ref{eq:10} as
 \begin{equation}
   \label{eigengen}
   0=(\lambda_s-\lambda_\perp)\bra{s}\ket{s}a_s+\sum_j\bra{s}|\tilde{V}\ket{j}a_j
-+\int\bra{s}|\tilde{V}\ket{p}a_pdp.
++\int\bra{s}|\tilde{V}\ket{p}a(p)dp.
 \end{equation}
 We apply this equation for the three modes $s=4,2,q$. First for the
 continuum mode ($\bra{s}|=\bra{q}|$) with the adiabatic terms moved to
 the left hand side:
 \begin{equation}
   \label{eigq}
-  (-\lambda_q+\lambda_\perp)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
-+\int\bra{q}|\tilde V\ket{p} a_pdp.
+  (-\lambda(q)+\lambda_\perp)a(q)=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
++\int\bra{q}|\tilde V\ket{p} a(p)dp.
 \end{equation}
 We write the continuum integral using $\bra{q}|\tilde V_w\ket{p}=
 \tilde V_w \delta_{qp}$as 
 \begin{equation}
   \label{eq:18}
-  \int \bra{q}|\tilde{V}\ket{p}a_pdp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp
-  =\tilde{V}_{w}a_q +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp.
+  \int \bra{q}|\tilde{V}\ket{p}a(p)dp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp
+  =\tilde{V}_{w}a(q) +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp.
 \end{equation}
 As can be seen in Fig. \ref{modeplots}, the form of the continuum
 modes in the inner region is almost independent of $p$. Actually for
 small $p$, which is our interest here, the differences are even
 smaller than that figure shows. Therefore, to that degree of
 approximation, we can replace $\ket{p}$ with $\ket{q}$ in the final
-term, giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a_pdp\simeq
-\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a_pdp$, and obtain the
+term, giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp\simeq
+\bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a(p)dp$, and obtain the
 equation
 \begin{equation}
   \label{eigq}
-  (-\lambda_q+\lambda_\perp-\tilde V_w)a_q=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
-+\bra{q}|\tilde V-\tilde V_w\ket{q}\int a_pdp.
+  (-\lambda(q)+\lambda_\perp-\tilde V_w)a(q)=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
++\bra{q}|\tilde V-\tilde V_w\ket{q}\int a(p)dp.
 \end{equation}
 Since the right hand side is a weak function of $q$, this equation
-implies that $a_q$ is a localized function of $q$ centered on the
+implies that $a(q)$ is a localized function of $q$ centered on the
 $q$-value for which its coefficient on the left hand side is
 approximately zero. We can write the coefficient using eq.\ (\ref{eq:24})as
 \begin{equation}
@@ -582,28 +588,28 @@ where
   q_0=4k_\perp\sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}
   \Bigg/\sqrt{{1\over\omega^2}-1}.
 \end{equation}
-The coefficient $(-\lambda_q+\lambda_\perp-V_w) $ is zero when
+The coefficient $(-\lambda(q)+\lambda_\perp-V_w) $ is zero when
 $q^2=q_0^2$, which is the approximate dispersion relation of the wave
 in a uniform plasma. It is equal to the cold plasma expression
 (\ref{eq:15}) when $T_\perp/T_\parallel=1$.
 
 
 
-We integrate eq.\ (\ref{eigq})  $dq/(\lambda_\perp-\lambda_q-V_w)$, recognizing again the approximate independence of $q$ of
+We integrate eq.\ (\ref{eigq})  $dq/(\lambda_\perp-\lambda(q)-V_w)$, recognizing again the approximate independence of $q$ of
 the right hand side to find
 \begin{equation}
   \label{eigqint}
-  \int a_q dq =\int {dq\over \lambda_\perp-\lambda_q-V_w}
+  \int a(q) dq =\int {dq\over \lambda_\perp-\lambda(q)-V_w}
   \left(\sum_j\bra{q}|\tilde{V}\ket{j}a_j
-+\bra{q}|\tilde V-\tilde V_w\ket{q}\int a_pdp \right).
++\bra{q}|\tilde V-\tilde V_w\ket{q}\int a(p)dp \right).
 \end{equation}
 
-In view of the resonant form of the expression for $a_q$, we can regard the
-integral over this resonance $\int a_q dq$ as quantifying the total
-continuum perturbation.  The integral encounters the two poles of $a_q$ at
+In view of the resonant form of the expression for $a(q)$, we can regard the
+integral over this resonance $\int a(q) dq$ as quantifying the total
+continuum perturbation.  The integral encounters the two poles of $a(q)$ at
 $q=\pm q_0$.
 % =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
-Near them the real part of $(\lambda_\perp-\lambda_q-V_w)$ becomes small. Its
+Near them the real part of $(\lambda_\perp-\lambda(q)-V_w)$ becomes small. Its
 imaginary part comes from the small, \emph{necessarily positive},
 imaginary part of
 $\omega=\omega_r+i\omega_i$. It can then quickly be shown that
@@ -613,8 +619,10 @@ The infinite integral along the real
 $q$-axis can be closed by returning in the upper part of the complex
 plane ($\Im(q)$ positive) where the eigenmode tends
 to zero. The resonant integral is then just $2\pi i$ times the residue
-at the positive $q_0$ pole, and writing it
-$\int {dq\over \lambda_\perp-\lambda_q-V_w}=1/K$,
+at the positive $q_0$ pole, which is the mathematical
+  justification for our physical assumption of outwardly
+  propagating waves. Writing it
+$\int {dq\over \lambda_\perp-\lambda(q)-V_w}=1/K$,  we find
 \begin{equation}
   \label{Kdef}
   K\simeq-{(1/\omega^2-1)q_0\over16\pi i}
@@ -622,10 +630,12 @@ $\int {dq\over \lambda_\perp-\lambda_q-V_w}=1/K$,
 \sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}.  
 \end{equation}
 Substituting elsewhere the
-value $q=q_0$ at the integrand's pole, eq.\ (\ref{eigqint}) becomes
+value $q=q_0$ at the integrand's pole, and introducing the shorthand
+notation $\int a(p) dp= a_q$, eq.\ (\ref{eigqint}) becomes
 \begin{equation}
   \label{eigqint2}
-  (K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})\int a_pdp = \sum_j\bra{q_0}|\tilde{V}\ket{j}a_j.
+  (K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})a_q %\int a(p)dp
+  = \sum_j\bra{q_0}|\tilde{V}\ket{j}a_j.
 \end{equation}
 
 Using again the approximation that over the resonance
@@ -634,15 +644,15 @@ discrete modes then satisfy, for $l=4,2$,
 \begin{equation}
   \label{eigenl}
   (\lambda_\perp-\lambda_l)a_l=\sum_j\bra{l}|\tilde{V}\ket{j}a_j
-  +\int\bra{l}|\tilde{V}\ket{p}a_pdp
+  +\int\bra{l}|\tilde{V}\ket{p}a(p)dp
   =\sum_j\bra{l}|\tilde{V}\ket{j}a_j
-  +\bra{l}|\tilde{V}\ket{q_0}\int a_pdp.
+  +\bra{l}|\tilde{V}\ket{q_0}\int a(p)dp.
 \end{equation}
 We regard the amplitudes of the three modes 4,2,$q_0$ as composing a
 column 3-vector whose transpose is
 \begin{equation}
   \label{avector}
-  \a^T=(a_4,a_2,\int a_pdp),
+  \a^T=(a_4,a_2,a_q)=(a_4,a_2,\int a(p)dp)
 \end{equation}
 the three relations in \ref{eigqint2} and \ref{eigenl} can be
 considered a matrix equation $\M\a=0$, where
@@ -663,7 +673,7 @@ considered a matrix equation $\M\a=0$, where
   \begin{array}{c}
     a_4\\
     a_2\\
-    \int a_pdp
+    \int a(p)dp
   \end{array}\right]=0.
 \fi.
 \end{equation}
@@ -674,7 +684,7 @@ will be given by the solution of $\M\a=0$. Note\footnote{
 The ordered perturbative approximations found in prior sections correspond,
 in this formulation, to neglecting $\bra{2}|\tilde V\ket{q_0}$,
 $\bra{q_0}|\tilde V\ket{2}$ and $\bra{2}|\tilde V\ket{2}$; then
-determining $a_2/a_4$ from the second row, and $\int a_pdp/a_4$ from the third
+determining $a_2/a_4$ from the second row, and $\int a(p)dp/a_4$ from the third
 row.}
 
 
@@ -695,6 +705,7 @@ contribution itself is then suppressed, and it is reasonable to ignore
 coupling to the continuum modes, reducing $\M$ to its upper left
 2$\times$2 submatrix.
 
+\section{Evaluation of Matrix Elements}
 \subsection{Internal Numerical Evaluation of inner products}
 
 The evaluation of the overlap integrals (forces) that appear in $\M$
@@ -705,10 +716,10 @@ energy $W$, of numerically integrating to obtain the relationship
 between $z$ and the prior time $\tau$ for the unperturbed orbit, and
 simultaneously accumulating the integral $\Phi_m(z)$, using a discrete
 (but non-uniform) $z$-mesh.  Trapped orbits $W<0$ require a sum over
-all prior bounces in the potential well, which requires a multiplying
-resonant factor. Passing orbits use a single transit across the domain
-$-z_d<z<z_d$, and for the discrete modes there is no external
-contribution. The continuum mode at the incoming boundary
+all prior bounces in the potential well, which is represented by a
+multiplying bounce-resonant factor. Passing orbits use a single transit
+across the domain $-z_d<z<z_d$, and for the discrete modes there is no
+external contribution. The continuum mode at the incoming boundary
 ($z_{in}=-(v/|v|)z_d$), unlike the discrete modes, has a non-zero
 value, which is provided by the wave expression
 $\Phi_m(z_{in})=\Phi_m^{wave}$, eq.\ (\ref{Phiwave}).  Inside the
@@ -796,7 +807,7 @@ contribution to $\Phi_{\ket{w}}$ for a particular positive velocity is
 ${A\etothe{ik_\parallel z}\over i(k_\parallel v-\omega_m)}$, which
 exactly cancels the first term in the square bracket of
 $\Phi_{\ket{q_0}}(z)$. Such cancellation is essential to produce a
-finite value for $\bra{q_0}|\tilde V -\tilde V_m\ket{q_0}$. Hence,
+finite value for $\bra{q_0}|\tilde V -\tilde V_w\ket{q_0}$. Hence,
 when forming
 $(\tilde V -\tilde V_w)\ket{q_0}$, the required external prior
 integral is
@@ -819,7 +830,7 @@ $z$-integration analytically as
 where $\Phi_u$ refers to the ``ket'' mode (j or $q_0-w$), and the
 $|A|^2$ term is present only if we are constructing
 $\bra{q_0}|\tilde V -\tilde V_w)\ket{q_0}$, as indicated by
-$\delta_{q_0u}$. This force quantity is multiplied by the extra
+$\delta_{q_0u}$. This force quantity is multiplied by the
 weighting factor $b_m$ (equation \ref{mweight}) and integrated
 (numerically) over parallel velocity so as to produce the total inner
 product. For asymmetric $f_{\parallel0}$ the process would need to be
@@ -827,7 +838,7 @@ carried out also for negative velocity and $z$, but since we take
 $f_{\parallel0}$ to be symmetric the integration is carried out only
 for positive $v$ and $z$; the result is then doubled to account for
 force exerted at negative $z$. The sum over relevant cyclotron
-harmonics must also be carried out.
+harmonics $m$ is performed last.
 
 \end{document}
 

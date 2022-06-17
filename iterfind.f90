@@ -15,7 +15,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   integer, intent(in) :: isigma
   complex, intent(inout) :: omegap    ! The found root on out.
   integer, intent(out) :: nit         ! zero is failure, else n-iterations.
-  integer :: nunconv=3
+  integer :: nunconv=5
   complex :: Fec,Fic,Fm1,Fm2,om1
   complex, external :: getdet
   zoif=.0001  ! Iteration minimum oi limit factor.
@@ -46,7 +46,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
      nit=i
      call complexdnewton(Fm1,Fm2,om1,omegap)
 ! The following limits how big a step can be taken when far from convergence.
-     omegap=om1+min(abs(omegap-om1),0.01)/abs(omegap-om1)*(omegap-om1)
+     omegap=om1+min(abs(omegap-om1),0.03*sqrt(abs(psip)))/abs(omegap-om1)*(omegap-om1)
      Frit(i)=max(real(omegap),-2e-3)
      Fiit(i)=imag(omegap)
      if(.not.abs(omegap).lt.1.e6)write(*,*)'Iterfindroot',i,psip,vsin,omegap
