@@ -5,6 +5,7 @@
 ! For k, psi and Omegac having some values.
 ! Solve for the complex omega that makes the complex force zero.
 ! Stripped down versoin of slowstabgen.
+! Change kin to refer to k/sqrt(psi). Change Omegacp to refer to O/sqrt(psi)
 
 program fomegasolve
   use iterfind
@@ -47,11 +48,11 @@ program fomegasolve
         else
            kin=kmid
         endif
-        karr(ik)=kin/sqrt(psip)
+        karr(ik)=kin
 !     write(*,*)'kin=',kin,' karr=',karr(ik)
         do ioc=1,noc
            Omegacp=ioc*Omegacmax/noc
-           Omegacarr(ioc)=Omegacp/sqrt(psip)
+           Omegacarr(ioc)=Omegacp
            call fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot,err&
                 &,ormax,oimax,lerase)
         enddo
@@ -84,7 +85,7 @@ subroutine parsefoarguments(psip,vsin,ormax,oimax,kin,Omegacmax,lerase,lcont,lpl
      if(argument(1:3).eq.'-lT')lTiscan=.not.lTiscan
      if(argument(1:2).eq.'-e')lerase=.not.lerase
      if(argument(1:2).eq.'-c')ipfset=-3
-     if(argument(1:2).eq.'-d')lgetdet=.not.lgetdet
+     if(argument(1:2).eq.'-M')lgetdet=.not.lgetdet
      if(argument(1:2).eq.'-h')goto 1
   enddo
   call pfset(ipfset)
@@ -92,7 +93,7 @@ subroutine parsefoarguments(psip,vsin,ormax,oimax,kin,Omegacmax,lerase,lcont,lpl
 1 write(*,*)'-p psi, -vs vshift, -or -oi real, imag omega,',&
        ' -c no-stopping, -e erase file'
   write(*,*)'-Ti ion tempr, -oc Omegac, -k kp. -lp toggle on contours, -lt toggle Tiscan'
-  write(*,*)'-d toggle iterate determinant'
+  write(*,*)'-M toggle iterate determinant'
   stop
 end subroutine parsefoarguments
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -102,7 +103,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   use mpiloops
   logical :: lerase
   complex :: omegap      ! omegag surrogate maybe read from file
-  integer, parameter ::   nor=41,noi=41
+  integer, parameter ::   nor=21,noi=21
   real :: or(nor),oi(noi),kin
   complex ::  omegacomplex(nor,noi),forcecomplex(nor,noi),Fi
   integer :: ienharm,iinharm
@@ -154,10 +155,10 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      close(11,status='delete')
      goto 101
 100  lreadit=.true.
-     call mpilserial         ! Remove for mpiexec operation.
+!     call mpilserial  ! Remove for mpiexec operation else multiple plots.
      call mpilprep(id,nproc) ! Only needed if mpiexec used.
      call mpilkillslaves
-     if(id.eq.0)write(*,*)'Read forcecomplex from file ',filename
+     if(id.eq.0)write(*,*)'Read forcecomplex from file ',filename,' id=',id
      if(id.eq.0)write(*,*)'kin=',kin,' omegap=',omegap,' psip',psip
   else
      if(id.eq.0)write(*,*)'Overwriting forcecomplex file ',filename
@@ -171,11 +172,11 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
 
 !  if(lplot.and.id.eq.0)call plotfv(vsin)  
   isigma=-1
-  FE=kin**2*psip**2*128./315.
+  FE=kin**2*psip**3*128./315.  ! kin refers to k/sqrt(psi).
 
   if(.not.lreadit.and.lcont)then    ! Failed to read from file so calculate
      impi=0
-     dioi=-0.04   ! Offset of oi(1) from zero.
+     dioi=min(1.5*kin,.8)  ! Offset of oi(1) from zero.
      call mpilprep(id,nproc)
      ! Construct the forcecomplex matrix
      if(id.eq.0)write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr &
@@ -192,16 +193,20 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
            if(iactiv.eq.id)then    ! If I am active I do the work needed ...
               
               if(lions)then
-                 call ionforce(Fi,omegacomplex(ior,ioi) ,kin,Omegacp,&
-                      & psip,vsin ,isigma)
+                 call ionforce(Fi,omegacomplex(ior,ioi),kin*sqrt(psip)&
+                      ,Omegacp*sqrt(psip), psip,vsin ,isigma)
                  iinharm=inharm()
               endif
               Ficomplex(ior,ioi)=Fi
               call electronforce(Ftcomplex(ior,ioi),omegacomplex(ior&
-                   &,ioi),kin,Omegacp,psip,vsin,isigma)
+                   &,ioi),kin*sqrt(psip),Omegacp*sqrt(psip),psip,vsin,isigma)
               ienharm=inharm()
               forcecomplex(ior,ioi)=Ftcomplex(ior,ioi)+Fi-FE
               DispDet(ior,ioi)=getdet()
+              if(.false..and.ioi.eq.1)then
+                 write(*,*)ior,or(ior),ioi,oi(ioi)
+                 call printmatrix
+              endif
            endif
            call mpilcommscomplex(forcecomplex(ior,ioi),iactiv,1,impi)
            call mpilcommscomplex(Ftcomplex(ior,ioi),iactiv,1,impi)
@@ -216,7 +221,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      enddo
      call mpilkillslaves        ! Prevent slaves from continuing.
      write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr  Ftotali     k   nharms'
-     write(*,*)'Omegacp,k,psip',Omegacp,kin,psip
+     write(*,*)'Omegacp/sqrt(psi),k/sqrt(psip),psip',Omegacp,kin,psip
      
         ! Attempt to write but skip if file exists.
      open(12,file=filename,status='new',form='unformatted',err=103)
@@ -231,7 +236,10 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
 104  close(12)
   endif
 
-  write(*,*)'Omegacp/omegab=',2*Omegacp/sqrt(psip)
+  write(*,'(10f8.4)')imag(DispDet(:,1))
+  write(*,'(10f8.4)')imag(DispDet(:,2))
+  
+  write(*,*)'Omegacp/omegab=',2*Omegacp
   if(lplot)then
      call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,Ftcomplex/psip**2)
      call legendline(.1,.9,258,'!p!o~!o!qF!de!d/!Ay!@!u2!u')
@@ -251,18 +259,22 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      
 ! Find root and plot it converging (omegag is set to found omegap implicitly)  
 !  omegap=complex(0.7*sqrt(psip)/8.,1.*sqrt(psip)/8./(1.+vsin))
-  omegap=complex(kin/2,kin/4)
+  omegap=complex(kin,kin/2)*sqrt(psip)
   write(*,*)'calling iterfindroot',omegap,kin,lgetdet
-  call iterfindroot(psip,vsin,Omegacp,omegap,kin,isigma,ires)
-!  DispDet(1,1:noi)=DispDet(2,1:noi)  ! Hack to suppress contour at or=0.
+  call iterfindroot(psip,vsin,Omegacp*sqrt(psip),omegap,kin&
+       &*sqrt(psip),isigma,ires)
+!  DispDet(1,1:noi)=DispDet(2,1:noi)  ! Hack to suppress contour at
+!  or=0.
 !  DispDet(1:nor,1)=DispDet(1:nor,2)  ! Hack to suppress contour at oi=0.
   call printmatrix
   call color(5)
 !  call dashset(4)
-  call contourl(real(Dispdet),cworka,nor,nor,noi,0.,1,or,oi,1)
+  call contourl(real(Dispdet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
+  call legendline(.1,.75,258,' real|M|=0')
+  call color(7)
 !  call dashset(2)
-  call contourl(imag(Dispdet),cworka,nor,nor,noi,0.,1,or,oi,1)
-  call legendline(.1,.8,258,'|M|')
+  call contourl(imag(Dispdet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
+  call legendline(.1,.8,258,'imag|M|=0')
   call dashset(0)
   call pltend
 !  write(*,'(10f8.4)')real(Dispdet(1:10,1:10))
@@ -279,8 +291,8 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
              =complex(real(DetCap(i,j)),sign(dmax,imag(DispDet(i,j))))
      enddo
   enddo
-!  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DispDet)
   call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DetCap)
+!  call lplot1(or,oi(2:noi),nor,noi-1,vsin,omegacp,kin,psip,DetCap(:,2:noi))
   call legendline(.1,.9,258,'|M|')
   if(ires.ne.0)then
      do j=0,ires
@@ -337,7 +349,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      call contourl(imag(forcecomplex)/psip**2.5,cworka,nor,nor,noi,zclv,icl, &
           or/tqpsi,oi/uqpsi,icsw)
      call color(15)
-     call fwrite(kin/qqpsi,iwidth,3,string)
+     call fwrite(kin,iwidth,3,string)
      call legendline(0.05,1.04,258,'k/!Ay!@!u1/4!u='//string)
      call fwrite(omegacp,iwidth,2,string)
      call legendline(.45,1.04,258,'!AW!@='//string)
@@ -398,14 +410,14 @@ subroutine lplot1(or,oi,nor,noi,vsin,omegacp,kin,psi,forcecomplex)
 !        call legendline(0.1,1.04,258,'k='//string)
   call fwrite(vsin,iwidth,2,string)
   if(vsin.eq.9999.)then
-     call legendline(0.02,1.04,258,'No ions')
+     call legendline(-0.15,1.05,258,'No ions')
   else
-     call legendline(0.02,1.04,258,'v!ds!d='//string)
+     call legendline(-.2,1.05,258,'v!ds!d='//string)
   endif
   call fwrite(omegacp,iwidth,2,string)
-  call legendline(.27,1.04,258,'!AW!@='//string)
+  call legendline(.1,1.04,258,'!AW!@/!A)y!@='//string)
   call fwrite(kin,iwidth,2,string)
-  call legendline(.52,1.04,258,'k='//string)
+  call legendline(.43,1.04,258,'k/!A)y!@='//string)
   call fwrite(psi,iwidth,3,string)
   call legendline(.77,1.04,258,'!Ay!@='//string)
   call dashset(0)
@@ -437,40 +449,6 @@ subroutine ocomplot(or,nor,vsin,omegacp,psi,ocomforce)
   call dashset(0)
 end subroutine ocomplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine plotionforce(psi,Typ,vsin,Omegacin)
-! Repurposed for Ftot and Fe.
-  real :: psi,Typ,vsin
-  integer, parameter :: nfi=100
-  complex, dimension(nfi) :: Ftotarray,Fiarray,Fearray,omegaFi
-  omegamax=3.
-  write(*,*)'psi=',psi,' vsin=',vsin
-  do i=1,nfi
-     omegaFi(i)=omegamax*(float(i)/nfi)/sqrt(1836.)+complex(0.,.0001)
-     call ionforce(Fiarray(i),omegaFi(i),kin,Omegacin,psi,vsin,isigma)
-     call electronforce(Fearray(i),omegaFi(i),kin,Omegacin,psi,vsin,-1)
-     Ftotarray(i)=Fearray(i)+Fiarray(i)
-  enddo
-  call minmax(Ftotarray,2*nfi,fmin,fmax)
-  call pltinit(0.,omegaFi(nfi),fmin,fmax)
-  call axis; call axis2
-  call axlabels('omega','Ftot, Fe')
-  call color(1)
-  call polyline(real(omegaFi),real(Ftotarray),nfi)
-  call color(2)
-  call dashset(1)
-  call polyline(real(omegaFi),imag(Ftotarray),nfi)
-  if(.true.)then
-  call color(3)
-  call dashset(2)
-  call polyline(real(omegaFi),real(Fearray),nfi)
-  call color(4)
-  call dashset(3)
-  call polyline(real(omegaFi),imag(Fearray),nfi)
-  endif
-  call dashset(0)
-  call color(15)
-  call pltend
-end subroutine plotionforce
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine printmatrix
   use shiftgen
@@ -479,7 +457,7 @@ subroutine printmatrix
   complex :: w2byw4,w2byw41       !,w2byw42,w2byw43
   w2byw4=0.
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
-       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg&
+       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac/sqrt(psi)=',Omegacg&
        ,' kpar=',kpar
   Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)

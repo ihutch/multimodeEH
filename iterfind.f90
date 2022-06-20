@@ -18,6 +18,7 @@ subroutine iterfindroot(psip,vsin,Omegacp,omegap,kp,isigma,nit)
   integer :: nunconv=5
   complex :: Fec,Fic,Fm1,Fm2,om1
   complex, external :: getdet
+  ! kp is k not k/sqrt(psip).
   zoif=.0001  ! Iteration minimum oi limit factor.
   nzo=0
   FE=kp**2*psip**2*128./315.
