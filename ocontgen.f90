@@ -106,7 +106,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   real :: or(nor),oi(noi),kin
   complex ::  omegacomplex(nor,noi),forcecomplex(nor,noi),Fi
   integer :: ienharm,iinharm
-  complex, dimension(nor,noi) ::  Ftcomplex,Ficomplex,DispDet
+  complex, dimension(nor,noi) ::  Ftcomplex,Ficomplex,DispDet,DetCap
   real, dimension(nor,noi) :: cworka
   integer :: icl
   real :: zclv(20)
@@ -134,31 +134,37 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      endif
   enddo
  ! Try to open the file.
-  open(12,file=filename,status='old',form='unformatted',err=101)
+  open(11,file=filename,status='old',form='unformatted',err=101)
+  write(*,*)'Opened file:',filename
   if(.not.lerase)then
-     read(12,err=101)norf,noif
+     read(11,err=105)norf,noif
      if(norf.ne.nor.or.noif.ne.noi)then
         write(*,*)'Reading from ',filename
         write(*,*)'File array dimensions',norf,nori,' not compatible'
         write(*,*)'Adjust allocation or delete file'
         stop
      endif
-     read(12,err=101)or,oi
-     read(12,err=101)psip,Omegacp,Typ,omegap,kin,ormax,oimax
-     read(12,err=101)omegacomplex,forcecomplex,Ftcomplex,Ficomplex,DispDet
-     read(12,end=100)lions
-     close(12)
+     read(11,err=105)or,oi
+     read(11,err=105)psip,Omegacp,Typ,omegap,kin,ormax,oimax
+     read(11,err=105)omegacomplex,forcecomplex,Ftcomplex,Ficomplex,DispDet
+     read(11,end=100)lions
+     close(11)
+     goto 100
+105  write(*,*)'Read error from ',filename,' Delete and recalculate.'
+     close(11,status='delete')
+     goto 101
 100  lreadit=.true.
-!     call mpilserial         ! Remove for mpiexec operation.
+     call mpilserial         ! Remove for mpiexec operation.
      call mpilprep(id,nproc) ! Only needed if mpiexec used.
      call mpilkillslaves
      if(id.eq.0)write(*,*)'Read forcecomplex from file ',filename
      if(id.eq.0)write(*,*)'kin=',kin,' omegap=',omegap,' psip',psip
   else
      if(id.eq.0)write(*,*)'Overwriting forcecomplex file ',filename
-     close(12,status='delete')
+     close(11,status='delete')
   endif
   goto 102
+  
 101 if(id.eq.0)write(*,*)'Failed to open or read from file: ', filename
 102 continue
 
@@ -175,9 +181,9 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      if(id.eq.0)write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr &
           & Ftotali     k   nharms'
      do ioi=1,noi
-        oi(ioi)=(ioi-1+dioi)*oimax/(noi-1+dioi)
+        oi(ioi)=(ioi-.98+dioi)*oimax/(noi-1+dioi)
         do ior=1,nor
-           or(ior)=(ior-1)*ormax/(nor-1.)
+           or(ior)=(ior-.98)*ormax/(nor-1.)  ! just avoid zero.
            omegap=complex(or(ior),oi(ioi))
            omegacomplex(ior,ioi)=omegap
            
@@ -244,7 +250,8 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   endif
      
 ! Find root and plot it converging (omegag is set to found omegap implicitly)  
-  omegap=complex(0.7*sqrt(psip)/8.,1.*sqrt(psip)/8./(1.+vsin))
+!  omegap=complex(0.7*sqrt(psip)/8.,1.*sqrt(psip)/8./(1.+vsin))
+  omegap=complex(kin/2,kin/4)
   write(*,*)'calling iterfindroot',omegap,kin,lgetdet
   call iterfindroot(psip,vsin,Omegacp,omegap,kin,isigma,ires)
 !  DispDet(1,1:noi)=DispDet(2,1:noi)  ! Hack to suppress contour at or=0.
@@ -259,17 +266,31 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   call dashset(0)
   call pltend
 !  write(*,'(10f8.4)')real(Dispdet(1:10,1:10))
-  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DispDet)
+! truncate range of DispDet
+  dmax=abs(DetCap(int(nor/2.),int(noi/2.))-DetCap(2,int(noi/2.)))
+!  write(*,*)'dmax=',dmax,DetCap(int(nor/2.),int(noi/2.)),DetCap(2,int(noi/2.))
+!  dmax=0.1
+  DetCap=DispDet
+  do i=1,nor
+     do j=1,noi
+        if(abs(real(DispDet(i,j))).gt.dmax)DetCap(i,j)&
+             =complex(sign(dmax,real(DispDet(i,j))),imag(DetCap(i,j)))
+        if(abs(imag(DispDet(i,j))).gt.dmax)DetCap(i,j)&
+             =complex(real(DetCap(i,j)),sign(dmax,imag(DispDet(i,j))))
+     enddo
+  enddo
+!  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DispDet)
+  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DetCap)
   call legendline(.1,.9,258,'|M|')
-  call pltend
   if(ires.ne.0)then
      do j=0,ires
         call color(6)
         call polymark(max(Frit(j),-2e-3),Fiit(j),1,ichar('0')+j)
      enddo
   endif
+  call pltend
   write(*,*)'Eigenfrequency=',omegap
-  if(lplot)     call pltend
+!  if(lplot)     call pltend
   if(lplot3)then
      call multiframe(2,1,3)
      call ocomplot(or,nor,vsin,omegacp,psip,(Ftcomplex(:,1))/psip**2)
@@ -456,6 +477,7 @@ subroutine printmatrix
   complex :: Ftotalg,Cfactor
   complex :: F44t=0,F44p=0,wqbyw4
   complex :: w2byw4,w2byw41       !,w2byw42,w2byw43
+  w2byw4=0.
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
        ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac=',Omegacg&
        ,' kpar=',kpar
@@ -466,11 +488,11 @@ subroutine printmatrix
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
 if(nharmonicsg.gt.0)then
      write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
-     write(*,'(a,8f8.4)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
-     write(*,*)'Ftmdsum  <4|               <2|                <q|'
-     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmdsum
-     write(*,*)'dispM    <4|               <2|                <q|'
-     write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')dispM
+     write(*,'(a,8f8.5)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
+     write(*,*)'Ftmdsum  <4|                  <2|                   <q|'
+     write(*,'('' ('',2f10.5,'') ('',2f10.5,'') ('',2f10.5,'')'')')Ftmdsum
+     write(*,*)'dispM    <4|                  <2|                   <q|'
+     write(*,'('' ('',2f10.5,'') ('',2f10.5,'') ('',2f10.5,'')'')')dispM
   endif
   write(*,'(a,2f10.6)')'Determinant=',dispMdet
   w2byw41=(dispM(1,3)*dispM(3,1)-dispM(1,1)*dispM(3,3))/&
@@ -498,51 +520,6 @@ if(nharmonicsg.gt.0)then
           +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
   enddo
   write(*,*)
-  write(*,*)'*****************Details from just the m=0 contribution:'
-  write(*,'(a,f8.4,a)')'Testshiftgen: Normalizing factor for |4>',f4norm,&
-       ' applied to all forces.'
-  write(*,*)'Force check:        Total             Passing          Trapped'
-  write(*,'(a,8f8.4)')'Complex <4|V|4>  =',&
-       Ftotalg/f4norm**2,2.*Ftotalpg/f4norm**2,2.*Ftotalrg/f4norm**2
-  write(*,'(a,8f8.4)')'Complex <4|n_4   =',&
-       (F44t+F44p)/f4norm,F44p/f4norm,F44t/f4norm
-  write(*,'(a,2f8.4)')'Force nt4 verification ratio',&
-       f4norm*F44t/(2.*Ftotalrg)
-  write(*,*)'Inner product matrices:'
-  write(*,*)'Passing <4|               <2|                <q|   [V-Vw|q>]'
-  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdp
-  write(*,*)'Trapped <4|               <2|                <q|'
-  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')2.*Ftmdt     
-  write(*,*)'Attract <4|               <2|                <q|'
-  write(*,'('' ('',2f8.4,'') ('',2f8.4,'') ('',2f8.4,'')'')')Ftmda
-  write(*,'(a,8f8.4)')'Self-Adjoint verification ratios (2,q)',&
-       abs(Ftmda(2,1)/Ftmda(1,2)),abs(Ftmda(3,1)/Ftmda(1,3))
-  write(*,*)
-  w2byw4=Ftmda(2,1)/(kg**2+12/16.)
-  write(*,'(a,4f10.5)')'Amplitude         w_2/w_4=',w2byw4
-  wqbyw4=-sqm1g*16*3.1415926*Ftmda(3,1)/(qresdenom*Cfactor)
-  write(*,'(a,4f10.5)')'Amplitude \int w_q dq/w_4=',wqbyw4          
-  write(*,*)'         Coefficient magnitudes'
-  write(*,'(a,2f8.4,a,f8.4)')'C= (',Cfactor,&
-       ')    qresdenom=q0*(1./real(omegag)**2-1.)=',qresdenom
-  write(*,'(a,$)')'Size 2 v 4 <2|V|4><4|V|2>/<4|V|4>(k^2-l2)='
-  write(*,*)Ftmda(2,1)*Ftmda(1,2)/Ftotalg/(kg**2+12/16.)
-  write(*,'(2a)')'Size of q term relative to 4 term,'
-  write(*,*)'-i.4pi<q|V|4><4|V|q>/<4|V|4>/(qdenom*C/4)=',&
-       -sqm1g*4*3.1415926*Ftmda(3,1)*Ftmda(1,3)/(qresdenom*Cfactor/4)*f4norm**2&
-       /Ftotalg
-  write(*,*)
-  write(*,*)'    Cancellation:        <q|V|q>          <q|Vw|q>   &
-       &       <q|V-Vw|q>'
-  write(*,'(a,7f9.4)')'Complex qq internal:',Fintqq*2,Fintqw*2 &
-       &,Fintqq*2-Fintqw*2
-  write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
-       ,'    total',(Fextqqwanal+Fintqq-Fintqw)*2
-  write(*,'(a,2F9.4,a,2F9.4)')'<q|V-Vw|q> analytic, external',Fextqqwanal*2&
-       ,'    Ftmda',(Ftmda(3,3))
-  write(*,'(a,7f9.4)')'Complex <q|V-Vw|q>/<q|V|4>=' ,2.*&
-       (Fintqq-Fintqw+Fextqqwanal)/(Ftmda(3,1))
-  write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.5)')&
-       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' kpar=',kpar
-
+!  write(*,*)'*****************Details from just the m=0 contribution:'
+!  write(*,*)'Removed obsolete use testshiftgen.'
 end subroutine printmatrix

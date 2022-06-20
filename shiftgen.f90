@@ -132,7 +132,7 @@ contains
     if(omegar.le.1.and.Omegacg.gt.omegar)then
        kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
             ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))
-       if(Vw.eq.1)ncalls=1
+!       if(Vw.eq.1)ncalls=1
        Vw=1.+(kpar/omegaonly)**2+kg**2*Tperpg/(omegaonly**2-Omegacg**2)
        if(ncalls.eq.1)write(*,'(a,f8.5,a,2f8.4)')'makezg kpar=',kpar,' Vw=',Vw
     elseif(psig.lt.0)then!

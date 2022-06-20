@@ -3,7 +3,7 @@
 program osolvomk
   use iterfind
   use mpiloops
-  integer, parameter :: nomax=100,nkmax=20,nmds=3
+  integer, parameter :: nomax=100,nkmax=50,nmds=3
   real, dimension(nomax,nkmax) :: or,oi,dor,doi
   complex, dimension(nmds,nomax,nkmax) :: amds
   complex, dimension(nomax,nkmax) :: rw1
@@ -14,10 +14,10 @@ program osolvomk
   character*100 filename
   character*20 string
   integer :: isigma=-1,no=10,nk=1
-  real :: kp=.1,psip=0.09,Ocmax=2.,vs=9999
+  real :: kp=.1,psip=0.09,Ocmax=1.,Ocmin=0.,vs=9999
   logical :: lg
   
-  call parseos(psip,vs,kp,Ocmax,no,nk,lgetdet)
+  call parseos(psip,vs,kp,Ocmax,Ocmin,no,nk,lgetdet)
   call mpilprep(id,nproc)
   if(id.ne.0)litw=.false.
   write(filename,'(a,2i2.2,a,i3.3,a,i3.3,a,i3.3,a,i3.3,l1,a)')   &
@@ -52,13 +52,16 @@ program osolvomk
   nit=0
   impi=0
   oi=0;or=0.;rw1=0;dor=0;doi=0
+  omin=.7
+  if(no.gt.1.and.Ocmin.ne.0)omin=1.
   do j=1,nk
      kparray(j)=kp*j/nk
      thek=kparray(j)*sqrt(psip)
      do i=1,no
-        if(j.eq.1)oc(i)=Ocmax*(i-.7)/(no-.7)
+        if(j.eq.1) oc(i)=Ocmin+(Ocmax-Ocmin)*(i-omin)/(no-omin)
         Omegacp=sqrt(psip)*oc(i)
-        if(nit.eq.0.or.oc(i).gt.0.3)omegap=complex(min(thek,oc(i)),thek/2)
+        if(nit.eq.0.or.(no.gt.5.and.oc(i).gt.0.3))& ! Reinitialize omegap.
+             omegap=complex(min(thek/2,oc(i)),thek/4)
         impi=impi+1
         iactiv=mod(impi,nproc)
         if(iactiv.eq.id)then
@@ -72,7 +75,7 @@ program osolvomk
               endif
               write(*,'(a,2i3,a,f8.4,a,f8.4,a,f8.4,a,f8.4,a&
                 &,i3)')'Found:',i,j,' Oc=' ,oc(i),' k/sqpsi=',kparray(j),'&
-                & or=',or(i,j),' oi=',oi(i ,j),' id=',id
+                & or=',or(i,j),' oi=',oi(i ,j)
               if(.true.)then
                  lgetdet=.not.lgetdet
                  nit=0
@@ -119,99 +122,163 @@ program osolvomk
 !  do i=1,no
 !     write(*,*)oc(i),(rw1(i,j),j=1,nk)
 !  enddo
-
-  call multiframe(2,1,3)
-  call dcharsize(.02,.02)
-  call minmax(or(1:no,1:nk),no*nk,rmin,rmax)
-  call minmax(oi(1:no,1:nk),no*nk,gmin,gmax)
-  omax=1.1*max(rmax,gmax)
-  call pltinit(0.,oc(no),0.,omax)
-  call axis;call axis2
+  if(no.ge.5)then
+     call multiframe(2,1,3)
+     call dcharsize(.02,.02)
+     call minmax(or(1:no,1:nk),no*nk,rmin,rmax)
+     call minmax(oi(1:no,1:nk),no*nk,gmin,gmax)
+     omax=1.1*max(rmax,gmax)
+     call pltinit(0.,oc(no),0.,omax)
+     call axis;call axis2
 !  call axlabels('!AW!@/!A)y!@','!Aw!@/!A)y!@')
-  call axlabels('','!Aw!@/!A)y!@')
-  call fwrite(psip,iwidth,2,string)
-  call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
-  call fwrite(vs,iwidth,2,string)
-  if(vs.lt.9999)call legendline(.6,1.05,258,'v!ds!d='//string(1:iwidth))
-  if(lgetdet)call legendline(.6,1.05,258,'Multimode')
-  if(.not.lgetdet)call legendline(.6,1.05,258,'Shiftmode')
-  call color(1)
-  call jdrwstr(wx2nx(oc(no)*.7),wy2ny(max(.05*omax,or(no,1)-0.05&
-       &*omax)),'real',0.)
-  call color(4)
-  call jdrwstr(wx2nx(oc(no)*.5),wy2ny(max(.05*omax,oi(no,1)+0.05&
-       &*omax)),'imag',0.)
+     call axlabels('','!Aw!@/!A)y!@')
+     call fwrite(psip,iwidth,2,string)
+     call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
+     call fwrite(vs,iwidth,2,string)
+     if(vs.lt.9999)call legendline(.6,1.05,258,'v!ds!d='//string(1:iwidth))
+     if(lgetdet)call legendline(.6,1.05,258,'Multimode')
+     if(.not.lgetdet)call legendline(.6,1.05,258,'Shiftmode')
+     call color(1)
+     call jdrwstr(wx2nx(oc(no)*.7),wy2ny(max(.05*omax,or(no,1)-0.05&
+          &*omax)),'real',0.)
+     call color(4)
+     call jdrwstr(wx2nx(oc(no)*.5),wy2ny(max(.05*omax,oi(no,1)+0.05&
+          &*omax)),'imag',0.)
 !  call winset(.true.) triggers dashed line plotting bug.
-  do j=1,nk
-     call dashset(j-1)
-     call color(1)
-     call polyline(oc,or(1,j),no)
-     call color(4)
-     call polyline(oc,oi(1,j),no)
-     call color(15)
-     call fwrite(kparray(j),iwidth,2,string)
-     call legendline(.73,.97-j*.09,0,' '//string(1:iwidth))
-  enddo
-  call legendline(.73,.95,258,'k/!A)y!@=')
+     do j=1,nk
+        call dashset(j-1)
+        call color(1)
+        call polyline(oc,or(1,j),no)
+        call color(4)
+        call polyline(oc,oi(1,j),no)
+        call color(15)
+        call fwrite(kparray(j),iwidth,2,string)
+        call legendline(.73,.97-j*.09,0,' '//string(1:iwidth))
+     enddo
+     call legendline(.73,.95,258,'k/!A)y!@=')
 !  call pltend
-  call minmax(doi(1:no,1:nk),no*nk,gmin,gmax)
-  call pltinit(0.,oc(no),gmin,gmax)
-  call axis;call axis2
-  call axlabels('!AW!@/!A)y!@','!Adw!@/!A)y!@')
-  if(lgetdet)call legendline(.6,1.05,258,'Shiftmode-Multimode')
-  if(.not.lgetdet)call legendline(.6,1.05,258,'Multimode-Shiftmode')
-  do j=1,nk
-     call dashset(j-1)
-     call color(1)
-     call polyline(oc,dor(1,j),no)
-     call color(4)
-     call polyline(oc,doi(1,j),no)
-     call color(15)
-     call fwrite(kparray(j),iwidth,2,string)
+     call minmax(doi(1:no,1:nk),no*nk,gmin,gmax)
+     call pltinit(0.,oc(no),gmin,gmax)
+     call axis;call axis2
+     call axlabels('!AW!@/!A)y!@','!Adw!@/!A)y!@')
+     if(lgetdet)call legendline(.6,1.05,258,'Shiftmode-Multimode')
+     if(.not.lgetdet)call legendline(.6,1.05,258,'Multimode-Shiftmode')
+     do j=1,nk
+        call dashset(j-1)
+        call color(1)
+        call polyline(oc,dor(1,j),no)
+        call color(4)
+        call polyline(oc,doi(1,j),no)
+        call color(15)
+        call fwrite(kparray(j),iwidth,2,string)
 !     call legendline(.73,.6-j*.09,0,' '//string(1:iwidth))
-  enddo
-  call dashset(0)
-  call pltend
-  
-  call minmax(amds(2,1:no,1:nk),2*no*nk,gmin,gmax)
-  call pltinit(0.,oc(no),gmin,gmax)
-  call axis;call axis2
-  call axlabels('','a!d2!d/a!d4!d')
-  call fwrite(psip,iwidth,2,string)
-  call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
-  call color(1)
-  call legendline(.1,.75,258,'real')
-  call color(4)
-  call legendline(.1,.9,258,'imag')
-  do j=1,nk
-     call dashset(j-1)
+     enddo
+     call dashset(0)
+     call pltend
+     
+     call minmax(amds(2,1:no,1:nk),2*no*nk,gmin,gmax)
+     call pltinit(0.,oc(no),gmin,gmax)
+     call axis;call axis2
+     call axlabels('','a!d2!d/a!d4!d')
+     call fwrite(psip,iwidth,2,string)
+     call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
      call color(1)
-     call polyline(oc,real(amds(2,1:no,j)),no)
+     call legendline(.1,.75,258,'real')
      call color(4)
-     call polyline(oc,imag(amds(2,1:no,j)),no)
+     call legendline(.1,.9,258,'imag')
+     do j=1,nk
+        call dashset(j-1)
+        call color(1)
+        call polyline(oc,real(amds(2,1:no,j)),no)
+        call color(4)
+        call polyline(oc,imag(amds(2,1:no,j)),no)
+        call color(15)
+     enddo
+     call dashset(0)
+     
+     call minmax(amds(3,1:no,1:nk),2*no*nk,gmin,gmax)
+     call pltinit(0.,oc(no),gmin,gmax)
+     call axis;call axis2
+     call axlabels('!AW!@/!A)y!@','a!dq!d/a!d4!d')
+     call legendline(.1,.8,258,'k/!A)y!@=')
+     do j=1,nk
+        call dashset(j-1)
+        call color(1)
+        call polyline(oc,real(amds(3,1:no,j)),no)
+        call color(4)
+        call polyline(oc,imag(amds(3,1:no,j)),no)
+        call color(15)
+        call fwrite(kparray(j),iwidth,2,string)
+        call legendline(.1,.8-j*.09,0,' '//string(1:iwidth))
+     enddo
+     call dashset(0)
+     call pltend
+  else
+     call multiframe(2,1,3)
+     call dcharsize(0.018,0.018)   
+     call minmax(or(1:no,:),no*nk,dmin,dmax)
+     call pltinit(kparray(1),kparray(nk),0.,dmax)
+     call fwrite(psip,iwidth,2,string)
+     call legendline(.2,1.05,258,'!Ay!@='//string(1:iwidth))
+     if(lgetdet)call legendline(.6,1.05,258,'Multimode')
+     if(.not.lgetdet)call legendline(.6,1.05,258,'Shiftmode')
+     call axis
+     call axlabels('','!Aw!@/!A)y!@')
+     call legendline(.1,.95,258,'!AW!@/!A)Y!@=')
+     call legendline(.75,.7,0,' real')
+     call dashset(2)
+     call legendline(.75,.3,0,' imag')
+     call dashset(0)
+     do j=no,1,-1
+        do i=nk,1,-1
+           if(or(j,i).gt.0)goto 201
+        enddo
+        i=1
+201     nki=i
+        write(*,*)'j=',j,nki,oc(j)
+        write(*,'(10f8.4)')(or(j,i),i=1,nk)
+        call color(j)
+        call fwrite(oc(j),iwidth,3,string)
+        call legendline(.1,.95-.07*j,0,string(1:iwidth))
+        call polyline(kparray,or(j,1:nki),nki)
+        call dashset(2)
+        call polyline(kparray,oi(j,1:nki),nki)
+        call dashset(4)
+        call polyline(kparray,oi(j,1:nki)+doi(j,1:nki),nki)
+        call dashset(0)
+     enddo
      call color(15)
-  enddo
-  call dashset(0)
-  
-  call minmax(amds(3,1:no,1:nk),2*no*nk,gmin,gmax)
-  call pltinit(0.,oc(no),gmin,gmax)
-  call axis;call axis2
-  call axlabels('!AW!@/!A)y!@','a!dq!d/a!d4!d')
-  call legendline(.1,.8,258,'k/!A)y!@=')
-  do j=1,nk
-     call dashset(j-1)
-     call color(1)
-     call polyline(oc,real(amds(3,1:no,j)),no)
-     call color(4)
-     call polyline(oc,imag(amds(3,1:no,j)),no)
-     call color(15)
-     call fwrite(kparray(j),iwidth,2,string)
-     call legendline(.1,.8-j*.09,0,' '//string(1:iwidth))
-  enddo
-  call pltend
+     call minmax(dor(1:no,:),no*nk,dmin,dmax)
+     call minmax(doi(1:no,:),no*nk,dmini,dmaxi)
+     call pltinit(kparray(1),kparray(nk),min(dmin,dmini),max(dmax,dmaxi))
+     if(lgetdet)call legendline(.6,1.05,258,'Shiftmode-Multimode')
+     if(.not.lgetdet)call legendline(.6,1.05,258,'Multimode-Shiftmode')
+     call axis
+     call axlabels('k/!A)y!@','!Adw!@/!A)y!@')
+!     call legendline(.1,.35,258,'!AW!@/!A)Y!@=')
+!     call legendline(.75,.8,0,' real')
+     call dashset(2)
+!     call legendline(.75,.2,0,' imag')
+     call dashset(0)
+     do j=no,1,-1
+        do i=nk,1,-1
+           if(or(j,i).gt.0)goto 202
+        enddo
+        i=1
+202     nki=i
+        call fwrite(oc(j),iwidth,3,string)
+!        call legendline(.1,.35-.07*j,0,string(1:iwidth))
+        call color(j)
+        call polyline(kparray,dor(j,1:nki),nki)
+        call dashset(2)
+        call polyline(kparray,doi(j,1:nki),nki)
+        call dashset(0)
+     enddo
+     call pltend
+  endif
 end program osolvomk
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine parseos(psip,vsp,kp,Ocmax,no,nk,lgetdet)
+subroutine parseos(psip,vsp,kp,Ocmax,Ocmin,no,nk,lgetdet)
   real :: kp
   character*50 :: argument
   integer :: ipset=0
@@ -223,8 +290,8 @@ subroutine parseos(psip,vsp,kp,Ocmax,no,nk,lgetdet)
      if(argument(1:2).eq.'-M')lgetdet=.not.lgetdet
      if(argument(1:3).eq.'-vs')read(argument(4:),*)vsp
 !     if(argument(1:3).eq.'-or')read(argument(4:),*)ormax
-!     if(argument(1:3).eq.'-oi')read(argument(4:),*)oimax
-     if(argument(1:3).eq.'-oc')read(argument(4:),*)Ocmax
+     if(argument(1:3).eq.'-Om')read(argument(4:),*)Ocmin
+     if(argument(1:3).eq.'-Oc')read(argument(4:),*)Ocmax
      if(argument(1:3).eq.'-no')read(argument(4:),*)no
      if(argument(1:3).eq.'-nk')read(argument(4:),*)nk
      if(argument(1:3).eq.'-Ti')then
@@ -247,7 +314,8 @@ subroutine parseos(psip,vsp,kp,Ocmax,no,nk,lgetdet)
   write(*,'(a,f7.3)')'-k... set kp       [',kp
   write(*,'(a,l3  )')'-M toggle matrix   [',lgetdet
   write(*,'(a,f9.3)')'-vs.. set vs       [',vsp
-  write(*,'(a,f7.3)')'-oc.. set Ocmax    [',Ocmax
+  write(*,'(a,f7.3)')'-Oc.. set Ocmax    [',Ocmax
+  write(*,'(a,f7.3)')'-Om.. set Ocmin    [',Ocmin
   write(*,'(a,i5)')  '-no.. set no       [',no
   write(*,'(a,i5)')  '-nk.. set nk       [',nk
   write(*,'(a,i5)')  '-w... write plot?  [',ipset
