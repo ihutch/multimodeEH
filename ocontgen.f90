@@ -23,6 +23,7 @@ program fomegasolve
   Omegacmax=10
   rangek=.5    !fractional k-range
   Typ=1.
+  call setnmd(3,0)  ! nmds, skip2?
   
   isigma=-1
   psip=.25
@@ -108,6 +109,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   complex ::  omegacomplex(nor,noi),forcecomplex(nor,noi),Fi
   integer :: ienharm,iinharm
   complex, dimension(nor,noi) ::  Ftcomplex,Ficomplex,DispDet,DetCap
+  complex :: ForcePhase,DetPhase
   real, dimension(nor,noi) :: cworka
   integer :: icl
   real :: zclv(20)
@@ -181,6 +183,8 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      ! Construct the forcecomplex matrix
      if(id.eq.0)write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr &
           & Ftotali     k   nharms'
+     ForcePhase=0.
+     DetPhase=0.
      do ioi=1,noi
         oi(ioi)=(ioi-.98+dioi)*oimax/(noi-1+dioi)
         do ior=1,nor
@@ -202,10 +206,12 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
                    &,ioi),kin*sqrt(psip),Omegacp*sqrt(psip),psip,vsin,isigma)
               ienharm=inharm()
               forcecomplex(ior,ioi)=Ftcomplex(ior,ioi)+Fi-FE
+              ForcePhase=ForcePhase+conjg(forcecomplex(ior,ioi))
               DispDet(ior,ioi)=getdet()
+              DetPhase=DetPhase+conjg(DispDet(ior,ioi))
               if(.false..and.ioi.eq.1)then
                  write(*,*)ior,or(ior),ioi,oi(ioi)
-                 call printmatrix
+                 call printmatrix(phip)
               endif
            endif
            call mpilcommscomplex(forcecomplex(ior,ioi),iactiv,1,impi)
@@ -219,6 +225,9 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
                 &,kin,ienharm,iinharm
         enddo
      enddo
+     DetPhase=DetPhase/abs(DetPhase)*ForcePhase/abs(ForcePhase)
+! Rotate the DispDet by the weighted average phase difference.
+     if(Omegacp*sqrt(psip).lt.2)DispDet=DispDet*DetPhase
      call mpilkillslaves        ! Prevent slaves from continuing.
      write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr  Ftotali     k   nharms'
      write(*,*)'Omegacp/sqrt(psi),k/sqrt(psip),psip',Omegacp,kin,psip
@@ -258,26 +267,22 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   endif
      
 ! Find root and plot it converging (omegag is set to found omegap implicitly)  
-!  omegap=complex(0.7*sqrt(psip)/8.,1.*sqrt(psip)/8./(1.+vsin))
-  omegap=complex(kin,kin/2)*sqrt(psip)
+  omegap=complex(min(kin*sqrt(psip),ormax*.7),min(kin*sqrt(psip)/2,oimax/2.))
   write(*,*)'calling iterfindroot',omegap,kin,lgetdet
   call iterfindroot(psip,vsin,Omegacp*sqrt(psip),omegap,kin&
        &*sqrt(psip),isigma,ires)
-!  DispDet(1,1:noi)=DispDet(2,1:noi)  ! Hack to suppress contour at
-!  or=0.
-!  DispDet(1:nor,1)=DispDet(1:nor,2)  ! Hack to suppress contour at oi=0.
-  call printmatrix
   call color(5)
 !  call dashset(4)
-  call contourl(real(Dispdet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
+  call contourl(real(DispDet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
   call legendline(.1,.75,258,' real|M|=0')
   call color(7)
 !  call dashset(2)
-  call contourl(imag(Dispdet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
+  call contourl(imag(DispDet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
   call legendline(.1,.8,258,'imag|M|=0')
   call dashset(0)
   call pltend
-!  write(*,'(10f8.4)')real(Dispdet(1:10,1:10))
+  call printmatrix(psip)
+!  write(*,'(10f8.4)')real(DispDet(1:10,1:10))
 ! truncate range of DispDet
   dmax=abs(DetCap(int(nor/2.),int(noi/2.))-DetCap(2,int(noi/2.)))
 !  write(*,*)'dmax=',dmax,DetCap(int(nor/2.),int(noi/2.)),DetCap(2,int(noi/2.))
@@ -349,7 +354,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      call contourl(imag(forcecomplex)/psip**2.5,cworka,nor,nor,noi,zclv,icl, &
           or/tqpsi,oi/uqpsi,icsw)
      call color(15)
-     call fwrite(kin,iwidth,3,string)
+     call fwrite(kin*qqpsi,iwidth,3,string)
      call legendline(0.05,1.04,258,'k/!Ay!@!u1/4!u='//string)
      call fwrite(omegacp,iwidth,2,string)
      call legendline(.45,1.04,258,'!AW!@='//string)
@@ -357,9 +362,9 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      call legendline(.8,1.04,258,'!Ay!@='//string)
      call color(6)
 !     write(*,*)omegap,.001*sqrt(psip)
-     if(imag(omegap).gt.0.0011*sqrt(psip))& 
+!     if(imag(omegap).gt.0.0011*sqrt(psip))& 
           call polymark(real(omegap/tqpsi),imag(omegap/uqpsi),1,3)
-     call color(15)
+!     call color(15)
      call pltend
   endif
 end subroutine fomegacont
@@ -450,54 +455,96 @@ subroutine ocomplot(or,nor,vsin,omegacp,psi,ocomforce)
 end subroutine ocomplot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine printmatrix
+subroutine printmatrix(psip)
   use shiftgen
   complex :: Ftotalg,Cfactor
-  complex :: F44t=0,F44p=0,wqbyw4
-  complex :: w2byw4,w2byw41       !,w2byw42,w2byw43
+  complex :: w2byw4,w2byw41,wqbyw4       !,w2byw42,w2byw43
+  complex :: mdofzd(-nzd:nzd,nmdmax),mdtotal(-nzd:nzd)
+  character, dimension(nmdmax) :: mname=(['4','2','q'])
   w2byw4=0.
   write(*,'(a,f7.4,a,2f8.5,a,f7.4,a,f8.3)')&
-       ' kg=',kg,' omega=(',omegag,') psi=',-psig,' Omegac/sqrt(psi)=',Omegacg&
-       ,' kpar=',kpar
+       ' kg=',kg,' omega=(',omegag,') psi=',psip,' Omegac/sqrt(psi)&
+       &=',Omegacg/sqrt(psip) ,' kpar=',kpar
   Ftotalg=Fpg(0)
   qresdenom=4.*kpar*(1/real(omegag)**2-1.)
  ! These are total forces integrated dW.
 !  Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
   Cfactor=1.+sqm1g*3.1415926*2*(Fintqq-Fintqw+Fextqqwanal)/(qresdenom/16.)
-if(nharmonicsg.gt.0)then
+!  if(nharmonicsg.gt.0)then
      write(*,*)'Nharmonics=',nharmonicsg,'  Harmonic sum values:'
      write(*,'(a,8f8.5)')' <4|V|4>  (Ftotalsum)=',Ftotalsumg/f4norm**2
      write(*,*)'Ftmdsum  <4|                  <2|                   <q|'
-     write(*,'('' ('',2f10.5,'') ('',2f10.5,'') ('',2f10.5,'')'')')Ftmdsum
+     write(*,'('' ('',2f11.6,'') ('',2f11.6,'') ('',2f11.6,'')'')')Ftmdsum
      write(*,*)'dispM    <4|                  <2|                   <q|'
-     write(*,'('' ('',2f10.5,'') ('',2f10.5,'') ('',2f10.5,'')'')')dispM
-  endif
-  write(*,'(a,2f10.6)')'Determinant=',dispMdet
+     write(*,'('' ('',2f11.6,'') ('',2f11.6,'') ('',2f11.6,'')'')')dispM
+!  endif
+  write(*,'(a,2g14.6)')'Determinant=',dispMdet
   w2byw41=(dispM(1,3)*dispM(3,1)-dispM(1,1)*dispM(3,3))/&
        (dispM(1,2)*dispM(3,3)-dispM(1,3)*dispM(3,2))
-!  w2byw42=-(dispM(1,1)*dispM(3,3)-dispM(3,1)*dispM(2,3))/&
-!       (dispM(2,2)*dispM(3,3)-dispM(3,2)*dispM(2,3))
-!  w2byw43=-(dispM(1,1)*dispM(2,3)-dispM(2,1)*dispM(1,3))/&
-!       (dispM(1,2)*dispM(2,3)-dispM(2,2)*dispM(1,3))
   wqbyw4=-(dispM(1,1)*dispM(3,2)-dispM(3,1)*dispM(1,2))/&
        (dispM(1,3)*dispM(3,2)-dispM(3,3)*dispM(1,2))
-!  w2byw42=-(dispM(1,1)*dispM(2,2)-dispM(2,1)*dispM(1,2))/&
-!       (dispM(1,3)*dispM(2,2)-dispM(2,3)*dispM(1,2))
-!  w2byw43=(dispM(1,1)*dispM(3,2)-dispM(1,3)*dispM(1,2))/&
-!       (dispM(1,3)*dispM(3,2)-dispM(3,3)*dispM(1,2))
-  write(*,'(a,2f10.6,a,2f10.6)')' a2/a4=',w2byw41,'   aq/a4=',wqbyw4
-! Form the density versions of inner products, compensating for symmetry
-! \int_-^+ phipd*(n4(+)-n4(-)) dz etc.
-  dzd=zm/nzd
-  do i=-nzd+1,nzd
-     F44t=F44t-0.5*&
-          (conjg(phipd(i))*(denttrap(i)-denttrap(-i))&
-          +conjg(phipd(i-1))*(denttrap(i-1)-denttrap(1-i)))*dzd
-     F44p=F44p-0.5*&
-          (conjg(phipd(i))*(dentpass(i)-dentpass(-i))&
-          +conjg(phipd(i-1))*(dentpass(i-1)-dentpass(1-i)))*dzd
+  write(*,'(a,2f10.6,a,2f10.6)')' a2/a4=',amd(2),'   aq/a4=',amd(3)
+
+  mdtotal=0.
+  mdofzd=0.
+  do i=-nzd,nzd
+     do j=1,nmd
+        mdofzd(i,j)=amd(j)*mdofz(zdent(i),j,kpar)
+        mdtotal(i)=mdtotal(i)+mdofzd(i,j)
+     enddo     
   enddo
-  write(*,*)
-!  write(*,*)'*****************Details from just the m=0 contribution:'
-!  write(*,*)'Removed obsolete use testshiftgen.'
+  call minmax(real(mdtotal),2*nzd+1,rmin,rmax)
+  rmax=.446/rmax  ! Scale to make height same as |4>
+  open(15,file='totalmode.plt',status='unknown')
+  write(15,*)'Output of ocontgen, z, real, imag'
+!      write(15,'(a)')':-rx-20,20'
+!      write(15,'(a)')':-lo.05,.05'
+      write(15,'(a)')'legend:real(total)'
+      write(15,'(a)')'legend:imag(total)'
+!      write(15,'(a)')'legend:shiftmode |4>'
+      write(15,*)2*nzd+1,2
+      write(15,'(3f10.5)')(zdent(i),real(mdtotal(i)*rmax)&
+           &,imag(mdtotal(i)*rmax) ,i=-nzd,nzd)
+      close(15)
+
+  is=-20
+  ie=int(.5*nzd)
+!  call autoinit(zdent(is:ie),real(mdofzd(is:ie,2)),ie+1-is)
+  call multiframe(2,1,0)
+  call dcharsize(.02,.02)
+  call minmax(mdofzd(is:ie,2),2*(ie+1-is),amin,amax)
+  call minmax(mdofzd(is:ie,3),2*(ie+1-is),bmin,bmax)
+  write(*,*)'amin,amax,bmin,bmax',amin,amax,bmin,bmax
+  call pltinit(zdent(is),zdent(ie),min(amin,bmin),max(amax,bmax))
+  call axis
+  call axis2
+  call axlabels('','|u>')
+  call legendline(.7,.2,0,' Real')
+  call dashset(2)
+  call legendline(.7,.1,0,' Imag')
+  call dashset(0)
+  call winset(.true.)
+  do j=1,nmd
+     call color(2*j-1)
+     call labeline(zdent(is:ie),real(mdofzd(is:ie,j)),ie+1-is,mname(j),1)
+     call dashset(2)
+     call polyline(zdent(is:ie),imag(mdofzd(is:ie,j)),ie+1-is)
+     call dashset(0)
+  enddo
+  call color(15)
+  call minmax(mdofzd(is:ie,1),2*(ie+1-is),amin,amax)
+  call pltinit(zdent(is),zdent(ie),amin,amax)
+  call axis
+  call axis2
+  call axlabels('z','|u>')
+  call color(4)
+  call labeline(zdent(is:ie),real(mdtotal(is:ie)),ie+1-is,'total',5)
+  call dashset(4)
+  call color(1)
+  call labeline(zdent(is:ie),real(mdofzd(is:ie,1)),ie+1-is,mname(1),1)
+  call dashset(0)
+  call color(15)
+  call pltend()
+  call multiframe(0,0,0)
+
 end subroutine printmatrix

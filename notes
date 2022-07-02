@@ -88,3 +88,81 @@ The crucial diffs between these commits are
 +       ! End of choice
         dfeperp=fe*dfperpdWperp      ! df/dW_perp
 
+26 Jun 2022
+Found oscillating instability up to k=.68 psi=.15 using ocontgen. It has
+a2/a4= -0.512987  0.148097   aq/a4=  0.072133 -0.052341
+Eigenfrequency=       (0.123191133,1.939416048E-03)
+Hence omega/sqrt(psi) = (0.3, 5e-3)
+Required higher nge=600 to suppress "rounding" problems.
+./ocontgen -k.6 -oc.68 -p.16 -or.15 -oi.02
+
+Found modeshape of psi=.36 B=.40 PIC simulation. It is transverse mode 7
+of
+91,1,128,0,-32.,32.
+92,1,128,0,-64.,64.  total length 128+> k=2pi/(127/7)=.346
+Scaled values for this case:
+are k/sqrt(psi)=.577, Omega/sqrt(psi)=.667
+So try:
+ ./ocontgen -k.5 -oc.67 -p.36 -or.15 -oi.02
+ but that does not converge. So try
+ ./ocontgen -k.6 -oc.67 -p.36 -or.15 -oi.02
+still no good. Nor -k.4
+ ./ocontgen -k.5 -oc.6 -p.36 -or.15 is close
+ ./ocontgen -k.5 -oc.58 -p.36 -or.15 converges
+ ./ocontgen -k.55 -oc.6 -p.36 -or.15  no.
+
+Another simulation is psi=.16, B=.28, m=5, => k=.247, k/sqrtpsi=0.618.
+Omega/sqrtpsi=.7
+This might be useful in comparison with
+./ocontgen -k.6 -oc.68 -p.16 -or.15 -oi.02
+These numbers are very close.
+These two are represented by
+$ plottraces modeshape1628.plt totalmode1628.plt
+That's probably as good as it's going to get.
+
+
+Investigating high B.
+Runs such as 
+./ocontgen -k.2 -oc999 -or.035 -oi.0005
+do find unequivocal M solutions but they have omega_i below the
+shiftmode solutions, because of big changes to the zero real contour of
+|M| relative to the zero imag contour of F-FE.
+
+However, if one reduces the modes to just the discrete by setnmd(2).
+Then the solution reverts to the shifmode omega. And
+ Ftmdsum  <4|                  <2|                   <q|
+ (   0.01000   0.00000) (   0.00160  -0.00046) (   0.00000   0.00000)
+ (   0.00162  -0.00045) (   0.00934   0.00280) (   0.00000   0.00000)
+ (   0.00000   0.00000) (   0.00000   0.00000) (  -1.66911   0.00036)
+ dispM    <4|                  <2|                   <q|
+ (  -0.00000   0.00000) (   0.00160  -0.00046) (   0.00000   0.00000)
+ (   0.00162  -0.00045) (  -0.75066   0.00280) (   0.00000   0.00000)
+ (   0.00000   0.00000) (   0.00000   0.00000) (  -1.66911  -0.45171)
+Determinant= -0.348791E-08 -0.435534E-09
+Checked to make sure determinant was being calculated properly. It was.
+
+Now the imag(M) contour coincides with the imag(F-FE) zero contour up
+to near the shiftmode contour peak, then moves higher. The real M
+contour is vertical on top of the real F-FE contour. Note that these
+are swapped, presumably because the qq entry is dominantly imaginary.
+I think the fact that the qq coefficient is complex introduces a
+phase factor into the value of ||M|| that is the main reason the
+contours differ. Maybe one should make the argument of |M| equal
+to the argument of its 44 coefficient for plotting: multiply M by
+conjg(M)/abs(M)*44/abs(44). Or maybe zero
+the argument of qq (multiply by conjg(qq)/abs(qq)).
+Does not work well to use an argument correction locally.
+I think we would need to use a single angle rotation for the entire
+contour plot. Using the average of DetPhase sort of works for
+the intermediate field regime, but is not good for high B. 
+
+I conclude: the major effect is from the q-mode, and its coupling.
+
+Got going a shiftgen version that can skip mode 2. It confirms that
+the main effect is the q mode coupling. Found that rotating the
+third row so that dispM is real makes the M contours mimic the
+forcetotal contours, so it is easier to understand.
+
+One can reverse the effect of q by reversing the sign of dispM(3,3)
+in calculating the determinant, giving a destabilizing q-contribution.
+Therefore one needs to think hard about that third row's signs

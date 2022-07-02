@@ -6,6 +6,8 @@
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage{graphicx}
+\usepackage[sort&compress,numbers]{natbib}
+\bibliographystyle{unsrtnat}
 
 \def\ket#1{|#1\rangle}
 \def\bra#1{\langle#1}
@@ -14,41 +16,76 @@
 \def\a{{\bf a}}
 \def\M{{\bf M}}
 % \def\Real{{\rm Re}}\def\Imag{{\rm Im}}
+\title{Multimode theory of electron hole transverse instability}
+\author{Xiang Chen and I H Hutchinson}
 
 \begin{document}
+\maketitle
+
+\begin{abstract}
+  We present Vlasov-Poisson 3-D stability analysis of an initially
+  planar electron hole (BGK) structure, solving for the distribution
+  function by integration along unperturbed orbits. The non-sinusoidal
+  potential perturbation shape (parallel to $B$) is expanded in
+  eigenfunctions of the adiabatic Poisson operator, generalizing the
+  prior assumption of a rigid shift of the equilibrium.  We show that
+  the shiftmode is then modified by a second discrete mode plus an
+  integral over a continuum of wave-like modes. A rigorous treatment
+  shows that the continuum can be approximated effectively by a single
+  mode that satisfies the external wave dispersion relation, thus
+  making the perturbation a weighted sum of three modes. We find
+  numerically the solution for the complex instability frequency, and
+  the corresponding 3 mode amplitudes determining the perturbation
+  eigenmode. This multimode analysis refines the accuracy of the prior
+  single mode results, giving slightly higher growth rates at most
+  parameters, as expected from the extra mode shape
+  freedom. Oscillating modes near stability boundaries have larger
+  mode distortions which help explain PIC simulations that observe
+  instability up to $\sim20$\% beyond the prior shiftmode thresholds,
+  and narrowing of the perturbation.
+\end{abstract}
 
 \section{Introduction}
 
-The multidimensional stability of plasma electron holes has recently been
-extensively studied assuming that the most unstable perturbation is a
-parallel shift of the hole position []. The eigenvalue, which
-determines the complex frequency $\omega$, has previously been
-evaluated using a ``Rayleigh Quotient'' which provides an
-approximation accurate to second order in any deviations from the
-exact unstable mode structure. The results are in reasonable agreement
-with PIC simulations, but some discrepancies have been noted. The
-purpose of the present work is to discover whether more accurate mode
-shape determination, including deviations from the shift mode, can
-explain those discrepancies, and to quantify by analysis how important
-the deviations are.
+Electron holes are nonlinear solitary electrostatic structures
+sustained by electron trapping\cite{Hutchinson2017}, which occur
+widely in space plasmas \cite[for a summary of observations see
+e.g.][and references therein]{Lotekar2020}.  Their theoretical
+stability to motions with sinusoidal transverse variation has recently
+been extensively analyzed assuming that the most unstable perturbation
+is a parallel shift of the hole
+position\cite{Hutchinson2018,Hutchinson2018a,Hutchinson2019,Hutchinson2019a,Hutchinson2021d}. In
+that work the dispersion relation's complex frequency $\omega$, has
+been found using a ``Rayleigh Quotient''\cite{Parlett1974} which
+provides an approximation accurate to second order in any deviations
+from the exact unstable mode structure, and is equivalent to solving
+the hole's overall momentum balance\cite{Hutchinson2016}. The results
+are in reasonable agreement with particle in cell (PIC) simulations, but some
+discrepancies have been noted. The purpose of the present work is to
+discover whether more accurate mode parallel shape determination,
+including deviations from the shift mode, can explain those
+discrepancies, and to quantify by analysis how important the
+deviations are.
 
-Two main phenomena have been observed in transverse instability
-simulations that are not represented by the shift mode analysis. They
-are (1) narrowing of the unstable mode structure relative to the shift
-mode, when near marginal oscillatory stability; (2) generation of long
-parallel length streaks or waves on the whistler branch, during
-oscillatory instability at high magnetic field.
+Two main phenomena have been observed in transverse instability PIC
+simulations that are not well represented by the shift mode
+analysis. They are (1) narrowing of the unstable mode structure
+relative to the shift mode, when near marginal oscillatory
+stability\cite{Hutchinson2019}; (2) generation of long parallel length
+external ``streaks'' or waves on the whistler branch, during
+oscillatory instability at high magnetic field\cite{Hutchinson2019a}.
 
-A relatively compact approach to managing a generalization of the
-unstable mode of a Vlasov-Poisson problem previously advocated[] is to
-represent the perturbation of potential in terms of the eigenmodes
-(which are orthogonal) of a judiciously chosen differential
-operator. In the present context, the operator generally used
-represents the Poisson equation for steady (or very slowly varying)
-potential ($\nabla^2\phi-n=0$ in appropriately normalized units). The
-particle density difference $n_0(z)$ associated with the potential
-equilibrium $\phi_0(z)$, can be determined from this equation. Then
-for infinitessimally slow linearized potential perturbations $\phi_1$
+Our approach to managing a generalization of the unstable mode of a
+Vlasov-Poisson problem, following longstanding mathematical
+analysis\cite{Lewis1979}, is to represent the perturbation of
+potential in terms of the orthogonal eigenmodes of a
+judiciously chosen differential operator. In the present context, the
+operator generally used\cite{Lewis1982} represents the Poisson
+equation for steady (or very slowly varying) potential
+($\nabla^2\phi-n=0$ in appropriately normalized units). The particle
+density difference $n_0(z)$ associated with the potential equilibrium
+$\phi_0(z)$, can be determined from this equation. Then for
+infinitessimally slow linearized potential perturbations $\phi_1$
 about this equilibrium the perturbed density is
 $n_1=\phi_1dn_0/d\phi_0$, and the resulting Poisson equation can be
 written using the operator $V_a \equiv(\nabla^2-dn_0/d\phi_0)$ acting
@@ -70,35 +107,57 @@ By the preceding argument, determining where $\omega_i=0$, i.e. the
 stability threshold, can be accomplished exactly using just the shift
 mode, provided that the real part $\omega_r$ of the mode frequency is
 zero. However, some hole instabilities are oscillatory:
-$\omega_r\not=0$, $\omega_i>0$. Then the marginal unstable mode is not
-purely the shift mode, and the extent to which it includes
-contributions from other eigenmodes of $V_a$ becomes an important
-question. It can be explored by carrying the perturbation analysis to
-first order in the other eigenmodes, in much the way that
-time-independent perturbation theory is used in quantum
-mechanics. This approach was successfully pursued in an early study of
-the one-dimensional instability of a train of electron holes that
-leads eventually to hole merger[]. However, the few subsequent efforts
-to apply it [] have been of limited utility either because of
-expanding about the wrong eigenmode, or, more fundamentally because of
+$\omega_r\not=0$, $\omega_i>0$ and even if they are not we may wish to
+find a finite $\omega_i$ value. Then the unstable mode is not purely the
+shift mode, and the extent to which it includes contributions from
+other eigenmodes of $V_a$ becomes an important question. It can be
+explored by carrying the perturbation analysis to first order in the
+other eigenmodes, in much the way that time-independent perturbation
+theory is used in quantum mechanics. This approach was successfully
+pursued in an early study of the one-dimensional instability of a
+train of electron holes that leads eventually to hole
+merger\cite{Schwarzmeier1979}. However, the few subsequent efforts to
+apply it\cite{Schamel1982,Schamel1987} have been of limited utility
+either because of expanding about the wrong eigenmode (symmetric and
+not having zero eigenvalue), or, more fundamentally because of
 adopting inappropriate approximations to the solution of the Vlasov
-equation, which constitutes the complementary (and more difficult)
-part of the Poisson-Vlasov system: the non-adiabatic perturbation. The
-present work instead solves the Vlasov problem by numerical
-integration internally over the prior orbit. Moreover it avoids any
-perturbative approximation for the relative amplitudes of the different
-modes, instead showing how the eigenmode continuum contribution can be
-represented through a single amplitude corresponding to the
-external wave dispersion relation.
+equation\cite{Jovanovic2002}, which constitutes the complementary (and
+more difficult) part of the Poisson-Vlasov system: the non-adiabatic
+perturbation. A separate thread of this question is the coupling of
+hole instabilities at high magnetic field, observed in
+simulations\cite{Oppenheim1999,Oppenheim2001b,Lu2008}, to
+long-wavelength external perturbations ``streaks'' identified as
+belonging to the cold-plasma whistler branch. Previous
+analyses\cite{Newman2001a,Vetoulis2001,Berthomier2002} theorized that
+coupling to these waves was the primary cause of instability at high
+field, but adopted unjustified ad hoc expressions for the
+coupling. Recently it was shown that the high-field instability is not
+explicitly caused by the coupling\cite{Hutchinson2019a}, but since
+simulations show external coupling can affect the instability, an
+interesting question remains how to calculate it self-consistently.
 
+
+The present approach instead solves the Vlasov problem without
+expansion, by numerical integration internally, over the prior orbit.
+In the process the solution for wave-coupling emerges rigorously from
+the mathematical analysis. Moreover we avoid any perturbative
+approximation for the relative amplitudes of the different modes.
+Instead we show how, in addition to a single extra discrete eigenmode
+contribution, the eigenmode continuum contribution can be
+approximately represented through a single amplitude corresponding to
+the external wave dispersion relation.  Section 2 explains the
+eigenmodes and the expansion. Section 3 shows for the Vlasov operator
+form how the continuum modes can be included and reduced to
+effectively a single contribution. Section 4 discusses the numerical
+and analytic evaluations needed. Section 5 presents results.
 
 \section{Eigenmode Expansion}
-Let us adopt a minimalist bra-ket notation for the eigenmodes in which
-we expand: $\ket{e}$, where the label $e$ being either real
-$p,q,\dots$, or integer, $j,l,\dots$, will denote respectively
-continuum or discrete eigenmodes. The inner product of any two
-Hilbert-space vectors (complex potential functions of $z$) denotes an
-overlap integral over (parallel) spatial coordinate
+Let us adopt a minimalist bra-ket notation for the adiabatic
+eigenmodes in which we expand: $\ket{e}$, where the label $e$ being
+either real $p,q,\dots$, or integer, $j,l,\dots$, will denote
+respectively continuum or discrete eigenmodes. The inner product of
+any two Hilbert-space vectors (complex potential functions of $z$)
+denotes an overlap integral over (parallel) spatial coordinate
 $\bra{u}\ket{s}\equiv \int u^*(z)s(z)dz$. Insofar as the eigenmodes
 are orthonormal, we write $\bra{u}\ket{s}=\delta_{us}$, where for
 continuum modes such that $u$ and $s$ are real parameters, this is
@@ -122,8 +181,9 @@ potential can then be written
 Notation $V$ reminds us that this is partly the Vlasov operator,
 transforming a potential into a density, and the subscript $a$ denotes
 adiabatic (meaning steady).  The eigenmodes of this
-operator, satisfying $V_a\ket{u}=\lambda \ket{u}$, can be found [] by
-applying the raising operator $4 {d\over dz}-T$ five times to
+operator, satisfying $V_a\ket{u}=\lambda \ket{u}$, can be found (see
+appendix A) by
+applying the raising operator $4 {d\over dz}-n T$ for $n=1,2,3,4,5$ to
 the function $ \etothe{uz/4}$ yielding
 \begin{equation}
   \label{eq:2}
@@ -168,8 +228,8 @@ $\bra{j}\ket{l}=\delta_{jl}$ they are given in Table \ref{discrete}.
 \end{table}
 \noindent
 In particular $\lambda_4=0$ for the shift mode
-$\ket{4}\propto d\phi_0/dz$, and it is the predominant
-perturbation in essentially all linear instabilities. Moreover, it
+$\ket{4}\propto d\phi_0/dz$, and it is the predominant perturbation in
+essentially all linear electron hole instabilities. Moreover, it
 couples only to antisymmetric modes; so $\ket{2}$ is the only other
 discrete mode that needs to be considered.
 
@@ -182,7 +242,7 @@ that then $\bra{p}\ket{q}=\delta_{pq}=\delta(p-q)$, by dividing eq.\
   \label{eq:4}
 \end{equation}
 Far
-from the hole ($z\gg1$) the normalized oscillatory continuum modes are
+from the hole ($|z|\gg1$) the normalized oscillatory continuum modes are
 sinusoidal with amplitude $1/\sqrt{8\pi}=0.19947$, and parallel wavenumber
 $|k_\parallel|=p/4$. The eigenmodes are plotted in Fig.\
 \ref{modeplots}.
@@ -245,18 +305,17 @@ over the entire hole. It balances the (normalized) Maxwell shear
 stress from the transverse kinking of the hole ($k_\perp^2$) to
 make the total force zero.
 
-Actually $\tilde{V}$ is a complicated nonlinear function of the complex
-frequency $\omega$ of the mode; and for specified $k_\perp$ the
-dispersion relation between $\omega$ and $k_\perp$ must be solved by
-some kind of iterative procedure searching for an $\omega$ that
+Actually $\tilde{V}$ is a complicated nonlinear function of the
+complex frequency $\omega$ of the mode; and for specified $k_\perp$
+the dispersion relation between $\omega$ and $k_\perp$ must be solved
+by some kind of iterative procedure searching for an $\omega$ that
 satisfies eq.\ (\ref{eq:8}). The imaginary part of $\omega$ thus found
-determines the stability of the hole. This approximation has been
-extensively pursued in recent publications[] and yielded stability results
-that are in reasonable (but not perfect) agreement with simulation.
-The question at hand is whether analysis can determine approximately
-the magnitude of the other coefficients $a_u$ for $u\not=4$, and
-therefore give a more accurate perturbation structure $\ket{\hat\phi}$
-and $\omega$.
+determines the stability of the hole. This approximation has yielded
+stability results\cite{Hutchinson2018a,Hutchinson2019,Hutchinson2019a} that are in reasonable (but not perfect) agreement
+with simulation.  The question at hand is whether analysis can
+determine approximately the magnitude of the other coefficients $a_u$
+for $u\not=4$, and therefore give a more accurate perturbation
+structure $\ket{\hat\phi}$ and $\omega$.
 
 If instead of the approximation (\ref{eq:8}), we are able to evaluate all the
 matrix coefficients $\bra{s}|\tilde{V}\ket{u}$ then in principle we can regard eq.\
@@ -267,9 +326,7 @@ coupling of the potential modes by the non-adiabatic Vlasov operator
 $\tilde{V}$.  The condition for the existence of a solution is that the
 determinant of the matrix
 $[(-\lambda_\perp+\lambda_s)\bra{s}\ket{s}\delta_{su}+\bra{s}|\tilde{V}\ket{u}]$ should
-be zero. A possible iterative scheme might consist of finding its
-eigenvalues, and adjusting $\omega$ until the eigenvalue for which
-$a_4$ is predominant over the other coefficients becomes zero.
+be zero.
 
 Such a program faces formidable practical challenges, however, because
 each evaluation of $\tilde{V}\ket{u}$, requires a computation
@@ -298,13 +355,14 @@ but also for $s\not=4$
 
 
 The well known approach of time-independent perturbation theory in
-elementary quantum mechanics (e.g.[] Dirac Section 43) regards $\tilde{V}$ as
-systematically small, and takes $a_s$ for $s\not=4$ also to be first
-order small relative to $a_4$. The first order approximation of eq.\
-\ref{eq:10} then drops the final sum term, giving
+elementary quantum mechanics\cite[see e.g.][Section 43]{Dirac1958}
+regards $\tilde{V}$ as systematically small, and takes $a_s$ for
+$s\not=4$ also to be first order small relative to $a_4$. The first
+order approximation of eq.\ \ref{eq:10} then drops the final sum term,
+giving
 \begin{equation}
   \label{eq:11}
-  a_s = {\bra{s}|\tilde{V}\ket{4}a_4\over (\lambda_\perp-\lambda_s)\bra{s}\ket{s}}.
+  a_s \simeq {\bra{s}|\tilde{V}\ket{4}a_4\over (\lambda_\perp-\lambda_s)\bra{s}\ket{s}}.
 \end{equation}
 Substituting back (with $s\to u$) into eq.\ \ref{eq:9}, the
 eigenvalue to second order is
@@ -359,7 +417,7 @@ $\Omega$, and we take the form of the potential perturbation to be
 $\phi_1=\hat\phi(z){\rm e}^{i(k_\perp y-\omega t)}$ whose transverse
 wavenumber is $k_\perp$, and the background perpendicular velocity
 distribution to be Maxwellian, then the transverse perpendicular velocity
-dependence can be expressed as a sum over cyclotron harmonics[].
+dependence can be expressed as a sum over cyclotron harmonics\cite{Hutchinson2018a}.
 The non-adiabatic parallel distribution function perturbation is then
 \begin{equation}\label{eq:ftmagnetic}
     \tilde f(z,y,v,t) = {\rm e}^{i(k_\perp y-\omega t)}
@@ -491,7 +549,7 @@ $k_\parallel^2/k_\perp^2 = \omega^2/(\omega_{pe}^2-\omega^2)$, rather
 than the full cold plasma expression for finite $\Omega/\omega$: eq.\
 (\ref{eq:15}). The full expression arises when the $|m|=1$ terms in
 the harmonic sum for the kinetic electrostatic dispersion
-relation\footnote{See, e.g., Swanson (1989) section 4.4.}, to lowest
+relation\cite[see, e.g.][section 4.4.]{Swanson1989}, to lowest
 order in $\zeta_t^2$, are also included. The resulting analytic form
 is
 \begin{equation}
@@ -531,13 +589,13 @@ single sign of $v$ and then doubled to give the total.
 
 Now we discuss mathematically how the previous considerations allow us
 to reduce the continuum contribution to effectively a single mode.
-Using $s,u\to q,p$ etc to observe our notation for continuum modes, and
-supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we
-write eq.\ \ref{eq:10} explicitly as an integral $a(p)dp$ over an
-amplitude distribution function $a(p)$ rather than a sum.
-Proceeding with no assumption about the size of cross coupling of secondary
-modes, the eigenmode equation inner product with mode $\bra{s}|$ gives
-the replacement for \ref{eq:10} as
+Using $s,u\to q,p$ etc to observe our notation for continuum modes,
+and supposing them to be normalized ($\bra{q}\ket{p}=\delta_{qp}$), we
+write the continuum part of eq.\ \ref{eq:10} explicitly as an integral
+$a(p)dp$ over an amplitude distribution function $a(p)$ rather than a
+sum.  Proceeding with no assumption about the size of cross coupling
+of secondary modes, the eigenmode equation inner product with mode
+$\bra{s}|$ gives the replacement for \ref{eq:10} as
 \begin{equation}
   \label{eigengen}
   0=(\lambda_s-\lambda_\perp)\bra{s}\ket{s}a_s+\sum_j\bra{s}|\tilde{V}\ket{j}a_j
@@ -547,7 +605,7 @@ We apply this equation for the three modes $s=4,2,q$. First for the
 continuum mode ($\bra{s}|=\bra{q}|$) with the adiabatic terms moved to
 the left hand side:
 \begin{equation}
-  \label{eigq}
+  \label{eigqfirst}
   (-\lambda(q)+\lambda_\perp)a(q)=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
 +\int\bra{q}|\tilde V\ket{p} a(p)dp.
 \end{equation}
@@ -574,10 +632,11 @@ equation
 Since the right hand side is a weak function of $q$, this equation
 implies that $a(q)$ is a localized function of $q$ centered on the
 $q$-value for which its coefficient on the left hand side is
-approximately zero. We can write the coefficient using eq.\ (\ref{eq:24})as
+approximately zero. We can write the coefficient of $a(q)$ using
+$-\lambda(q)=k_\parallel^2+1$ and eqs.\ (\ref{eq:24}) and (\ref{eq:15}) as
 \begin{equation}
   \label{}
-  k_\perp^2+k_\parallel^2+1-\tilde
+  k_\parallel^2+k_\perp^2+1-\tilde
   V_w\simeq k_\perp^2\left(1-{T_\perp/T_\parallel\over\omega^2-\Omega^2}\right)
   +k_\parallel^2\left(1-{1\over\omega^2}\right)
 = {1\over4^2}\left({1\over\omega^2}-1\right)\left(q_0^2-q^2\right)
@@ -604,17 +663,17 @@ the right hand side to find
 +\bra{q}|\tilde V-\tilde V_w\ket{q}\int a(p)dp \right).
 \end{equation}
 
-In view of the resonant form of the expression for $a(q)$, we can regard the
-integral over this resonance $\int a(q) dq$ as quantifying the total
-continuum perturbation.  The integral encounters the two poles of $a(q)$ at
-$q=\pm q_0$.
+In view of the resonant form of the expression for $a(q)$, we can
+regard the integral over this resonance $\int a(q) dq$ as quantifying
+the total continuum perturbation.  The integral encounters the two
+poles of the integrand at $q=\pm q_0$.
 % =\pm4k_\perp\omega/\sqrt{1-\omega^2}$.
 Near them the real part of $(\lambda_\perp-\lambda(q)-V_w)$ becomes small. Its
 imaginary part comes from the small, \emph{necessarily positive},
 imaginary part of
 $\omega=\omega_r+i\omega_i$. It can then quickly be shown that
 $q_0$ has a small positive imaginary part: $q_0=q_{0r}+i\epsilon$.
-\iftrue%
+
 The infinite integral along the real
 $q$-axis can be closed by returning in the upper part of the complex
 plane ($\Im(q)$ positive) where the eigenmode tends
@@ -625,8 +684,8 @@ at the positive $q_0$ pole, which is the mathematical
 $\int {dq\over \lambda_\perp-\lambda(q)-V_w}=1/K$,  we find
 \begin{equation}
   \label{Kdef}
-  K\simeq-{(1/\omega^2-1)q_0\over16\pi i}
-  ={-k_\perp\over4\pi i}\sqrt{{1\over\omega^2}-1}
+  K\simeq{(1/\omega^2-1)q_0\over16\pi i}
+  ={k_\perp\over4\pi i}\sqrt{{1\over\omega^2}-1}
 \sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}.  
 \end{equation}
 Substituting elsewhere the
@@ -638,9 +697,9 @@ notation $\int a(p) dp= a_q$, eq.\ (\ref{eigqint}) becomes
   = \sum_j\bra{q_0}|\tilde{V}\ket{j}a_j.
 \end{equation}
 
-Using again the approximation that over the resonance
-$\bra{j}|\tilde V\ket{p}$ can be regarded as independent of $p$, the
-discrete modes then satisfy, for $l=4,2$,
+Treatment of the discrete modes uses again the approximation that
+over the resonance $\bra{j}|\tilde V\ket{p}$ can be regarded as
+independent of $p$; then for $l=4,2$,
 \begin{equation}
   \label{eigenl}
   (\lambda_\perp-\lambda_l)a_l=\sum_j\bra{l}|\tilde{V}\ket{j}a_j
@@ -680,12 +739,15 @@ considered a matrix equation $\M\a=0$, where
 The complex determinant $||\M||$ must be zero for a non-trivial
 solution, and if $\omega$ is iterated until $||\M||=0$, the value
 found will be the corresponding mode frequency, and the mode structure
-will be given by the solution of $\M\a=0$. Note\footnote{
+will be given by the solution of $\M\a=0$.
+
+\iffalse
+Note\footnote{
 The ordered perturbative approximations found in prior sections correspond,
 in this formulation, to neglecting $\bra{2}|\tilde V\ket{q_0}$,
 $\bra{q_0}|\tilde V\ket{2}$ and $\bra{2}|\tilde V\ket{2}$; then
 determining $a_2/a_4$ from the second row, and $\int a(p)dp/a_4$ from the third
-row.}
+row.}\fi
 
 
 Our reduction of the resonant continuum mode uses just the $m=0,\pm 1$
@@ -710,20 +772,21 @@ coupling to the continuum modes, reducing $\M$ to its upper left
 
 The evaluation of the overlap integrals (forces) that appear in $\M$
 for the inner hole region is carried out numerically using methods
-that have been documented in detail previously [] for mode
-$\ket{4}$. In summary the process consists, for each relevant orbit
-energy $W$, of numerically integrating to obtain the relationship
-between $z$ and the prior time $\tau$ for the unperturbed orbit, and
-simultaneously accumulating the integral $\Phi_m(z)$, using a discrete
-(but non-uniform) $z$-mesh.  Trapped orbits $W<0$ require a sum over
-all prior bounces in the potential well, which is represented by a
-multiplying bounce-resonant factor. Passing orbits use a single transit
-across the domain $-z_d<z<z_d$, and for the discrete modes there is no
-external contribution. The continuum mode at the incoming boundary
+that have been documented in detail previously\cite{Hutchinson2018a}
+for mode $\ket{4}$. In summary the process consists, for each relevant
+orbit energy $W$, of numerically integrating to obtain the
+relationship between $z$ and the prior time $\tau$ for the unperturbed
+orbit, and simultaneously accumulating the integral $\Phi_m(z)$ for
+each mode, using a discrete (but non-uniform) $z$-mesh.  Trapped
+orbits $W<0$ require a sum over all prior bounces in the potential
+well, which is represented by a multiplying bounce-resonant
+factor. Passing orbits use a single transit across the domain
+$-z_d<z<z_d$, and for the discrete modes there is no external
+contribution. The continuum mode at the incoming boundary
 ($z_{in}=-(v/|v|)z_d$), unlike the discrete modes, has a non-zero
 value, which is provided by the wave expression
 $\Phi_m(z_{in})=\Phi_m^{wave}$, eq.\ (\ref{Phiwave}).  Inside the
-prior time integration loop the overlap integrals
+prior time integration loop, the overlap integrals
 $\int s^*(z)\tilde f_m(z)dz$ are simultaneously
 accumulated. Afterwards they are integrated $dv$ over the relevant
 range of parallel energy $W$, and summed over relevant harmonics $m$
@@ -761,7 +824,7 @@ $\tilde n_w=\tilde V_0^{out}\ket{q}$, and $\tilde n_4=\tilde V\ket{4}$
 arising from positive velocity orbits. The upper panel shows the
 relevant curves for the continuum mode in the inner and outer regions.
 The densities $\tilde n_q$ and $\tilde n_w$ are very different in the
-inner region $|z|<z_d$ and well outside it but they converge to each
+inner region $|z|\lesssim z_d$ and well outside it but they converge to each
 other in the wave region $|z|\gg z_l$ ($z_l\sim 20$ for this
 relatively high frequency illustration). Also shown is the curve of
 $\tilde V_w\ket{q}/2$ which is the average of the inward and
@@ -839,6 +902,271 @@ $f_{\parallel0}$ to be symmetric the integration is carried out only
 for positive $v$ and $z$; the result is then doubled to account for
 force exerted at negative $z$. The sum over relevant cyclotron
 harmonics $m$ is performed last.
+
+In verification of the fairly complex coding we have compared results
+for mode $\ket{4}$ with prior calculations, confirmed certain analytic
+self-adjoint properties of the different modes, and debugged the $m=0$
+results by benchmark comparisons between two independent
+implementations of the calculation (in Fortran and Python).
+
+\section{Results}
+
+Fig. \ref{ovk25} gives a comprehensive overview of the the existence
+of instability as a function of magnetic field strength, in
+appropriately scaled units; frequencies (a) are generally proportional to
+$\sqrt{\psi}$ (except at high magnetic field beyond the plotted
+range), and the scaled figure changes only a little for different
+values of $\psi$.
+\begin{figure}
+  \includegraphics[width=.48\hsize]{F2004B1p025}\hskip-2em(a)\quad
+  \includegraphics[width=.48\hsize]{F2004B1p025d}\hskip-2em(b)\ 
+  \caption{(a) Frequency $\omega$ and frequency difference between multimode
+    and shiftmode calculations $\delta\omega$, and (b) additional mode
+    amplitudes $a_2/a_4$ and $a_q/a_4$, all as a function of
+    $\Omega$, but for four different values of $k_\perp$. \label{ovk25}}
+\end{figure}
+There are broadly three field strength regimes, as has been documented
+in prior publications. At low magnetic field
+$\Omega/\sqrt{\psi}\lesssim 0.35$ a purely growing instability exists:
+$\omega_r=0$, $\omega_i>0$. At intermediate field,
+$0.35\lesssim\Omega/\sqrt{\psi}\lesssim 0.65$ an oscillating
+instability $\omega_r>0$ exists with growth rate only of order a
+factor of two smaller than the low field regime. At higher field,
+$0.65\lesssim\Omega/\sqrt{\psi}$, growth rates $\omega_i$ are either
+zero, indicating no instability was found, or extremely small but
+positive, which occurs increasingly at higher $\Omega/\sqrt{\psi}$
+(and lower $k_\perp$); the unstable high-field cases have real
+oscillation frequencies comparable to those in the intermediate
+regime. We plot also, in the lower frame of (a) the difference
+$\delta \omega$ between the frequencies found by the multimode and
+shiftmode calculations. These differences are generally small and the
+different $\omega$ scale should be noted. Their imaginary part
+$\delta\omega_i$ is always positive in the low field regime, almost
+always positive in the intermediate regime, and almost always negative
+(and much smaller) in the high-field regime. The real part
+$\delta \omega_r$ has some positive differences in the intermediate
+regime, especially its upper end, but elsewhere is very small.
+
+The additional mode amplitudes Fig.\ \ref{ovk25}(b) accompanying these
+calculations show that the discrete mode 2 amplitude is substantial
+and generally negative in the two lower field regimes, but slightly
+positive in the high-field regime. The continuum mode amplitude is
+effectively zero in the purely growing regime, but substantially
+negative imaginary in the intermediate regime. It is mostly real and
+somewhat smaller in the high-field regime.
+
+The overall picture is that there are only rather small differences
+between the multimode and shiftmode eigenfrequencies, and that almost
+all results show the multimode to be somewhat more unstable in the two
+lower-field regimes. This summary is in reasonable agreement with
+prior expectations. The additional multimode shape flexibility
+slightly enhances instability growth rates, but overall the shiftmode
+gives rather accurate eigenfrequencies.  The high-field regime
+observation that the multimode is more stable seems more
+counterintuitive.
+
+To help explain the mechanisms underlying the three regimes, Fig.\
+\ref{hilow} shows contours in the $\omega$ plane of the residue of the
+force balance parameter whose roots are found in the prior figures.
+\begin{figure}
+  \includegraphics[width=0.48\hsize]{B10k10p25}\hskip -2em(a)\quad 
+  \includegraphics[width=0.48\hsize]{B02k1p25}\hskip -2em(b)\ 
+  \caption{Contours of force balance quantities which should be zero
+    for the eigenfrequency. (a) High magnetic field regime showing
+    both shiftmode and multimode contours. (b) Low field regime
+    showing just multimode $||M||$ contours, but also the Newton steps
+    to convergence.\label{hilow}}
+\end{figure}
+The left hand case \ref{hilow}(a) is in the high-field regime, it
+plots contours of the real and imaginary parts of the pure shiftmode
+force balance indicated $\tilde F-F_E$. The eigenfrequency is where
+the two zero contours (blue and green solid lines) intersect, at very
+small $\omega_i$. In addition, the zero contours of $||M||$, the
+multimode equation, are plotted. Actually the real $||M||=0$ contour
+is invisible, but lies just below the (corresponding) imaginary
+$\tilde F-F_E=0$, while the imaginary $||M||=0$ contour practically
+coincides with the real $\tilde F-F_E=0$ contour there, where
+$\omega_i$ is small. The two calculations agree on the eigenfrequency
+very closely.
+
+The right hand case \ref{hilow}(b) is, by contrast, in the low field
+regime in which the instability is purely growing. Contours of $||M||$
+are shown; the zero contours intersect only because the zero real part
+contour, after crossing the lower left part of the plot, proceeds up
+the vertical axis. The Newton iterations, which find this intersection
+precisely, are indicated with iteration numbers at the corresponding
+frequencies. The rather messy contours at the right of this plot arise
+where $\omega_r$ becomes comparable to $\Omega$ and the external wave
+(continuum modes) dispersion breaks down. Those effects, and other
+rounding problems visible at low $\omega_i$, do not matter because the
+eigenfrequency does not lie there.
+
+The intermediate field regime is illustrated in Fig.\ \ref{intermed}.
+\begin{figure}
+  \includegraphics[width=0.42\hsize]{B05k4p25}\hskip-2em(a)\quad
+  \includegraphics[width=0.56\hsize]{B05k4p25modes}\hskip-2em(b)\ 
+  \caption{(a) Intermediate field dispersion contours. (b)
+    Contributions to the multimode potential perturbation.\label{intermed}}
+\end{figure}
+At the left (a) we show the contours, and observe this to be a case
+where there is a visible difference between the locations of the
+intersections, the eigenfrequencies in the vicinity of
+$\omega/\sqrt{\psi}=0.11+.01i$, for multimode and shiftmode. At the
+right (b) are shown plots of the corresponding multimode potential
+perturbation as a function of position $z$.  In the upper frame one
+sees that in addition to mode 4 contribution, which far exceeds the
+vertical axis length, there is a substantial (up to 0.08) real
+contribution from mode 2. The resultant total (real) mode shape is
+shown in the lower panel by the solid line, with the mode 4
+contribution alone shown dotted. We observe that the mode 2
+contribution enhances the total perturbation for $|z|\lesssim0.25$ and
+decreases it for $|z|\gtrsim0.25$. The multimode distortion tends to
+enhance the influence of deeply trapped particles (concentrated near
+$z=0$) and decrease that of marginally trapped particles, which spend
+most of their time at large $|z|$. This effect qualitatively explains
+the greater growth rate of the multimode instability because, as has
+been noted before\cite{Hutchinson2019}, the deeply trapped particles drive the
+instability in this regime, while the marginally trapped tend to
+stabilize it.
+
+\begin{figure}ht
+  \center  \includegraphics[width=.5\hsize]{modeshape1628}
+  \caption{Scaled (total) mode shapes found from multimode analysis,
+    compared with shape observed in a PIC simulation having similar
+    parameters $\psi=0.16$, $\Omega/\sqrt{\psi}=0.68$,
+$k_\perp/\sqrt{\psi}=0.6$.\label{piccomp}}
+\end{figure}
+In futher support of this interpretation, Fig.\ (\ref{piccomp})
+compares the mode shape observed in prior PIC
+simulations\cite{Hutchinson2019} with the total mode shape calculated
+by the present analysis. The parameters are very similar $\psi=0.16$,
+$\Omega/\sqrt{\psi}=0.68$, $k_\perp/\sqrt{\psi}=0.6$, and are at the
+upper end of the intermediate field regime. The coupled amplitude of
+$\ket{2}$ for the converged eigenfrequency ($\omega=0.12+0.0022i$) is
+very substantial: $a_2/a_4=-0.51$. This implies a multimode shape
+considerably narrowed from the raw $\ket{4}$ shape, with some
+overshoot. The observed PIC mode shape is similarly narrowed, which is
+highly suggestive. However, the PIC mode is slightly narrower and does
+not show overshoot, which we take as an indication that for such an
+extreme case even the multimode case is not quite sufficient to
+represent the most unstable mode, perhaps because the expansion in
+adiabatic eigenmodes is no longer adequate. We remark that the real
+parts of the found frequencies agree very well, but the PIC growth
+rate was observed to be $\sim 0.004$, approximately a factor of 2
+larger than the multimode calculation. No analytic pure shiftmode
+instability was found for these parameters.
+
+
+\subsection*{Here we need to look at very high frequency.}
+
+\section{Discussion}
+
+The analysis here uses a specific potential shape
+$\phi_0\propto \sech^4(z/4)$. This is the shape most widely advocated
+as ``natural'' for electron holes. It is by no means unique, but it is
+part of the family $\sech^l(z/l)$ that satisfies the Debye-shielding
+requirement that the potential decays $\propto \exp(-z/\lambda_{De})$
+at large $|z|$. Members of this family have the number of discrete
+adiabatic eigenmodes equal to $l+1$ (see appendix). Higher $l$
+corresponds to a broader profile at its peak and would call for more
+than the two discrete antisymmetric modes we have analyzed here. That
+possibility also exists for broader profiles of different mathematical
+form, not having the convenience of closed form expressions for their
+eigenmodes. We believe that the current choice is representative, and
+that the same qualitative trends would be observed for other profiles.
+
+We also here take the domain boundary to be at infinity. This is the
+natural idealization for an isolated hole. However, simulations always
+deal with finite (usually periodic) domains. They would require a
+different treatment of the continuum modes. External waves would be
+restricted to a discrete set of wave-numbers that satisfies the
+boundary conditions, and the continuum become discrete. A perhaps more
+important difference is that in a finite domain there will be inward
+propagating waves (perhaps as components of standing waves) as well as
+the outward ones of the present treatment. As a result the length of
+the parallel domain will determine whether certain waves are or are
+not coupled resonantly to the perturbed electron hole. Accommodating
+this effect would require a major modification of the analysis, which
+is beyond our present scope. The infinite domain analyzed here properly
+represents truly isolated electron holes. Exactly periodic analysis
+would not correctly represent electron holes in nature, even if they
+are part of an irregularly spaced train of holes.
+
+\section*{Appendices}
+\appendix
+\section{Eigenmode derivation}
+
+The adiabatic operator (generalizing eq.\ \ref{eq:1}) for equilibrium
+$\phi_0=\sech^{n-1}(z/l)=S^n$ is
+${d^2\over dz^2}+[n(n+1)S^2-(n-1)^2]/l^2$. Define the operator
+for positive $n\in \mathbf{Z}$:
+$L_n=l^2\frac{d^2}{dz^2}+{n(n+1)} S^2$; define also the operators
+$L^+_n=l\frac{d}{dz}+n T$, $L^-_n=l\frac{d}{dz}-n T$, where
+$T=\tanh(z/l)$. Then
+\begin{equation}
+\begin{split}
+  &L^+_n L^-_n=l^2\frac{d^2}{dz^2}-n S^2-n^2 T^2
+%  =l^2\frac{d^2}{dz^2}+{(n-1)n} S^2-n^2
+  =L_{n-1}-n^2;\\
+  &L^-_n L^+_n=l^2\frac{d^2}{dz^2}+n S^2-n^2 T^2
+%  =l^2\frac{d^2}{dz^2}+{n(1+n)} S^2-n^2
+  =L_n-n^2.\\
+\end{split}
+\end{equation}
+Using these properties, we immediately find that
+   \begin{equation}
+     L_n L^-_n=(L^-_n L^+_n+n^2)L^-_n=L^-_n (L^+_n
+     L^-_n)+n^2L^-_n=L^-_n (L_{n-1}-n^2)+n^2 L^-_n=L^-_n L_{n-1},
+     \label{minus}
+   \end{equation}
+which shows that $L^-_n$ can be considered a raising ladder operator
+in the sense that $L_n=L^-_nL_{n-1}(L^-_n)^{-1}$.   
+As a result, Eq.(\ref{minus}) leads to
+\begin{equation}
+  \begin{split}
+  L_n L_n ^- L_{n-1}^- ... L_1^-&=L^-_n L_{n-1}L_{n-1}^-
+  ... L_1^-=L^-_n L_{n-1}^- L_{n-2}L_{n-2}^- ... L_1^-\\
+  & = ...= L_n ^-L_{n-1}^- ... L_1^- L_0
+  \end{split}
+  \label{nu}
+\end{equation}
+
+The eigenfunctions of $L_0$, have the form $\ket{e_0}=\etothe{uz/l}$
+with eigenvalue $u^2$, where $u$ can be either real or
+imaginary. Specializing to our current case, $n=l+1=5$ in
+Eq.(\ref{nu}) we have
+\begin{equation}
+  L_5 L_5 ^- L_4^- ... L_1^- \ket{e_0}
+  = L_5 ^- L_4^- ... L_1^- L_0 \ket{e_0}
+  %=L_5 ^- L_4^- ... L_1^-(u^2 \ket{e_0})
+  =u^2 L_5 ^- L_4^- ... L_1^- \ket{e_0}.
+\end{equation}
+Therefore, $\ket{u}=L_5 ^- L_4^- ... L_1^- \ket{e_0}$ is an
+eigenfunction of $L_5$ with eigenvalue $u^2$. Since $V_a=L_5/l^2-1=L_5/4^2-1$,
+$\ket{u}$ is also an eigenfunction of $V_a$ but the corresponding
+eigenvalue becomes $u^2/16-1$. Written out in full,
+\begin{equation}
+\begin{split}
+      \ket{u}=& L_5^- L_4^- L_3^- L_2^-L_1^-\etothe{uz/l} \\
+      =&(l\frac{d}{dz}-5T)(l\frac{d}{dz}-4T)(l\frac{d}{dz}-3T)(l\frac{d}{dz}-2T)(l\frac{d}{dz}-T)\etothe{uz/4}\\
+      =&\mathrm{e}^{uz/4}\{[-15u^4+(420S^2-225)u^2-945S^4+840S^2-120]T\\
+      &\quad\quad\quad+u[u^4+(-105S^2+85)u^2+(945S^4-1155S^2+274)]\},
+\end{split}
+\label{e5}
+\end{equation}
+which is exactly Eq.(\ref{eq:2}). When the boundary conditions require
+$\ket{u}$ to be bounded at $|z| \to \infty$, and $u$ is real, the
+polynomial obtained by letting $S\to 0$ and $T\to {\rm sign}(z)$ must
+be zero, which restricts the real values of $u$ to that polynomial's
+roots. These are the first five positive integers and give the
+discrete modes. Imaginary $u$-values give finite $\ket{u}$ at infinity
+and are not restricted except by parity considerations: they are the
+continuum modes. Evidently the same process can be used to find the
+adiabatic eigenmodes of any potential of the form $\sech^{l}(z/l)$
+with $0<l=(n-1)\in \mathbf{Z}$. Such a potential has $l+1$ discrete
+modes.
+
+\bibliography{JabRef}
 
 \end{document}
 
