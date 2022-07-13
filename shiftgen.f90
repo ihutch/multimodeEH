@@ -617,21 +617,16 @@ contains
     dispM=Ftmdsum
     dispM(1,1)=dispM(1,1)-kg**2
     dispM(2,2)=dispM(2,2)-kg**2-12./16.
-! Old sign error
-!    dispM(3,3)=dispM(3,3)+kg*sqrt(1/(real(omegaonly)**2+1.e-10)-1)&
-!         *sqrt(1+Tperpg/(Omegacg**2-omegaonly**2))/(4*3.1415926*sqm1g)
     dispM(3,3)=dispM(3,3)-kg*sqrt(1/(real(omegaonly)**2+1.e-10)-1)&
          *sqrt(1+Tperpg/(Omegacg**2-omegaonly**2))/(4*3.1415926*sqm1g)
     dispMdet=0.
     amd(1)=1.
+    det23=dispM(2,2)*dispM(3,3)-dispM(2,3)*dispM(3,2)
     if(md2skip.eq.1)then   ! Skip mode 2 (but use mode 3=q)
-       dispMdet=dispM(1,1)*dispM(3,3)-dispM(1,3)*dispM(3,1)&
-            *abs(dispM(3,3))/dispM(3,3)
-! Hack tests
-!       dispMdet=dispM(1,1)*dispM(3,3)-dispM(1,3)**2
-       dispMdet=(dispM(1,1)*dispM(3,3)-1.*dispM(1,3)*dispM(3,1))&
-            *abs(dispM(3,3))/dispM(3,3)
-       dispMdet=dispMdet/sqrt(1/(real(omegaonly)**2+1.e-8)-1)
+       dispMdet=dispM(1,1)*dispM(3,3)-dispM(1,3)*dispM(3,1)
+       dispMdet=dispMdet/dispM(3,3)
+!            *abs(dispM(3,3))/dispM(3,3)
+!       dispMdet=dispMdet/sqrt(1/(real(omegaonly)**2+1.e-8)-1) ! Old
        amd(3)=-dispM(1,1)/dispM(1,3)
     else
        if(nmd.eq.3)then
@@ -640,16 +635,17 @@ contains
              dispMdet=dispMdet+dispM(i1,1)*&
                   (dispM(i2,2)*dispM(i3,3)-dispM(i3,2)*dispM(i2,3))
           enddo
- ! Weighting factor for iteration. And rotation. 
-          dispMdet=dispMdet/sqrt(1/(real(omegaonly)**2+1.e-8)-1)&
-            *abs(dispM(3,3))/dispM(3,3)
+!          dispMdet=dispMdet/dispM(3,3)
+          dispMdet=dispMdet/det23
+ ! Weighting factor for iteration, no longer used.
+!          dispMdet=dispMdet/sqrt(1/(real(omegaonly)**2+1.e-8)-1)
 ! Solve for the amplitudes of non-shift modes, assuming detM is zero and
 ! that the amplitude of shift mode is 1. 
-          det23=dispM(2,2)*dispM(3,3)-dispM(2,3)*dispM(3,2)
           amd(2)=(dispM(2,3)*dispM(3,1)-dispM(2,1)*dispM(3,3))/det23
           amd(3)=(dispM(2,1)*dispM(3,2)-dispM(3,1)*dispM(2,2))/det23
        elseif(nmd.eq.2)then
           dispMdet=dispM(1,1)*dispM(2,2)-dispM(1,2)*dispM(2,1)
+          dispMdet=dispMdet/dispM(2,2)
           amd(2)=-dispM(1,1)/dispM(1,2)
           amd(3)=0.
 !       write(*,*)'nmd=2, dispMdet=',dispMdet
@@ -921,9 +917,14 @@ end subroutine electronforce
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 complex function getdet()
   use shiftgen
-  ! Rotate dispMdet to have same argument as dispM(1,1) doesn't work well.
-  getdet=dispMdet!*abs(dispMdet)*dispM(1,1)/abs(dispM(1,1))
+  getdet=dispMdet
 end function getdet
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine getdispM(thedispM)
+  use shiftgen
+  complex, dimension(nmdmax,nmdmax) :: thedispM
+  thedispM=dispM
+end subroutine getdispM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine setnmd(n,m)
   use shiftgen

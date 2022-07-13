@@ -610,8 +610,8 @@ subroutine plotdent
   isigma=-1
   dentpass=0.
   kg=real(omegag)
-!  kg=.03
-  kg=.143
+  kg=.01
+!  kg=.143
 !  kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
        ((Omegacg**2-omegaonly**2)*(1-omegaonly**2))))

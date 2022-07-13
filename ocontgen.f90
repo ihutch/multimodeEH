@@ -94,7 +94,7 @@ subroutine parsefoarguments(psip,vsin,ormax,oimax,kin,Omegacmax,lerase,lcont,lpl
 1 write(*,*)'-p psi, -vs vshift, -or -oi real, imag omega,',&
        ' -c no-stopping, -e erase file'
   write(*,*)'-Ti ion tempr, -oc Omegac, -k kp. -lp toggle on contours, -lt toggle Tiscan'
-  write(*,*)'-M toggle iterate determinant'
+  write(*,*)'-M toggle iterate determinant -e overwrite file'
   stop
 end subroutine parsefoarguments
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -109,7 +109,6 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
   complex ::  omegacomplex(nor,noi),forcecomplex(nor,noi),Fi
   integer :: ienharm,iinharm
   complex, dimension(nor,noi) ::  Ftcomplex,Ficomplex,DispDet,DetCap
-  complex :: ForcePhase,DetPhase
   real, dimension(nor,noi) :: cworka
   integer :: icl
   real :: zclv(20)
@@ -163,8 +162,11 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      if(id.eq.0)write(*,*)'Read forcecomplex from file ',filename,' id=',id
      if(id.eq.0)write(*,*)'kin=',kin,' omegap=',omegap,' psip',psip
   else
-     if(id.eq.0)write(*,*)'Overwriting forcecomplex file ',filename
-     close(11,status='delete')
+     call mpilprep(id,nproc) ! Only needed if mpiexec used.
+     if(id.eq.0)then
+        write(*,*)'Overwriting forcecomplex file ',filename
+        close(11,status='delete')
+     endif
   endif
   goto 102
   
@@ -183,7 +185,6 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      ! Construct the forcecomplex matrix
      if(id.eq.0)write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr &
           & Ftotali     k   nharms'
-     ForcePhase=0.
      DetPhase=0.
      do ioi=1,noi
         oi(ioi)=(ioi-.98+dioi)*oimax/(noi-1+dioi)
@@ -206,9 +207,7 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
                    &,ioi),kin*sqrt(psip),Omegacp*sqrt(psip),psip,vsin,isigma)
               ienharm=inharm()
               forcecomplex(ior,ioi)=Ftcomplex(ior,ioi)+Fi-FE
-              ForcePhase=ForcePhase+conjg(forcecomplex(ior,ioi))
               DispDet(ior,ioi)=getdet()
-              DetPhase=DetPhase+conjg(DispDet(ior,ioi))
               if(.false..and.ioi.eq.1)then
                  write(*,*)ior,or(ior),ioi,oi(ioi)
                  call printmatrix(phip)
@@ -225,9 +224,6 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
                 &,kin,ienharm,iinharm
         enddo
      enddo
-     DetPhase=DetPhase/abs(DetPhase)*ForcePhase/abs(ForcePhase)
-! Rotate the DispDet by the weighted average phase difference.
-     if(Omegacp*sqrt(psip).lt.2)DispDet=DispDet*DetPhase
      call mpilkillslaves        ! Prevent slaves from continuing.
      write(*,'(a)')'ior,  ioi  omegar omegai   Ftotalr  Ftotali     k   nharms'
      write(*,*)'Omegacp/sqrt(psi),k/sqrt(psip),psip',Omegacp,kin,psip
@@ -247,43 +243,52 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
 
   write(*,'(10f8.4)')imag(DispDet(:,1))
   write(*,'(10f8.4)')imag(DispDet(:,2))
-  
+  Fscale=(9*70.)/16**2/psip**2
   write(*,*)'Omegacp/omegab=',2*Omegacp
   if(lplot)then
-     call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,Ftcomplex/psip**2)
+     call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,Ftcomplex*Fscale)
      call legendline(.1,.9,258,'!p!o~!o!qF!de!d/!Ay!@!u2!u')
      call pltend
      if(lions)then
-        call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,Ficomplex/psip**2)
+        call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,Ficomplex*Fscale)
         call legendline(.1,.9,258,'!p!o~!o!qF!di!d/!Ay!@!u2!u')
         call pltend
      endif
-     call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,forcecomplex/psip**2)
+     call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,forcecomplex*Fscale)
      if(FE.eq.0.)then
-        call legendline(.1,.9,258,'!p!o~!o!qF/!Ay!@!u2!u')
+        call legendline(.05,.9,258,'!p!o~!o!qF/!Ay!@!u2!u')
      else
-        call legendline(.1,.9,258,'(!p!o~!o!qF-F!dE!d)/!Ay!@!u2!u')
+        call legendline(.05,.95,258,'M!d11!d')
      endif
   endif
      
 ! Find root and plot it converging (omegag is set to found omegap implicitly)  
-  omegap=complex(min(kin*sqrt(psip),ormax*.7),min(kin*sqrt(psip)/2,oimax/2.))
+  omegap=complex(min(.5*kin*sqrt(psip),ormax*.7),min(kin*sqrt(psip)/2,oimax/2.))
+  if(.false.)then
+  lgetdet=.false.
+  write(*,*)'calling M11 iterfindroot',omegap,kin,lgetdet
+  call iterfindroot(psip,vsin,Omegacp*sqrt(psip),omegap,kin&
+       &*sqrt(psip),isigma,ires)
+  call printmatrix(psip)
+  lgetdet=.true.
+  endif
   write(*,*)'calling iterfindroot',omegap,kin,lgetdet
   call iterfindroot(psip,vsin,Omegacp*sqrt(psip),omegap,kin&
        &*sqrt(psip),isigma,ires)
+  call dashset(1)
   call color(5)
-!  call dashset(4)
-  call contourl(real(DispDet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
-  call legendline(.1,.75,258,' real|M|=0')
+  call contourl(real(DispDet(:,1:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(1:noi),1)
+  call jdrwstr(wx2nx(real(omegap)),wy2ny(imag(omegap))+.06,'real(D)=0',1.1)
   call color(7)
-!  call dashset(2)
-  call contourl(imag(DispDet(:,2:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(2:noi),1)
-  call legendline(.1,.8,258,'imag|M|=0')
+  call contourl(imag(DispDet(:,1:noi)),cworka,nor,nor,noi-1,0.,1,or,oi(1:noi),1)
+  if(real(omegap).gt.1.e-5)&
+      call jdrwstr(wx2nx(real(omegap)),wy2ny(imag(omegap))+.03,'imag(D)=0',-1.)
   call dashset(0)
   call pltend
   call printmatrix(psip)
 !  write(*,'(10f8.4)')real(DispDet(1:10,1:10))
-! truncate range of DispDet
+
+! truncate range of DispDet probably no longer needed.
   dmax=abs(DetCap(int(nor/2.),int(noi/2.))-DetCap(2,int(noi/2.)))
 !  write(*,*)'dmax=',dmax,DetCap(int(nor/2.),int(noi/2.)),DetCap(2,int(noi/2.))
 !  dmax=0.1
@@ -296,24 +301,52 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
              =complex(real(DetCap(i,j)),sign(dmax,imag(DispDet(i,j))))
      enddo
   enddo
-  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DetCap)
-!  call lplot1(or,oi(2:noi),nor,noi-1,vsin,omegacp,kin,psip,DetCap(:,2:noi))
-  call legendline(.1,.9,258,'|M|')
+!  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DetCap) !Maybe unneeded.
+  if(.false.)then
+  call autoplot(or,imag(forcecomplex(:,1)*Fscale),noi)
+  call axlabels('omegar','forcecomplex,DispDet')
+  call dashset(1)
+  call polyline(or,imag(DispDet(:,1)),noi)
+  call dashset(0)
+  call pltend
+
+  call pltinit(0.,or(nor),-3.,3.)
+  call axis
+  call axlabels('omegar','DispDet/Forcecomplex')
+  call polyline(or,imag(DispDet(:,1))/imag(forcecomplex(:,1)*Fscale),nor)
+  call pltend
+  endif
+  
+  call lplot1(or,oi,nor,noi,vsin,omegacp,kin,psip,DispDet)
+  call legendline(.05,.95,258,'D')
   if(ires.ne.0)then
      do j=0,ires
         call color(6)
         call polymark(max(Frit(j),-2e-3),Fiit(j),1,ichar('0')+j)
      enddo
   endif
+  call color(5)
+  call dashset(1)
+  call contourl(real(forcecomplex(:,1:noi)*Fscale),&
+       cworka,nor,nor,noi-1,0.,1,or,oi(1:noi),1)
+  call jdrwstr(wx2nx(real(omegap)),wy2ny(imag(omegap))+.06,&
+       'real(M!d11!d)=0',1.1)
+  call color(7)
+  call contourl(imag(forcecomplex(:,1:noi)*Fscale),&
+       cworka,nor,nor,noi-1,0.,1,or,oi(1:noi),1)
+  if(real(omegap).gt.1.e-5)&
+       call jdrwstr(wx2nx(real(omegap)),wy2ny(imag(omegap))+.03,&
+       'imag(M!d11!d)=0',-1.1)
+  call dashset(0)
   call pltend
   write(*,*)'Eigenfrequency=',omegap
 !  if(lplot)     call pltend
   if(lplot3)then
      call multiframe(2,1,3)
-     call ocomplot(or,nor,vsin,omegacp,psip,(Ftcomplex(:,1))/psip**2)
+     call ocomplot(or,nor,vsin,omegacp,psip,(Ftcomplex(:,1))*Fscale)
      call legendline(.1,.9,258,'F!de!d at imag(!Aw!@)=0')
 !  call orealplot(or,nor,vsin,omegacp,psi,real(Ficomplex(:,1)))
-     call ocomplot(or,nor,vsin,omegacp,psip,(Ficomplex(:,1)/psip**2))
+     call ocomplot(or,nor,vsin,omegacp,psip,(Ficomplex(:,1)*Fscale))
      call legendline(.1,.9,258,'F!di!d')
      call multiframe(0,0,0)
      call pltend()
@@ -415,7 +448,7 @@ subroutine lplot1(or,oi,nor,noi,vsin,omegacp,kin,psi,forcecomplex)
 !        call legendline(0.1,1.04,258,'k='//string)
   call fwrite(vsin,iwidth,2,string)
   if(vsin.eq.9999.)then
-     call legendline(-0.15,1.05,258,'No ions')
+!     call legendline(-0.15,1.05,258,'No ions')
   else
      call legendline(-.2,1.05,258,'v!ds!d='//string)
   endif
@@ -484,7 +517,8 @@ subroutine printmatrix(psip)
   wqbyw4=-(dispM(1,1)*dispM(3,2)-dispM(3,1)*dispM(1,2))/&
        (dispM(1,3)*dispM(3,2)-dispM(3,3)*dispM(1,2))
   write(*,'(a,2f10.6,a,2f10.6)')' a2/a4=',amd(2),'   aq/a4=',amd(3)
-
+  write(*,*)'M13*M31/M33',dispM(1,3)*dispM(3,1)/dispM(3,3)
+  
   mdtotal=0.
   mdofzd=0.
   do i=-nzd,nzd
@@ -514,7 +548,6 @@ subroutine printmatrix(psip)
   call dcharsize(.02,.02)
   call minmax(mdofzd(is:ie,2),2*(ie+1-is),amin,amax)
   call minmax(mdofzd(is:ie,3),2*(ie+1-is),bmin,bmax)
-  write(*,*)'amin,amax,bmin,bmax',amin,amax,bmin,bmax
   call pltinit(zdent(is),zdent(ie),min(amin,bmin),max(amax,bmax))
   call axis
   call axis2
