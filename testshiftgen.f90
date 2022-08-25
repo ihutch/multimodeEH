@@ -611,6 +611,12 @@ subroutine plotdent
   dentpass=0.
   kg=real(omegag)
   kg=.01
+! Cross compare test
+  omegacg=100
+!  omegag=complex(1.814554073E-02,9.004140884E-05)
+  omegag=complex(1.764957793E-02,8.126287139E-05)
+  psig=-.25
+  kg=.1
 !  kg=.143
 !  kpar=kg*real(omegag)/sqrt(1.-real(omegag))  ! Needed for makezdent.
   kpar=kg*real(omegaonly*sqrt((Omegacg**2+1-omegaonly**2)/&
@@ -753,6 +759,7 @@ integer :: nvs=1,isw=3
 real :: ormax=0.,oi=0.
 call tsparse(ormax,oi,nvs,isw,vs,ps)
 iswin=isw
+write(*,*)'isw=',isw
 omegag=complex(ormax,oi)
   if(isw-2*(isw/2).eq.1) call testFrepel
   isw=isw/2 ! 2

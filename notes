@@ -166,3 +166,16 @@ forcetotal contours, so it is easier to understand.
 One can reverse the effect of q by reversing the sign of dispM(3,3)
 in calculating the determinant, giving a destabilizing q-contribution.
 Therefore one needs to think hard about that third row's signs
+
+14 July 2022
+
+Had considerable trouble creating a new repo on github
+Password direct access is now disallowed. git@github.com access via
+ssh is allowed. However, when I succeeded with that, I got an error
+message saying that the branch main could not be deleted. I found a new
+configuration had been created on github where main was the default
+branch, and master auxmodeversion ... were other branches. main was
+empty of course. Eventually I found by clicking far right on main that
+there was a way to change the default to master, and then delete the
+main branch. It seems to have been the way the new repo was created
+that was the problem. 

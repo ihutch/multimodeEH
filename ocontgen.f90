@@ -156,11 +156,11 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
      close(11,status='delete')
      goto 101
 100  lreadit=.true.
-!     call mpilserial  ! Remove for mpiexec operation else multiple plots.
+     call mpilserial  ! Remove for mpiexec operation else multiple plots.
      call mpilprep(id,nproc) ! Only needed if mpiexec used.
      call mpilkillslaves
      if(id.eq.0)write(*,*)'Read forcecomplex from file ',filename,' id=',id
-     if(id.eq.0)write(*,*)'kin=',kin,' omegap=',omegap,' psip',psip
+     if(id.eq.0)write(*,'(a,f8.4,a,2f10.5,a,f8.4)')'kin=',kin,' omegmaxes=',omegap,' psip',psip
   else
      call mpilprep(id,nproc) ! Only needed if mpiexec used.
      if(id.eq.0)then
@@ -241,8 +241,9 @@ subroutine fomegacont(psip,Omegacp,Typ,omegap,kin,vsin,lcont,lplot&
 104  close(12)
   endif
 
-  write(*,'(10f8.4)')imag(DispDet(:,1))
-  write(*,'(10f8.4)')imag(DispDet(:,2))
+! Often confusing:  
+!  write(*,'(10f8.4)')imag(DispDet(:,1))
+!  write(*,'(10f8.4)')imag(DispDet(:,2))
   Fscale=(9*70.)/16**2/psip**2
   write(*,*)'Omegacp/omegab=',2*Omegacp
   if(lplot)then
