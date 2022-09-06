@@ -179,3 +179,9 @@ empty of course. Eventually I found by clicking far right on main that
 there was a way to change the default to master, and then delete the
 main branch. It seems to have been the way the new repo was created
 that was the problem. 
+
+6 Aug 2022
+Found a sign error in the continuum mode expression. Tiny error at
+small p but noticeable when p is not small. This affected the
+continmodez.f90 codes and I rewrote as asymmodes.f90, but also
+subroutine mdofz. Need to rerun the plots. 
