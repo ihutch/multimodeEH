@@ -160,7 +160,6 @@ explicitly caused by the coupling \citep{Hutchinson2019a}, but since
 simulations show external coupling can affect the instability, an
 interesting question remains how to calculate it self-consistently.
 
-
 The present approach solves the Vlasov problem without expansion, by
 integration over the prior orbit, numerically in the hole region.  In
 the process the solution for wave-coupling emerges rigorously from the
@@ -174,6 +173,14 @@ eigenmodes and the expansion. Section 3 shows for the Vlasov operator
 form how the continuum modes can be included and reduced to
 effectively a single contribution. Section 4 discusses the numerical
 and analytic evaluations needed. Section 5 presents results.
+
+Prior analysis has been, like the present work, of linearized
+stability. The nonlinear consequences, observed in simulations, are
+generally that the holes break up, becoming of limited transverse
+extent, and reduced amplitude. The resulting three-dimensional holes
+can, it seems, become stable because the unstable wavenumber modes do
+not fit within their transverse extent. However, non-linear hole break up
+is beyond the present scope.
 
 \section{Eigenmode Expansion}
 Let us adopt a minimalist bra-ket notation for the adiabatic
@@ -651,10 +658,12 @@ We write the continuum integral using $\bra{q}|\tilde V_w\ket{p}=
   \int \bra{q}|\tilde{V}\ket{p}a(p)dp=\int\bra{q}|\tilde{V}_{w}+(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp
   =\tilde{V}_{w}a(q) +\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp.
 \end{equation}
+The final term can be approximated by observing that, by construction,
+$\tilde V -\tilde V_w$ is significant only in the inner $z$-region.
 As can be seen in Fig. \ref{modeplots}, the form of the continuum
-modes in the inner region is almost independent of $p$. Actually for
+modes in the inner region is almost independent of $p$. (Actually for
 small $p$, which is our interest here, the differences are even
-smaller than that figure shows. Therefore, to that degree of
+smaller than that figure shows.) Therefore, to that degree of
 approximation, we can replace $\ket{p}$ with $\ket{q}$ in the final
 term, giving $\int\bra{q}|(\tilde{V}-\tilde{V}_{w})\ket{p}a(p)dp\simeq
 \bra{q}|\tilde{V}-\tilde{V}_{w}\ket{q}\int a(p)dp$, and obtain the
@@ -664,7 +673,8 @@ equation
   (-\lambda(q)+\lambda_\perp-\tilde V_w)a(q)=\sum_j\bra{q}|\tilde{V}\ket{j}a_j
 +\bra{q}|\tilde V-\tilde V_w\ket{q}\int a(p)dp.
 \end{equation}
-Since the right hand side is a weak function of $q$, this equation
+Since (by the approximate invariance of the continuum modes in the
+inner region) the right hand side is a weak function of $q$, this equation
 implies that $a(q)$ is a resonant function of $q$ centered on the
 $q$-value for which its coefficient on the left hand side is
 approximately zero. We can write the coefficient of $a(q)$ using eq.\
@@ -724,9 +734,10 @@ $\int {dq\over \lambda_\perp-\lambda(q)-V_w}=1/K$,  we find
   ={k_\perp\over4\pi i}\sqrt{{1\over\omega^2}-1}
 \sqrt{1+{T_\perp/T_\parallel\over\Omega^2-\omega^2}}.  
 \end{equation}
-Substituting elsewhere the
-value $q=q_0$ at the integrand's pole, and introducing the shorthand
-notation $\int a(p) dp= a_q$, eq.\ (\ref{eigqint}) becomes
+Substituting elsewhere the value
+$q=q_0$ at the integrand's pole, and introducing the shorthand
+notation $\int a(p) dp=
+a_q$ (omitting the subscript 0 on q), eq.\ (\ref{eigqint}) becomes
 \begin{equation}
   \label{eigqint2}
   (K-\bra{q_0}|\tilde V-\tilde V_w\ket{q_0})a_q %\int a(p)dp
@@ -1042,7 +1053,9 @@ shown, plus the zero shiftmode contour of $M_{11}$; the zero
 imaginary contours coincide with the vertical axis. The Newton
 iterations, which find this intersection precisely, are indicated with
 iteration numbers at the corresponding frequencies. The multimode
-growth rate slightly exceeds the shiftmode.
+growth rate slightly exceeds the shiftmode. The mechanisms governing
+the instability are the same as those identified in shift-mode
+analysis (\cite{Hutchinson2018,Hutchinson2019}).
 
 The intermediate field regime is illustrated in Fig.\ \ref{intermed}.
 \begin{figure}
@@ -1107,7 +1120,8 @@ one-dimensional motion can be used, and dependence on $B$ disappears
 from the calculations. It has previously been shown that shiftmode
 analysis indicates a very slowly growing overstability that agrees
 approximately with simulations
-\citep{Hutchinson2019a}.  An example
+\citep{Hutchinson2019a}. Bounce resonance provides a stabilizing
+contribution to it because the mode has negative energy.  An example
 comparison of contours calculated with multimode and shiftmode
 analysis is given in Fig.\ \ref{hiB}.
 \begin{figure}
@@ -1126,11 +1140,12 @@ and finding agreement with shiftmode.)  The shiftmode zero-contours
 are the long-dashed lines. The real part zero-contour of $\omega$ is
 essentially unchanged by inclusion of the continuum mode, but the
 imaginary zero-contour is suppressed to lower $\omega_i$. Cases with
-much smaller $\psi$ see somewhat less multimode suppression, but they
-have a tiny growth rate anyway, since $\omega_i$ scales approximately
-as $\psi^{3/2}$. In no case has the high-$B$ instability been
-demonstrated to be fully stabilized in this multimode infinite-domain
-analysis.
+smaller $\psi$ see somewhat less multimode suppression, but they
+have a tiny growth rate anyway, since
+$\omega_i$ scales approximately as $\psi^{3/2}$.  In no case has the
+high-$B$ instability been demonstrated to be completely stabilized in this
+multimode infinite-domain analysis, but for $\psi\lesssim0.2$ the
+predicted growth time is far longer than probable hole lifetimes.
 
 Prior high B-field simulations observed somewhat higher growth rate
 than predicted by shiftmode analysis.  The multimode analysis giving
